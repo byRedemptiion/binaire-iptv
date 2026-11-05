@@ -143,6 +143,13 @@ class SettingsActivity : BaseActivity() {
                 "Qualité préférée", "Pour les chaînes disponibles en plusieurs qualités",
                 Library.qualityChoices.firstOrNull { it.first == prefs.preferredQuality }?.second ?: "Automatique"
             ) { pickQuality() },
+            SettingRow(
+                "Format d'image", "Aussi modifiable pendant la lecture (bouton Options ou touche Menu)",
+                when (prefs.resizeMode) { "zoom" -> "Plein écran (recadré)"; "fill" -> "Étiré"; else -> "Ajusté" }
+            ) {
+                prefs.resizeMode = when (prefs.resizeMode) { "fit" -> "zoom"; "zoom" -> "fill"; else -> "fit" }
+                refreshRows()
+            },
             SettingRow("Aperçu des chaînes", "Lance la chaîne en petit dans l'écran TV", switchOn = prefs.livePreview) {
                 prefs.livePreview = !prefs.livePreview; refreshRows()
             },

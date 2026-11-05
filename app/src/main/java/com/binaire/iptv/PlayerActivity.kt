@@ -12,7 +12,12 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.appcompat.app.AlertDialog
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.ui.AspectRatioFrameLayout
+import java.util.Locale
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -35,6 +40,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var overlay: View
     private lateinit var overlayTitle: TextView
     private lateinit var overlaySub: TextView
+    private lateinit var btnOptions: TextView
 
     private var player: ExoPlayer? = null
     private var index = 0
@@ -96,6 +102,13 @@ class PlayerActivity : AppCompatActivity() {
         overlay = findViewById(R.id.overlay)
         overlayTitle = findViewById(R.id.overlayTitle)
         overlaySub = findViewById(R.id.overlaySub)
+        btnOptions = findViewById(R.id.btnOptions)
+        val size = (16 * resources.displayMetrics.density).toInt()
+        btnOptions.compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
+        btnOptions.setCompoundDrawablesRelative(btnOptions.compoundDrawablesRelative[0], null, null, null)
+        btnOptions.setOnClickListener { showOptions() }
+        playerView.setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { v -> btnOptions.visibility = v })
+        applyResizeMode()
         index = Session.playIndex.coerceIn(0, playlist.size - 1)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -194,9 +207,103 @@ class PlayerActivity : AppCompatActivity() {
         handler.postDelayed(hideOverlay, 9000)
     }
 
+    // ---------- Options : format d'image, audio, sous-titres ----------
+    private val resizeModes = listOf(
+        "fit" to "Ajusté (bandes noires)",
+        "zoom" to "Plein écran (recadré)",
+        "fill" to "Étiré"
+    )
+
+    private fun applyResizeMode() {
+        playerView.resizeMode = when (prefs.resizeMode) {
+            "zoom" -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL
+            else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
+        }
+    }
+
+    private class TrackChoice(val label: String, val apply: () -> Unit)
+
+    private fun languageName(code: String?): String? {
+        if (code.isNullOrBlank() || code == "und") return null
+        return Locale(code).getDisplayLanguage(Locale.FRANCE).replaceFirstChar { it.titlecase(Locale.FRANCE) }.ifBlank { code }
+    }
+
+    private fun trackChoices(type: Int): List<TrackChoice> {
+        val p = player ?: return emptyList()
+        val out = mutableListOf<TrackChoice>()
+        for (group in p.currentTracks.groups) {
+            if (group.type != type) continue
+            for (i in 0 until group.length) {
+                if (!group.isTrackSupported(i)) continue
+                val f = group.getTrackFormat(i)
+                val name = listOfNotNull(f.label, languageName(f.language)).distinct().joinToString(" · ")
+                    .ifBlank { "Piste ${out.size + 1}" }
+                val selected = group.isTrackSelected(i)
+                out.add(TrackChoice((if (selected) "✓  " else "     ") + name) {
+                    p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+                        .setTrackTypeDisabled(type, false)
+                        .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, i))
+                        .build()
+                })
+            }
+        }
+        return out
+    }
+
+    private fun showOptions() {
+        val audio = trackChoices(C.TRACK_TYPE_AUDIO)
+        val subs = trackChoices(C.TRACK_TYPE_TEXT)
+        val entries = mutableListOf<Pair<String, () -> Unit>>()
+        val current = resizeModes.firstOrNull { it.first == prefs.resizeMode }?.second ?: resizeModes[0].second
+        entries.add("Format d'image : $current" to { pickResize() })
+        if (audio.size > 1) entries.add("Langue audio" to { pickTrack("Langue audio", audio, null) })
+        if (subs.isNotEmpty()) entries.add("Sous-titres" to {
+            pickTrack("Sous-titres", subs) {
+                val p = player
+                if (p != null) p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true).build()
+            }
+        })
+        AlertDialog.Builder(this)
+            .setTitle("Options de lecture")
+            .setItems(entries.map { it.first }.toTypedArray()) { _, w -> entries[w].second() }
+            .setNegativeButton("Fermer", null)
+            .show()
+    }
+
+    private fun pickResize() {
+        val idx = resizeModes.indexOfFirst { it.first == prefs.resizeMode }.coerceAtLeast(0)
+        AlertDialog.Builder(this)
+            .setTitle("Format d'image")
+            .setSingleChoiceItems(resizeModes.map { it.second }.toTypedArray(), idx) { d, w ->
+                prefs.resizeMode = resizeModes[w].first
+                applyResizeMode()
+                d.dismiss()
+            }
+            .setNegativeButton("Annuler", null)
+            .show()
+    }
+
+    private fun pickTrack(title: String, choices: List<TrackChoice>, disable: (() -> Unit)?) {
+        val labels = (if (disable != null) listOf("     Désactivés") else emptyList()) + choices.map { it.label }
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setItems(labels.toTypedArray()) { _, w ->
+                if (disable != null && w == 0) disable() else choices[if (disable != null) w - 1 else w].apply()
+            }
+            .setNegativeButton("Annuler", null)
+            .show()
+    }
+
     /** Zapping : CH+/CH− de la télécommande, ou haut/bas quand les commandes sont masquées. */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val item = current
+        // Touche Menu / Réglages de la télécommande : options de lecture.
+        if (::playerView.isInitialized && (event.keyCode == KeyEvent.KEYCODE_MENU || event.keyCode == KeyEvent.KEYCODE_SETTINGS)) {
+            if (event.action == KeyEvent.ACTION_UP) showOptions()
+            return true
+        }
         if (event.action == KeyEvent.ACTION_DOWN && item?.isLive == true && playlist.size > 1 && ::playerView.isInitialized) {
             when (event.keyCode) {
                 KeyEvent.KEYCODE_CHANNEL_UP -> { zap(1); return true }

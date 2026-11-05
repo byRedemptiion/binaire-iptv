@@ -12,6 +12,26 @@
         android:keepScreenOn="true"
         app:show_buffering="when_playing" />
 
+    <TextView
+        android:id="@+id/btnOptions"
+        android:layout_width="wrap_content"
+        android:layout_height="38dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="20dp"
+        android:background="@drawable/overlay_bg"
+        android:clickable="true"
+        android:drawableStart="@drawable/ic_tile_settings"
+        android:drawablePadding="8dp"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="14dp"
+        android:text="Options"
+        android:textColor="@android:color/white"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/overlay"
         android:layout_width="wrap_content"

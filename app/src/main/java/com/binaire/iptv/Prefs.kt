@@ -68,6 +68,11 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("large_buffer", false)
         set(v) = sp.edit().putBoolean("large_buffer", v).apply()
 
+    /** Format d'image : fit (ajusté), zoom (recadré), fill (étiré). */
+    var resizeMode: String
+        get() = sp.getString("resize", "fit") ?: "fit"
+        set(v) = sp.edit().putString("resize", v).apply()
+
     var livePreview: Boolean
         get() = sp.getBoolean("live_preview", true)
         set(v) = sp.edit().putBoolean("live_preview", v).apply()
