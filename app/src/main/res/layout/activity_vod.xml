@@ -48,6 +48,7 @@
             android:paddingBottom="4dp" />
 
         <LinearLayout
+            android:id="@+id/heroBox"
             android:layout_width="460dp"
             android:layout_height="132dp"
             android:layout_marginTop="8dp"

@@ -118,4 +118,8 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
     protected fun dp(v: Float) = BTheme.dp(this, v)
+
+    /** Écran peu haut (téléphone en paysage) : on simplifie certaines mises en page. */
+    protected val isShortScreen: Boolean
+        get() = resources.displayMetrics.let { it.heightPixels / it.density < 480f }
 }

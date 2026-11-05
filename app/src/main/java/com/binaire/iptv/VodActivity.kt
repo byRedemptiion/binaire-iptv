@@ -71,6 +71,11 @@ class VodActivity : BaseActivity() {
         rvRows = findViewById(R.id.rvRows)
         tvEmpty = findViewById(R.id.tvEmpty)
         search = findViewById(R.id.headerSearch)
+        if (isShortScreen) {
+            // Téléphone : toute la hauteur pour les rangées.
+            findViewById<View>(R.id.heroBox).visibility = View.GONE
+            heroBg.layoutParams.height = dp(140f)
+        }
 
         search.visibility = View.VISIBLE
         search.hint = if (kind == Kind.MOVIE) "Rechercher un film" else "Rechercher une série"

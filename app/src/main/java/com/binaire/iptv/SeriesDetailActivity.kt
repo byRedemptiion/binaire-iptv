@@ -50,6 +50,7 @@ class SeriesDetailActivity : BaseActivity() {
 
         val backdrop: ImageView = findViewById(R.id.backdrop)
         val title: TextView = findViewById(R.id.title)
+        if (isShortScreen) title.textSize = 24f
         val meta: TextView = findViewById(R.id.meta)
         val loading: View = findViewById(R.id.loading)
         plot = findViewById(R.id.plot)
