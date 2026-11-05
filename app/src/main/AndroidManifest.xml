@@ -27,13 +27,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".LoginActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".HomeActivity" android:exported="false" />
-        <activity android:name=".LiveActivity" android:exported="false" android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".VodActivity" android:exported="false" />
-        <activity android:name=".MovieDetailActivity" android:exported="false" />
-        <activity android:name=".SeriesDetailActivity" android:exported="false" />
-        <activity android:name=".SettingsActivity" android:exported="false" />
+        <activity android:name=".LoginActivity" android:exported="false" android:screenOrientation="sensorLandscape" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".HomeActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".LiveActivity" android:exported="false" android:screenOrientation="sensorLandscape" android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".VodActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".MovieDetailActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".SeriesDetailActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".SettingsActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".PlayerActivity"
