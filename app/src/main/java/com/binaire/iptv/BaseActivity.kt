@@ -64,7 +64,16 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     /** En-tête commun (logo, titre de rubrique, heure) inclus via layout/header.xml. */
-    protected fun setupHeader(title: String?) {
+    protected fun setupHeader(title: String?, showBack: Boolean = true) {
+        val back: TextView? = findViewById(R.id.headerBack)
+        back?.let {
+            it.visibility = if (showBack) View.VISIBLE else View.GONE
+            it.background = BTheme.selector(this, 17f, BTheme.PANEL, accent, BTheme.WHITE, null, 2f)
+            val size = dp(16f)
+            it.compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
+            it.setCompoundDrawablesRelative(it.compoundDrawablesRelative[0], null, null, null)
+            it.setOnClickListener { finish() }
+        }
         val titleView: TextView? = findViewById(R.id.headerTitle)
         titleView?.let {
             it.text = title.orEmpty()

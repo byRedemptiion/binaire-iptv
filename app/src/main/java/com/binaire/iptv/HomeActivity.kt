@@ -20,7 +20,7 @@ class HomeActivity : BaseActivity() {
         if (redirectIfNotReady()) return
         setContentView(R.layout.activity_home)
         applyBackground(findViewById(R.id.root))
-        setupHeader(null)
+        setupHeader(null, showBack = false)
         findViewById<ImageView>(R.id.headerLogo).layoutParams.height = dp(46f)
 
         val nLive = Session.items(Kind.LIVE).size
