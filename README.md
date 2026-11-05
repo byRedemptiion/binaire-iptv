@@ -17,8 +17,7 @@ Télécharge `Binaire-IPTV.apk` dans la dernière [Release](../../releases/lates
 
 ## Publier une nouvelle version
 
-1. Pousse le code sur `main` : GitHub compile et vérifie (onglet **Actions**).
-2. Dans **Releases** → **Draft a new release**, choisis un nouveau tag `vX.Y.Z` (ex. `v1.0.1`) puis **Publish release** : GitHub compile l'APK signé et l'ajoute à la release. Les appareils installés proposent la mise à jour automatiquement.
+Change le numéro dans `version.txt` (ex. `1.0.3`) et pousse sur `main` : GitHub compile l'APK signé et publie automatiquement la release `v1.0.3`. Les appareils installés proposent la mise à jour d'eux-mêmes. Un push sans changement de numéro fait seulement une compilation de test.
 
 La signature utilise les secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS` et `KEY_PASSWORD` (Settings → Secrets and variables → Actions). Garde la clé en lieu sûr : sans elle, impossible de mettre à jour une appli déjà installée.
 

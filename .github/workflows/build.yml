@@ -23,6 +23,26 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "release" ]]; then
+            echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+            echo "PUBLISH=release" >> "$GITHUB_ENV"
+          else
+            V=$(tr -d ' \n\r' < version.txt)
+            # Nouvelle version sur main (pas encore publiée) : on la publie automatiquement.
+            if [[ "$GITHUB_REF" == "refs/heads/main" ]] && ! gh release view "v$V" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "APP_VERSION=$V" >> "$GITHUB_ENV"
+              echo "PUBLISH=auto" >> "$GITHUB_ENV"
+            else
+              echo "APP_VERSION=$V-dev.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+              echo "PUBLISH=" >> "$GITHUB_ENV"
+            fi
+          fi
+          cat "$GITHUB_ENV"
+
       - name: Clé de signature
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -30,17 +50,9 @@ jobs:
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
             echo "KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
-          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+          elif [ -n "$PUBLISH" ]; then
             echo "::error::Le secret KEYSTORE_BASE64 est obligatoire pour publier une version."
             exit 1
-          fi
-
-      - name: Version
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
-          else
-            echo "APP_VERSION=0.0.${GITHUB_RUN_NUMBER}-dev" >> "$GITHUB_ENV"
           fi
 
       - name: Compiler
@@ -58,9 +70,20 @@ jobs:
           name: Binaire-IPTV-apk
           path: Binaire-IPTV.apk
 
-      - name: Publier la version
-        if: github.event_name == 'release'
+      - name: Publier la version (release créée à la main)
+        if: env.PUBLISH == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: Binaire-IPTV.apk
           generate_release_notes: true
+
+      - name: Publier la version (automatique)
+        if: env.PUBLISH == 'auto'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}
+          name: Binaire IPTV ${{ env.APP_VERSION }}
+          target_commitish: ${{ github.sha }}
+          files: Binaire-IPTV.apk
+          generate_release_notes: true
+          make_latest: true
