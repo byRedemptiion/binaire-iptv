@@ -26,6 +26,9 @@ class CatAdapter(
     var selectedId: String? = null
         private set
 
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int) = rows[position].id.hashCode().toLong()
+
     fun submit(list: List<CatRow>, selected: String?) {
         rows = list
         selectedId = selected
@@ -77,6 +80,9 @@ class ChannelAdapter(
 
     var items: List<Item> = emptyList()
         private set
+
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int) = items[position].id.hashCode().toLong()
 
     fun submit(list: List<Item>) {
         items = list

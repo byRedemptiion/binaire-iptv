@@ -90,18 +90,25 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun showSection(i: Int) {
+        val old = current
         current = i
         val s = sections[i]
         secTitle.text = s.title
         secSub.text = s.sub
-        sectionAdapter.notifyDataSetChanged()
+        // Mise à jour ciblée : la ligne sélectionnée à la télécommande garde le focus.
+        if (old != i) {
+            sectionAdapter.notifyItemChanged(old)
+            sectionAdapter.notifyItemChanged(i)
+        }
         rowAdapter.rows = buildRows(i)
         rowAdapter.notifyDataSetChanged()
     }
 
     private fun refreshRows() {
-        rowAdapter.rows = buildRows(current)
-        rowAdapter.notifyDataSetChanged()
+        val newRows = buildRows(current)
+        val same = newRows.size == rowAdapter.rows.size
+        rowAdapter.rows = newRows
+        if (same) rowAdapter.notifyItemRangeChanged(0, newRows.size) else rowAdapter.notifyDataSetChanged()
     }
 
     private fun buildRows(i: Int): List<SettingRow> = when (i) {
@@ -293,6 +300,9 @@ class SettingsActivity : BaseActivity() {
 
     // ---------- Adaptateurs ----------
     private inner class SectionAdapter : RecyclerView.Adapter<SectionAdapter.VH>() {
+        init { setHasStableIds(true) }
+        override fun getItemId(position: Int) = position.toLong()
+
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val icon: ImageView = v.findViewById(R.id.icon)
             val label: TextView = v.findViewById(R.id.label)
@@ -319,6 +329,8 @@ class SettingsActivity : BaseActivity() {
 
     private inner class RowAdapter : RecyclerView.Adapter<RowAdapter.VH>() {
         var rows: List<SettingRow> = emptyList()
+        init { setHasStableIds(true) }
+        override fun getItemId(position: Int) = (current * 1000 + position).toLong()
 
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val label: TextView = v.findViewById(R.id.label)

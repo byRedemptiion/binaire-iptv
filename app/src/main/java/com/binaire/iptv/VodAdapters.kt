@@ -46,6 +46,9 @@ class CardAdapter(
     private val cb: CardCallbacks
 ) : RecyclerView.Adapter<CardAdapter.VH>() {
 
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int) = cards[position].key.hashCode().toLong()
+
     var cards: List<Card> = emptyList()
         private set
 
@@ -114,6 +117,9 @@ class RowsAdapter(
 ) : RecyclerView.Adapter<RowsAdapter.VH>() {
 
     private val pool = RecyclerView.RecycledViewPool()
+
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int) = rows[position].title.hashCode().toLong() * 31 + position
     var rows: List<Row> = emptyList()
         private set
 
@@ -160,6 +166,9 @@ class ChipAdapter(
         private set
     var selected = 0
         private set
+
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int) = position.toLong()
 
     fun submit(list: List<String>, sel: Int) {
         labels = list
