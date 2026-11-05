@@ -15,6 +15,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicInteger
 
 /** Écran de démarrage : connexion à l'abonnement et chargement des chaînes, films et séries. */
@@ -82,8 +83,9 @@ class SplashActivity : BaseActivity() {
             status.text = loadingText()
             val done = AtomicInteger(0)
             val failures = mutableListOf<String>()
-            val jobs = Kind.values().map { kind ->
-                async {
+            // Une liste après l'autre : moins de mémoire utilisée en même temps.
+            for (kind in Kind.values()) {
+                run {
                     try {
                         withContext(Dispatchers.IO) {
                             Session.rawCategories[kind] = c.categories(kind)
@@ -107,7 +109,6 @@ class SplashActivity : BaseActivity() {
                     status.text = loadingText()
                 }
             }
-            jobs.awaitAll()
 
             if (failures.size == 3) {
                 showError("Impossible de charger le contenu de ton abonnement.")
@@ -116,13 +117,24 @@ class SplashActivity : BaseActivity() {
             if (failures.isNotEmpty()) toast("Chargement incomplet : ${failures.joinToString(", ")}")
 
             status.text = "Rangement de ta liste… 0 %"
-            withContext(Dispatchers.Default) {
-                Library.rebuild(prefs) { pct ->
-                    runOnUiThread {
-                        progress.progress = 70 + pct * 30 / 100
-                        status.text = "Rangement de ta liste… $pct %"
+            val finishedInTime = withTimeoutOrNull(60_000) {
+                withContext(Dispatchers.Default) {
+                    Library.rebuild(prefs) { pct ->
+                        runOnUiThread {
+                            progress.progress = 70 + pct * 30 / 100
+                            status.text = "Rangement de ta liste… $pct %"
+                        }
                     }
                 }
+                true
+            }
+            if (finishedInTime == null) {
+                Library.useRawLists()
+                android.widget.Toast.makeText(
+                    this@SplashActivity,
+                    "Le rangement prend trop de temps sur cet appareil : ta liste d'origine est affichée. Tu peux couper « Nettoyer les noms » dans les Réglages.",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
             }
             Session.ready = true
             // Laisse le temps d'apercevoir l'écran de démarrage.

@@ -1,6 +1,7 @@
 package com.binaire.iptv
 
 import kotlinx.coroutines.async
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.awaitAll
 import java.text.Normalizer
 import java.util.Locale
@@ -327,7 +328,10 @@ object Library {
         val total = Kind.values().sumOf { Session.rawStreams[it]?.size ?: 0 }.coerceAtLeast(1)
         val done = java.util.concurrent.atomic.AtomicInteger(0)
         val last = java.util.concurrent.atomic.AtomicInteger(-1)
+        val job = coroutineContext[kotlinx.coroutines.Job]
         val tick: () -> Unit = {
+            // Arrêt possible en cours de route (délai dépassé).
+            if (job != null && !job.isActive) throw kotlinx.coroutines.CancellationException("Rangement interrompu")
             val pct = done.incrementAndGet() * 100 / total
             if (onProgress != null && pct != last.get() && last.getAndSet(pct) != pct) onProgress(pct)
         }
@@ -338,6 +342,15 @@ object Library {
             }.awaitAll()
         }
         onProgress?.invoke(100)
+    }
+
+    /** Secours : listes d'origine du fournisseur, sans rangement. */
+    fun useRawLists() {
+        for (kind in Kind.values()) {
+            Session.categories[kind] = Session.rawCategories[kind].orEmpty()
+            Session.streams[kind] = Session.rawStreams[kind].orEmpty()
+            Session.catInfo[kind] = emptyList()
+        }
     }
 
     /** Reconstruit un seul type (plus rapide, après une modification dans « Organiser »). */

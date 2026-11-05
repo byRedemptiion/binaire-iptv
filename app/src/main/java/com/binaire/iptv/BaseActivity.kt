@@ -135,13 +135,20 @@ abstract class BaseActivity : AppCompatActivity() {
         }
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this).setView(box).setCancelable(false).show()
         lifecycleScope.launch {
-            withContext(Dispatchers.Default) {
-                Library.rebuild(prefs) { pct ->
-                    runOnUiThread {
-                        bar.progress = pct
-                        label.text = "Rangement de ta liste… $pct %"
+            val ok = kotlinx.coroutines.withTimeoutOrNull(90_000) {
+                withContext(Dispatchers.Default) {
+                    Library.rebuild(prefs) { pct ->
+                        runOnUiThread {
+                            bar.progress = pct
+                            label.text = "Rangement de ta liste… $pct %"
+                        }
                     }
                 }
+                true
+            }
+            if (ok == null) {
+                Library.useRawLists()
+                toast("Rangement trop long : liste d'origine affichée")
             }
             dialog.dismiss()
             after()

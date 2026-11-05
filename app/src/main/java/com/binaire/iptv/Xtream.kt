@@ -2,6 +2,8 @@ package com.binaire.iptv
 
 import android.net.Uri
 import android.util.Base64
+import android.util.JsonReader
+import android.util.JsonToken
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -241,36 +243,98 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
         return out
     }
 
+    /** Lit la réponse au fil de l'eau (sans charger tout le texte en mémoire). */
+    private fun <T> requestStream(action: String, block: (JsonReader) -> T): T {
+        val base = "$server/player_api.php".toHttpUrlOrNull()
+            ?: throw XtreamException("Adresse du serveur invalide")
+        val url = base.newBuilder()
+            .addQueryParameter("username", user)
+            .addQueryParameter("password", pass)
+            .addQueryParameter("action", action)
+            .build()
+        return try {
+            http.newCall(Request.Builder().url(url).build()).execute().use { resp ->
+                if (!resp.isSuccessful) throw XtreamException("Erreur du serveur (${resp.code})")
+                val body = resp.body ?: throw XtreamException("Réponse vide du serveur")
+                JsonReader(body.charStream()).use { r ->
+                    r.isLenient = true
+                    block(r)
+                }
+            }
+        } catch (e: XtreamException) {
+            throw e
+        } catch (e: IOException) {
+            throw XtreamException("Impossible de joindre le serveur. Vérifie l'adresse et ta connexion.")
+        } catch (e: IllegalStateException) {
+            throw XtreamException("Réponse inattendue du serveur")
+        }
+    }
+
+    /** Lit un objet JSON « à plat » en ne gardant que les champs utiles. */
+    private fun readFlat(r: JsonReader, keep: Set<String>): Map<String, String> {
+        val m = HashMap<String, String>(12)
+        r.beginObject()
+        while (r.hasNext()) {
+            val name = r.nextName()
+            if (name !in keep) { r.skipValue(); continue }
+            when (r.peek()) {
+                JsonToken.STRING, JsonToken.NUMBER -> {
+                    val v = r.nextString().trim()
+                    if (v.isNotEmpty() && v != "null") m[name] = v
+                }
+                JsonToken.BOOLEAN -> m[name] = r.nextBoolean().toString()
+                JsonToken.NULL -> r.nextNull()
+                else -> r.skipValue()
+            }
+        }
+        r.endObject()
+        return m
+    }
+
+    private val streamKeys = setOf(
+        "stream_id", "series_id", "name", "stream_icon", "cover", "category_id", "container_extension",
+        "num", "added", "last_modified", "rating"
+    )
+
     fun streams(kind: Kind): List<Item> {
         val action = when (kind) {
             Kind.LIVE -> "get_live_streams"
             Kind.MOVIE -> "get_vod_streams"
             Kind.SERIES -> "get_series"
         }
-        val arr = array(request(action))
-        val out = ArrayList<Item>(arr.length())
-        for (i in 0 until arr.length()) {
-            val o = arr.optJSONObject(i) ?: continue
-            val item = when (kind) {
-                Kind.LIVE -> Item(
-                    kind, o.str("stream_id") ?: continue, o.str("name") ?: "Chaîne",
-                    o.str("stream_icon"), o.str("category_id") ?: "", null, o.str("num"),
-                    o.str("added")?.toLongOrNull() ?: 0L, null
-                )
-                Kind.MOVIE -> Item(
-                    kind, o.str("stream_id") ?: continue, o.str("name") ?: "Film",
-                    o.str("stream_icon"), o.str("category_id") ?: "", o.str("container_extension") ?: "mp4", null,
-                    o.str("added")?.toLongOrNull() ?: 0L, parseRating(o.str("rating"))
-                )
-                Kind.SERIES -> Item(
-                    kind, o.str("series_id") ?: continue, o.str("name") ?: "Série",
-                    o.str("cover"), o.str("category_id") ?: "", null, null,
-                    o.str("last_modified")?.toLongOrNull() ?: 0L, parseRating(o.str("rating"))
-                )
+        return requestStream(action) { r ->
+            val out = ArrayList<Item>()
+            if (r.peek() != JsonToken.BEGIN_ARRAY) {
+                r.skipValue() // {} ou message d'erreur : liste vide
+                return@requestStream out
             }
-            out.add(item)
+            r.beginArray()
+            while (r.hasNext()) {
+                if (r.peek() != JsonToken.BEGIN_OBJECT) { r.skipValue(); continue }
+                val o = readFlat(r, streamKeys)
+                val item = when (kind) {
+                    Kind.LIVE -> Item(
+                        kind, o["stream_id"] ?: continue, o["name"] ?: "Chaîne",
+                        o["stream_icon"], o["category_id"] ?: "", null, o["num"],
+                        o["added"]?.toLongOrNull() ?: 0L, null
+                    )
+                    Kind.MOVIE -> Item(
+                        kind, o["stream_id"] ?: continue, o["name"] ?: "Film",
+                        o["stream_icon"], o["category_id"] ?: "", o["container_extension"] ?: "mp4", null,
+                        o["added"]?.toLongOrNull() ?: 0L, parseRating(o["rating"])
+                    )
+                    Kind.SERIES -> Item(
+                        kind, o["series_id"] ?: continue, o["name"] ?: "Série",
+                        o["cover"], o["category_id"] ?: "", null, null,
+                        o["last_modified"]?.toLongOrNull() ?: 0L, parseRating(o["rating"])
+                    )
+                }
+                out.add(item)
+            }
+            r.endArray()
+            out.trimToSize()
+            out
         }
-        return out
     }
 
     fun vodInfo(vodId: String): VodInfo {
