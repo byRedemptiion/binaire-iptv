@@ -127,7 +127,7 @@ class SettingsActivity : BaseActivity() {
             val exp = acc?.expDate?.takeIf { it > 0 }?.let { SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(it * 1000)) }
             listOf(
                 SettingRow("Serveur", "Adresse de ton fournisseur", Uri.parse(prefs.server.orEmpty()).host ?: prefs.server.orEmpty()),
-                SettingRow("Statut", "Selon ton fournisseur", acc?.status?.ifBlank { "Actif" } ?: "—"),
+                SettingRow("Statut", "Selon ton fournisseur", acc?.status?.let { statusFr(it).replaceFirstChar(Char::uppercase) } ?: "—"),
                 SettingRow("Expiration", "Date de fin de ton abonnement", exp ?: "Sans date"),
                 SettingRow("Connexions simultanées", "Nombre d'écrans en même temps", acc?.maxConnections ?: "—"),
                 SettingRow("Actualiser les listes", "Recharge les chaînes, films et séries", "Maintenant") {

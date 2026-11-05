@@ -42,3 +42,13 @@ object Session {
         )
     }
 }
+
+/** Statut renvoyé par le fournisseur (souvent en anglais), traduit. */
+internal fun statusFr(raw: String): String = when (raw.trim().lowercase()) {
+    "", "active" -> "actif"
+    "expired" -> "expiré"
+    "disabled" -> "désactivé"
+    "banned" -> "suspendu"
+    "trial" -> "d'essai"
+    else -> raw
+}

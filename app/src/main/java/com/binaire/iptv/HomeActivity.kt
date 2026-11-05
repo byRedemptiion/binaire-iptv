@@ -44,16 +44,34 @@ class HomeActivity : BaseActivity() {
         tvAccount.text = when {
             acc == null -> ""
             acc.expDate != null && acc.expDate > 0 ->
-                "Abonnement ${acc.status.ifBlank { "actif" }} · expire le " +
+                "Abonnement ${statusFr(acc.status)} · expire le " +
                     SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(acc.expDate * 1000))
-            else -> "Abonnement ${acc.status.ifBlank { "actif" }}"
+            else -> "Abonnement ${statusFr(acc.status)}"
         }
 
         findViewById<View>(R.id.tileTv).requestFocus()
     }
 
+    /** Taille des tuiles adaptée à l'écran (TV, tablette ou téléphone). */
+    private val tileSize: Pair<Int, Int> by lazy {
+        val dm = resources.displayMetrics
+        val wDp = dm.widthPixels / dm.density
+        val hDp = dm.heightPixels / dm.density
+        val w = ((wDp - 96f - 4 * 20f) / 4f).coerceIn(110f, 180f)
+        val h = (w * 1.33f).coerceAtMost((hDp - 170f).coerceAtLeast(140f))
+        dp(w) to dp(h)
+    }
+
     private fun setupTile(id: Int, icon: Int, label: String, sub: String, onClick: () -> Unit) {
         val tile = findViewById<View>(id)
+        tile.layoutParams = tile.layoutParams.apply {
+            width = tileSize.first
+            height = tileSize.second
+        }
+        if (tileSize.first < dp(150f)) {
+            tile.findViewById<TextView>(R.id.tileLabel).textSize = 17f
+            tile.findViewById<ImageView>(R.id.tileIcon).layoutParams.let { it.width = dp(42f); it.height = dp(42f) }
+        }
         tile.background = BTheme.selector(this, 20f, BTheme.PANEL, accent, BTheme.WHITE, null, 3f)
         tile.findViewById<ImageView>(R.id.tileIcon).apply {
             setImageResource(icon)
