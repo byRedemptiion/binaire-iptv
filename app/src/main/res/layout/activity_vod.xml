@@ -117,4 +117,5 @@
                 android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
+    <include layout="@layout/suggest_box" />
 </FrameLayout>

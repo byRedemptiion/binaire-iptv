@@ -99,6 +99,12 @@ class LiveActivity : BaseActivity() {
         }
 
         favorites = prefs.favorites()
+        SuggestController(
+            accent, Kind.LIVE, search,
+            findViewById(R.id.suggestBox), findViewById(R.id.suggestTitle), findViewById(R.id.suggestList),
+            items = { Session.items(Kind.LIVE) },
+            onPick = ::openFullscreen
+        )
 
         catAdapter = CatAdapter(
             accent,

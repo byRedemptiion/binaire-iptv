@@ -88,6 +88,13 @@ class VodActivity : BaseActivity() {
             }
         }
 
+        SuggestController(
+            accent, kind, search,
+            findViewById(R.id.suggestBox), findViewById(R.id.suggestTitle), findViewById(R.id.suggestList),
+            items = { Session.items(kind) },
+            onPick = { open(cardFor(it)) }
+        )
+
         callbacks = CardCallbacks(
             onFocus = { card -> card.item?.let { scheduleHero(it, card) } },
             onClick = ::open,
