@@ -73,8 +73,13 @@ class SplashActivity : BaseActivity() {
                 return@launch
             }
 
-            progress.progress = 25
-            status.text = "Chargement de tes chaînes, films et séries…"
+            progress.progress = 10
+            val names = mapOf(Kind.LIVE to "chaînes", Kind.MOVIE to "films", Kind.SERIES to "séries")
+            val finished = mutableSetOf<Kind>()
+            fun loadingText() = "Chargement de ta liste : " + Kind.values().joinToString("  ·  ") { k ->
+                names.getValue(k) + if (k in finished) " ✓" else "…"
+            }
+            status.text = loadingText()
             val done = AtomicInteger(0)
             val failures = mutableListOf<String>()
             val jobs = Kind.values().map { kind ->
@@ -97,7 +102,9 @@ class SplashActivity : BaseActivity() {
                             }
                         )
                     }
-                    progress.progress = 25 + 25 * done.incrementAndGet()
+                    finished.add(kind)
+                    progress.progress = 10 + 20 * done.incrementAndGet()
+                    status.text = loadingText()
                 }
             }
             jobs.awaitAll()
@@ -108,8 +115,15 @@ class SplashActivity : BaseActivity() {
             }
             if (failures.isNotEmpty()) toast("Chargement incomplet : ${failures.joinToString(", ")}")
 
-            status.text = "Rangement de ta liste…"
-            withContext(Dispatchers.Default) { Library.rebuild(prefs) }
+            status.text = "Rangement de ta liste… 0 %"
+            withContext(Dispatchers.Default) {
+                Library.rebuild(prefs) { pct ->
+                    runOnUiThread {
+                        progress.progress = 70 + pct * 30 / 100
+                        status.text = "Rangement de ta liste… $pct %"
+                    }
+                }
+            }
             Session.ready = true
             // Laisse le temps d'apercevoir l'écran de démarrage.
             val elapsed = System.currentTimeMillis() - started

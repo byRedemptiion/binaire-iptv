@@ -8,6 +8,10 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -113,6 +117,35 @@ abstract class BaseActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         handler.removeCallbacks(tick)
+    }
+
+    /** Reconstruit les listes en affichant une fenêtre avec le pourcentage d'avancement. */
+    protected fun rebuildWithProgress(after: () -> Unit = {}) {
+        val pad = dp(22f)
+        val bar = android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progressTintList = android.content.res.ColorStateList.valueOf(accent)
+        }
+        val label = TextView(this).apply { text = "Rangement de ta liste… 0 %"; setPadding(0, 0, 0, dp(10f)) }
+        val box = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(pad, pad, pad, pad)
+            addView(label)
+            addView(bar)
+        }
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this).setView(box).setCancelable(false).show()
+        lifecycleScope.launch {
+            withContext(Dispatchers.Default) {
+                Library.rebuild(prefs) { pct ->
+                    runOnUiThread {
+                        bar.progress = pct
+                        label.text = "Rangement de ta liste… $pct %"
+                    }
+                }
+            }
+            dialog.dismiss()
+            after()
+        }
     }
 
     protected fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

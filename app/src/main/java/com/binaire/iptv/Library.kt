@@ -1,5 +1,7 @@
 package com.binaire.iptv
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import java.text.Normalizer
 import java.util.Locale
 
@@ -102,7 +104,7 @@ object Library {
                 return code
             }
         }
-        val firstWord = s.split(Regex("""[\s|:\-]+""")).firstOrNull { it.isNotBlank() }?.let { stripAccents(it).uppercase(Locale.ROOT) }
+        val firstWord = s.split(wordSplit).firstOrNull { it.isNotBlank() }?.let { stripAccents(it).uppercase(Locale.ROOT) }
         if (firstWord != null) countryWords[firstWord]?.let { return it }
         return UNKNOWN
     }
@@ -122,6 +124,13 @@ object Library {
     private val yearRegex = Regex("""[(\[]\s*((?:19|20)\d{2})\s*[)\]]""")
     private val trailingYear = Regex("""\s[-–]\s*((?:19|20)\d{2})\s*$""")
     private val parenTag = Regex("""\s*[(\[]\s*([A-Z]{2,5}|MULTI|VOSTFR|VF|VO|4K|FHD|HD)\s*[)\]]""")
+    private val wordSplit = Regex("""[\s|:\-]+""")
+    private val multiSpace = Regex("""\s{2,}""")
+    private val emptyParens = Regex("""\(\s*\)|\[\s*]""")
+    private val backupRegex = Regex("""(?i)(?<![\p{L}])(BACK\s?UP|BKP|BK)(?![\p{L}])""")
+    private val langRegex = Regex("""(?i)(?<![\p{L}])(VOSTFR|MULTI)(?![\p{L}])""")
+    private val marks = Regex("""\p{Mn}+""")
+    private val nonKey = Regex("""[^a-z0-9+]""")
     private val adultRegex = Regex("""(?i)(xxx|adult|adulte|\+\s?18|18\s?\+|porn|for\s?adults|sexy|hot\s?girls|erotic|érotique)""")
 
     data class Cleaned(val name: String, val quality: String?, val year: String?, val backup: Boolean)
@@ -162,13 +171,31 @@ object Library {
     }
 
     private fun tidy(s: String): String =
-        s.replace(Regex("""\s{2,}"""), " ")
-            .replace(Regex("""\(\s*\)|\[\s*]"""), "")
+        s.replace(multiSpace, " ")
+            .replace(emptyParens, "")
             .trim()
             .trim('-', '–', '—', '|', ':', '_', '.', ',', '/', '#', '*', '+', ' ')
             .trim()
 
     /** Nettoie un nom de chaîne, de film ou de série. */
+    private val cleanCache = java.util.concurrent.ConcurrentHashMap<String, Cleaned>()
+    private val catCache = java.util.concurrent.ConcurrentHashMap<String, Pair<String, String>>()
+
+    /** Nom nettoyé, mémorisé : les changements de réglages suivants sont quasi instantanés. */
+    fun cleanTitleCached(raw: String, kind: Kind): Cleaned {
+        val k = (if (kind == Kind.LIVE) "L" else "V") + raw
+        return cleanCache.getOrPut(k) { cleanTitle(raw, kind) }
+    }
+
+    /** (pays, nom nettoyé) d'une catégorie, mémorisés. */
+    private fun categoryCached(raw: String): Pair<String, String> =
+        catCache.getOrPut(raw) { detectCountry(raw) to cleanCategory(raw) }
+
+    fun clearCache() {
+        cleanCache.clear()
+        catCache.clear()
+    }
+
     fun cleanTitle(raw: String, kind: Kind): Cleaned {
         var s = raw
         val qualities = mutableListOf<String>()
@@ -184,8 +211,8 @@ object Library {
             yearRegex.find(s)?.let { year = it.groupValues[1]; s = s.replace(it.value, " ") }
             if (year == null) trailingYear.find(s)?.let { year = it.groupValues[1]; s = s.substring(0, it.range.first) }
         }
-        val backup = Regex("""(?i)(?<![\p{L}])(BACK\s?UP|BKP|BK)(?![\p{L}])""").containsMatchIn(s)
-        val lang = Regex("""(?i)(?<![\p{L}])(VOSTFR|MULTI)(?![\p{L}])""").find(s)?.value?.uppercase(Locale.ROOT)
+        val backup = backupRegex.containsMatchIn(s)
+        val lang = langRegex.find(s)?.value?.uppercase(Locale.ROOT)
 
         s = parenTag.replace(s, " ")
         qualityRegex.findAll(s).forEach { qualities.add(normalizeQuality(it.value)) }
@@ -227,11 +254,11 @@ object Library {
     }
 
     private fun stripAccents(s: String): String =
-        Normalizer.normalize(s, Normalizer.Form.NFD).replace(Regex("""\p{Mn}+"""), "")
+        Normalizer.normalize(s, Normalizer.Form.NFD).replace(marks, "")
 
     /** Clé de comparaison : « Chaîne Une » et « CHAINE  UNE » donnent la même. */
     fun normKey(s: String): String =
-        stripAccents(s).lowercase(Locale.ROOT).replace(Regex("""[^a-z0-9+]"""), "")
+        stripAccents(s).lowercase(Locale.ROOT).replace(nonKey, "")
 
     val qualityChoices = listOf("auto" to "Automatique (la meilleure)", "4K" to "4K / UHD", "FHD" to "Full HD (1080p)", "HD" to "HD (720p)", "SD" to "SD (économie de données)")
 
@@ -266,7 +293,10 @@ object Library {
     // ------------------------------------------------------------------
 
     /** Reconstruit toutes les listes affichées à partir des listes brutes et des réglages. */
-    fun rebuild(prefs: Prefs) {
+    /**
+     * @param onProgress appelé (depuis un fil de calcul) avec un pourcentage 0..100.
+     */
+    suspend fun rebuild(prefs: Prefs, onProgress: ((Int) -> Unit)? = null) {
         val allowed = prefs.allowedCountries
         val clean = prefs.cleanNames
         val merge = prefs.mergeDuplicates
@@ -279,7 +309,7 @@ object Library {
         for (kind in Kind.values()) {
             val countryOf = HashMap<String, String>()
             for (c in Session.rawCategories[kind].orEmpty()) {
-                val code = detectCountry(c.name)
+                val code = categoryCached(c.name).first
                 countryOf[c.id] = code
                 catCount[code] = (catCount[code] ?: 0) + 1
             }
@@ -294,7 +324,20 @@ object Library {
             .map { CountryInfo(it, countryName(it), catCount[it] ?: 0, chanCount[it] ?: 0) }
             .sortedWith(compareBy<CountryInfo> { it.code == UNKNOWN }.thenByDescending { it.categories + it.channels / 20 })
 
-        for (kind in Kind.values()) build(kind, prefs, allowed, clean, merge, hideAdult, preferred)
+        val total = Kind.values().sumOf { Session.rawStreams[it]?.size ?: 0 }.coerceAtLeast(1)
+        val done = java.util.concurrent.atomic.AtomicInteger(0)
+        val last = java.util.concurrent.atomic.AtomicInteger(-1)
+        val tick: () -> Unit = {
+            val pct = done.incrementAndGet() * 100 / total
+            if (onProgress != null && pct != last.get() && last.getAndSet(pct) != pct) onProgress(pct)
+        }
+        // Les trois types en parallèle (les box TV ont souvent 4 cœurs).
+        kotlinx.coroutines.coroutineScope {
+            Kind.values().map { kind ->
+                async(kotlinx.coroutines.Dispatchers.Default) { build(kind, prefs, allowed, clean, merge, hideAdult, preferred, tick) }
+            }.awaitAll()
+        }
+        onProgress?.invoke(100)
     }
 
     /** Reconstruit un seul type (plus rapide, après une modification dans « Organiser »). */
@@ -312,7 +355,10 @@ object Library {
         val rawNames: MutableList<String> = mutableListOf()
     )
 
-    private fun build(kind: Kind, prefs: Prefs, allowed: Set<String>, clean: Boolean, merge: Boolean, hideAdult: Boolean, preferred: String) {
+    private fun build(
+        kind: Kind, prefs: Prefs, allowed: Set<String>, clean: Boolean, merge: Boolean,
+        hideAdult: Boolean, preferred: String, tick: () -> Unit = {}
+    ) {
         val rawCats = Session.rawCategories[kind].orEmpty()
         val rawItems = Session.rawStreams[kind].orEmpty()
         val hidden = prefs.hiddenCats(kind)
@@ -323,8 +369,8 @@ object Library {
         val merged = LinkedHashMap<String, MCat>()
         val rawToKey = HashMap<String, String>()
         for (c in rawCats) {
-            val country = detectCountry(c.name)
-            val cleanName = if (clean) cleanCategory(c.name) else c.name.trim()
+            val (country, cleaned) = categoryCached(c.name)
+            val cleanName = if (clean) cleaned else c.name.trim()
             val key = "$country|" + (if (clean && merge) normKey(cleanName) else normKey(c.name) + "#" + c.id)
             val m = merged.getOrPut(key) { MCat(key, c.id, cleanName, country, isAdult(c.name)) }
             m.rawIds.add(c.id)
@@ -343,11 +389,12 @@ object Library {
         val kept = ArrayList<Pair<Item, Cleaned>>(rawItems.size)
         val countryOfKept = ArrayList<String>(rawItems.size)
         for (it in rawItems) {
+            tick()
             val key = rawToKey[it.categoryId]
             if (key == null) {
                 if (!orphanVisible) continue
             } else if (key !in visibleKeys) continue
-            val cl = if (clean) cleanTitle(it.name, kind) else Cleaned(it.name.trim(), null, null, false)
+            val cl = if (clean) cleanTitleCached(it.name, kind) else Cleaned(it.name.trim(), null, null, false)
             val catId = key?.let { k -> merged[k]?.id } ?: ""
             kept.add(it.copy(name = cl.name, categoryId = catId, quality = cl.quality, year = cl.year) to cl)
             countryOfKept.add(key?.let { k -> merged[k]?.country } ?: UNKNOWN)

@@ -204,10 +204,7 @@ class SettingsActivity : BaseActivity() {
     /** Applique un réglage de rangement : reconstruit les listes puis rafraîchit l'écran. */
     private fun rebuildLists() {
         refreshRows()
-        lifecycleScope.launch {
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { Library.rebuild(prefs) }
-            toast("Liste mise à jour")
-        }
+        rebuildWithProgress { toast("Liste mise à jour") }
     }
 
     private fun pickQuality() {

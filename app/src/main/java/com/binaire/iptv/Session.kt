@@ -35,6 +35,7 @@ object Session {
         categories.clear()
         streams.clear()
         catInfo.clear()
+        Library.clearCache()
         countries = emptyList()
         playlist = emptyList()
         playIndex = 0

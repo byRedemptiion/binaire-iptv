@@ -80,8 +80,7 @@ class CountriesActivity : BaseActivity() {
     private fun save(set: Set<String>) {
         prefs.allowedCountries = set
         prefs.countriesConfigured = true
-        lifecycleScope.launch {
-            withContext(Dispatchers.Default) { Library.rebuild(prefs) }
+        rebuildWithProgress {
             if (first) startActivity(Intent(this@CountriesActivity, HomeActivity::class.java))
             finish()
         }
