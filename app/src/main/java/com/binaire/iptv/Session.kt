@@ -9,8 +9,19 @@ object Session {
     @Volatile var ready = false
     @Volatile var updateChecked = false
 
+    /** Listes telles que le fournisseur les donne. */
+    val rawCategories = ConcurrentHashMap<Kind, List<Category>>()
+    val rawStreams = ConcurrentHashMap<Kind, List<Item>>()
+
+    /** Listes nettoyées et filtrées, utilisées par tous les écrans (voir Library). */
     val categories = ConcurrentHashMap<Kind, List<Category>>()
     val streams = ConcurrentHashMap<Kind, List<Item>>()
+
+    /** Toutes les catégories fusionnées, masquées comprises (écran « Organiser »). */
+    val catInfo = ConcurrentHashMap<Kind, List<Library.CatInfo>>()
+
+    /** Pays détectés : code → (nombre de catégories, nombre de chaînes). */
+    @Volatile var countries: List<Library.CountryInfo> = emptyList()
 
     var playlist: List<PlayItem> = emptyList()
     var playIndex = 0
@@ -19,8 +30,12 @@ object Session {
         client = null
         account = null
         ready = false
+        rawCategories.clear()
+        rawStreams.clear()
         categories.clear()
         streams.clear()
+        catInfo.clear()
+        countries = emptyList()
         playlist = emptyList()
         playIndex = 0
     }
@@ -38,7 +53,8 @@ object Session {
             url = c.liveUrl(item.id, primary),
             isLive = true,
             liveId = item.id,
-            fallbackUrl = if (fallback) c.liveUrl(item.id, other) else null
+            fallbackUrl = if (fallback) c.liveUrl(item.id, other) else null,
+            alternates = if (fallback) item.variants.map { c.liveUrl(it, primary) } else emptyList()
         )
     }
 }

@@ -40,6 +40,7 @@ class SettingsActivity : BaseActivity() {
 
     private val sections = listOf(
         Section("Apparence", R.drawable.ic_sec_look, "Apparence", "Les couleurs et le style de l'appli."),
+        Section("Chaînes & catégories", R.drawable.ic_sec_list, "Chaînes & catégories", "Remettre en ordre la liste de ton fournisseur."),
         Section("Lecture", R.drawable.ic_sec_play, "Lecture", "Comment les chaînes, films et séries se lancent."),
         Section("Abonnement", R.drawable.ic_sec_account, "Abonnement", "Ton abonnement IPTV sur cet appareil."),
         Section("Mises à jour", R.drawable.ic_sec_update, "Mises à jour", "Garder Binaire IPTV à jour."),
@@ -78,6 +79,11 @@ class SettingsActivity : BaseActivity() {
         rvSections.post { rvSections.findViewHolderForAdapterPosition(current)?.itemView?.requestFocus() }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::rowAdapter.isInitialized) refreshRows()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt("section", current)
@@ -107,7 +113,36 @@ class SettingsActivity : BaseActivity() {
                 recreate()
             }
         )
-        1 -> listOf(
+        1 -> {
+            val countries = prefs.allowedCountries
+            val countriesLabel = when {
+                countries.isEmpty() -> "Tous"
+                countries.size <= 2 -> countries.joinToString(", ") { Library.countryName(it) }
+                else -> "${countries.size} pays"
+            }
+            listOf(
+                SettingRow("Pays affichés", "Les catégories des autres pays sont masquées", countriesLabel) {
+                    startActivity(Intent(this, CountriesActivity::class.java))
+                },
+                SettingRow("Organiser les catégories TV", "Masquer, renommer, réordonner", "") { organize(Kind.LIVE) },
+                SettingRow("Organiser les catégories Films", "Masquer, renommer, réordonner", "") { organize(Kind.MOVIE) },
+                SettingRow("Organiser les catégories Séries", "Masquer, renommer, réordonner", "") { organize(Kind.SERIES) },
+                SettingRow("Nettoyer les noms", "« FR | CHAÎNE UNE FHD ✦ VIP » devient « CHAÎNE UNE »", switchOn = prefs.cleanNames) {
+                    prefs.cleanNames = !prefs.cleanNames; rebuildLists()
+                },
+                SettingRow("Regrouper les doublons", "Une seule ligne par chaîne, les autres versions servent de secours", switchOn = prefs.mergeDuplicates) {
+                    prefs.mergeDuplicates = !prefs.mergeDuplicates; rebuildLists()
+                },
+                SettingRow("Masquer les catégories adultes", "Détectées automatiquement", switchOn = prefs.hideAdult) {
+                    prefs.hideAdult = !prefs.hideAdult; rebuildLists()
+                }
+            )
+        }
+        2 -> listOf(
+            SettingRow(
+                "Qualité préférée", "Pour les chaînes disponibles en plusieurs qualités",
+                Library.qualityChoices.firstOrNull { it.first == prefs.preferredQuality }?.second ?: "Automatique"
+            ) { pickQuality() },
             SettingRow("Aperçu des chaînes", "Lance la chaîne en petit dans l'écran TV", switchOn = prefs.livePreview) {
                 prefs.livePreview = !prefs.livePreview; refreshRows()
             },
@@ -122,7 +157,7 @@ class SettingsActivity : BaseActivity() {
                 if (prefs.largeBuffer) "Grande" else "Normale"
             ) { prefs.largeBuffer = !prefs.largeBuffer; refreshRows() }
         )
-        2 -> {
+        3 -> {
             val acc = Session.account
             val exp = acc?.expDate?.takeIf { it > 0 }?.let { SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(it * 1000)) }
             listOf(
@@ -139,7 +174,7 @@ class SettingsActivity : BaseActivity() {
                 SettingRow("Changer d'abonnement", "Se déconnecter de cet appareil (favoris et reprises conservés)", "") { confirmLogout() }
             )
         }
-        3 -> listOf(
+        4 -> listOf(
             SettingRow("Version installée", if (Updater.enabled) "Vérifiée à chaque ouverture de l'appli" else "Mises à jour automatiques non configurées pour cette version", BuildConfig.VERSION_NAME),
             SettingRow("Vérifier maintenant", "Cherche une nouvelle version", "") { checkUpdate() }
         )
@@ -155,6 +190,33 @@ class SettingsActivity : BaseActivity() {
     }
 
     // ---------- Choix ----------
+    private fun organize(kind: Kind) {
+        startActivity(Intent(this, OrganizeActivity::class.java).putExtra(OrganizeActivity.EXTRA_KIND, kind.name))
+    }
+
+    /** Applique un réglage de rangement : reconstruit les listes puis rafraîchit l'écran. */
+    private fun rebuildLists() {
+        refreshRows()
+        lifecycleScope.launch {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { Library.rebuild(prefs) }
+            toast("Liste mise à jour")
+        }
+    }
+
+    private fun pickQuality() {
+        val ids = Library.qualityChoices.map { it.first }
+        val labels = Library.qualityChoices.map { it.second }.toTypedArray<CharSequence>()
+        AlertDialog.Builder(this)
+            .setTitle("Qualité préférée")
+            .setSingleChoiceItems(labels, ids.indexOf(prefs.preferredQuality).coerceAtLeast(0)) { d, which ->
+                prefs.preferredQuality = ids[which]
+                d.dismiss()
+                rebuildLists()
+            }
+            .setNegativeButton("Annuler", null)
+            .show()
+    }
+
     private fun pickAccent() {
         val labels = BTheme.accents.map { (name, color) ->
             SpannableString("●   $name").apply { setSpan(ForegroundColorSpan(color), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }

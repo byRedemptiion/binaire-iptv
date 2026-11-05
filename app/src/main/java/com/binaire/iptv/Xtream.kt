@@ -24,8 +24,18 @@ data class Item(
     val ext: String?,
     val num: String?,
     val added: Long,
-    val rating: Double?
-)
+    val rating: Double?,
+    /** Catégories (fusionnées) où apparaît l'élément ; vide = seulement categoryId. */
+    val cats: Set<String> = emptySet(),
+    /** Autres versions de la même chaîne (ids de flux), de la meilleure à la moins bonne. */
+    val variants: List<String> = emptyList(),
+    /** Badge affiché : FHD, 4K, VOSTFR… */
+    val quality: String? = null,
+    val year: String? = null
+) {
+    fun inCat(id: String) = if (cats.isEmpty()) categoryId == id else id in cats
+    val allIds: List<String> get() = listOf(id) + variants
+}
 
 data class VodInfo(
     val plot: String?,
@@ -71,8 +81,12 @@ data class PlayItem(
     val isLive: Boolean,
     val liveId: String? = null,
     val fallbackUrl: String? = null,
-    val watch: WatchMeta? = null
-)
+    val watch: WatchMeta? = null,
+    /** Autres adresses à essayer si la lecture échoue (autres versions de la chaîne). */
+    val alternates: List<String> = emptyList()
+) {
+    val attempts: List<String> get() = listOfNotNull(url, fallbackUrl) + alternates
+}
 
 data class WatchMeta(
     val key: String,

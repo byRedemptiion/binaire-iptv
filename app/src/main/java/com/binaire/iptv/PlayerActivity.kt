@@ -38,7 +38,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private var player: ExoPlayer? = null
     private var index = 0
-    private var usingFallback = false
+    private var attempt = 0
     private var epgJob: Job? = null
 
     private val handler = Handler(Looper.getMainLooper())
@@ -56,8 +56,8 @@ class PlayerActivity : AppCompatActivity() {
                 p.prepare()
                 return
             }
-            if (!usingFallback && item.fallbackUrl != null) {
-                play(index, true) // autre format (ts ↔ m3u8)
+            if (attempt + 1 < item.attempts.size) {
+                play(index, attempt + 1) // autre format ou autre version de la chaîne
                 return
             }
             showMessage(
@@ -79,7 +79,7 @@ class PlayerActivity : AppCompatActivity() {
                     watch.remove(m.key)
                 }
             }
-            if (prefs.autoNext && index < playlist.size - 1) play(index + 1, false) else finish()
+            if (prefs.autoNext && index < playlist.size - 1) play(index + 1, 0) else finish()
         }
     }
 
@@ -135,19 +135,18 @@ class PlayerActivity : AppCompatActivity() {
         p.playWhenReady = true
         playerView.player = p
         player = p
-        play(index, false)
+        play(index, 0)
     }
 
-    private fun play(i: Int, fallback: Boolean) {
+    private fun play(i: Int, tryIndex: Int) {
         val p = player ?: return
         // On enregistre la progression de l'élément quitté (épisode précédent…).
         if (i != index) savePosition()
         val item = playlist.getOrNull(i) ?: return
         index = i
         Session.playIndex = i
-        usingFallback = fallback
-
-        val url = if (fallback) item.fallbackUrl ?: item.url else item.url
+        attempt = tryIndex
+        val url = item.attempts.getOrElse(tryIndex) { item.url }
         val media = MediaItem.Builder()
             .setUri(url)
             .apply { if (url.substringBefore('?').endsWith(".m3u8")) setMimeType(MimeTypes.APPLICATION_M3U8) }
@@ -158,7 +157,7 @@ class PlayerActivity : AppCompatActivity() {
         } ?: 0L
         if (resumeAt > 0) p.setMediaItem(media, resumeAt) else p.setMediaItem(media)
         p.prepare()
-        if (!fallback) showOverlay(item, resumeAt)
+        if (tryIndex == 0) showOverlay(item, resumeAt)
     }
 
     private fun showOverlay(item: PlayItem, resumeAt: Long) {
@@ -211,7 +210,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun zap(delta: Int) {
         val n = playlist.size
-        play(((index + delta) % n + n) % n, false)
+        play(((index + delta) % n + n) % n, 0)
     }
 
     private fun savePosition() {

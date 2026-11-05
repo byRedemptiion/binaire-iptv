@@ -81,14 +81,14 @@ class SplashActivity : BaseActivity() {
                 async {
                     try {
                         withContext(Dispatchers.IO) {
-                            Session.categories[kind] = c.categories(kind)
-                            Session.streams[kind] = c.streams(kind)
+                            Session.rawCategories[kind] = c.categories(kind)
+                            Session.rawStreams[kind] = c.streams(kind)
                         }
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
-                        Session.categories[kind] = emptyList()
-                        Session.streams[kind] = emptyList()
+                        Session.rawCategories[kind] = emptyList()
+                        Session.rawStreams[kind] = emptyList()
                         failures.add(
                             when (kind) {
                                 Kind.LIVE -> "chaînes"
@@ -108,11 +108,18 @@ class SplashActivity : BaseActivity() {
             }
             if (failures.isNotEmpty()) toast("Chargement incomplet : ${failures.joinToString(", ")}")
 
+            status.text = "Rangement de ta liste…"
+            withContext(Dispatchers.Default) { Library.rebuild(prefs) }
             Session.ready = true
             // Laisse le temps d'apercevoir l'écran de démarrage.
             val elapsed = System.currentTimeMillis() - started
             if (elapsed < 1200) delay(1200 - elapsed)
-            startActivity(Intent(this@SplashActivity, HomeActivity::class.java))
+            val needCountries = !prefs.countriesConfigured &&
+                Session.countries.count { it.code != Library.UNKNOWN } >= 2
+            startActivity(
+                if (needCountries) Intent(this@SplashActivity, CountriesActivity::class.java).putExtra(CountriesActivity.EXTRA_FIRST, true)
+                else Intent(this@SplashActivity, HomeActivity::class.java)
+            )
             finish()
         }
     }

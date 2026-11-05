@@ -83,9 +83,17 @@ class HomeActivity : BaseActivity() {
         BTheme.zoomOnFocus(tile, 1.08f)
     }
 
+    /** Les nombres changent quand on choisit des pays ou qu'on masque des catégories. */
+    private fun refreshCounts() {
+        findViewById<View>(R.id.tileTv)?.findViewById<TextView>(R.id.tileSub)?.text = "${Session.items(Kind.LIVE).size} chaînes en direct"
+        findViewById<View>(R.id.tileFilms)?.findViewById<TextView>(R.id.tileSub)?.text = "${Session.items(Kind.MOVIE).size} films"
+        findViewById<View>(R.id.tileSeries)?.findViewById<TextView>(R.id.tileSub)?.text = "${Session.items(Kind.SERIES).size} séries"
+    }
+
     override fun onResume() {
         super.onResume()
         if (isFinishing) return
+        refreshCounts()
         if (!Session.updateChecked && Updater.enabled) {
             Session.updateChecked = true
             lifecycleScope.launch {

@@ -1,6 +1,8 @@
 package com.binaire.iptv
 
 import android.content.Context
+import org.json.JSONArray
+import org.json.JSONObject
 
 /** Réglages et identifiants, stockés uniquement sur l'appareil. */
 class Prefs(context: Context) {
@@ -69,4 +71,82 @@ class Prefs(context: Context) {
     var livePreview: Boolean
         get() = sp.getBoolean("live_preview", true)
         set(v) = sp.edit().putBoolean("live_preview", v).apply()
+
+    fun removeFavorites(ids: Collection<String>) {
+        val set = favorites().toMutableSet()
+        set.removeAll(ids.toSet())
+        sp.edit().putStringSet("fav", set).apply()
+    }
+
+    // --- Grand ménage des listes ---
+    var countriesConfigured: Boolean
+        get() = sp.getBoolean("countries_done", false)
+        set(v) = sp.edit().putBoolean("countries_done", v).apply()
+
+    /** Pays affichés (codes). Vide = tous. */
+    var allowedCountries: Set<String>
+        get() = HashSet(sp.getStringSet("countries", emptySet()) ?: emptySet())
+        set(v) = sp.edit().putStringSet("countries", v).apply()
+
+    var cleanNames: Boolean
+        get() = sp.getBoolean("clean_names", true)
+        set(v) = sp.edit().putBoolean("clean_names", v).apply()
+
+    var mergeDuplicates: Boolean
+        get() = sp.getBoolean("merge_dups", true)
+        set(v) = sp.edit().putBoolean("merge_dups", v).apply()
+
+    /** Qualité préférée pour les chaînes en plusieurs versions : auto, 4K, FHD, HD, SD. */
+    var preferredQuality: String
+        get() = sp.getString("pref_quality", "auto") ?: "auto"
+        set(v) = sp.edit().putString("pref_quality", v).apply()
+
+    var hideAdult: Boolean
+        get() = sp.getBoolean("hide_adult", true)
+        set(v) = sp.edit().putBoolean("hide_adult", v).apply()
+
+    /** Catégories masquées à la main, par type (clés stables, voir Library). */
+    fun hiddenCats(kind: Kind): Set<String> = HashSet(sp.getStringSet("hidden_" + kind.name, emptySet()) ?: emptySet())
+
+    fun setCatHidden(kind: Kind, key: String, hidden: Boolean) {
+        val set = hiddenCats(kind).toMutableSet()
+        if (hidden) set.add(key) else set.remove(key)
+        sp.edit().putStringSet("hidden_" + kind.name, set).apply()
+    }
+
+    /** Noms personnalisés des catégories : clé → nom. */
+    fun catRenames(kind: Kind): Map<String, String> {
+        val raw = sp.getString("rename_" + kind.name, null) ?: return emptyMap()
+        return try {
+            val o = JSONObject(raw)
+            o.keys().asSequence().associateWith { o.optString(it) }
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
+    fun setCatRename(kind: Kind, key: String, name: String?) {
+        val m = catRenames(kind).toMutableMap()
+        if (name.isNullOrBlank()) m.remove(key) else m[key] = name.trim()
+        sp.edit().putString("rename_" + kind.name, JSONObject(m as Map<*, *>).toString()).apply()
+    }
+
+    /** Ordre personnalisé des catégories (clés). */
+    fun catOrder(kind: Kind): List<String> {
+        val raw = sp.getString("order_" + kind.name, null) ?: return emptyList()
+        return try {
+            val a = JSONArray(raw)
+            (0 until a.length()).map { a.optString(it) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    fun setCatOrder(kind: Kind, keys: List<String>) {
+        sp.edit().putString("order_" + kind.name, JSONArray(keys).toString()).apply()
+    }
+
+    fun resetOrganize(kind: Kind) {
+        sp.edit().remove("hidden_" + kind.name).remove("rename_" + kind.name).remove("order_" + kind.name).apply()
+    }
 }

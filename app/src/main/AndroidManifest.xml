@@ -33,6 +33,8 @@
         <activity android:name=".VodActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
         <activity android:name=".MovieDetailActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
         <activity android:name=".SeriesDetailActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".CountriesActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".OrganizeActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
         <activity android:name=".SettingsActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
 
         <activity

@@ -121,7 +121,7 @@ class LiveActivity : BaseActivity() {
 
         channelAdapter = ChannelAdapter(
             lifecycleScope, accent,
-            isFavorite = { favorites.contains(it) },
+            isFavorite = ::isFav,
             onFocus = ::onChannelFocused,
             onClick = ::openFullscreen,
             onLongClick = ::toggleFavorite
@@ -142,9 +142,13 @@ class LiveActivity : BaseActivity() {
 
     private fun buildCategories() {
         val all = Session.items(Kind.LIVE)
-        val counts = all.groupingBy { it.categoryId }.eachCount()
+        val counts = HashMap<String, Int>()
+        for (i in all) {
+            if (i.cats.isEmpty()) counts[i.categoryId] = (counts[i.categoryId] ?: 0) + 1
+            else for (c in i.cats) counts[c] = (counts[c] ?: 0) + 1
+        }
         val rows = mutableListOf(
-            CatRow(FAV, "★ Favoris", all.count { it.id in favorites }),
+            CatRow(FAV, "★ Favoris", all.count(::isFav)),
             CatRow(ALL, "Toutes", all.size)
         )
         for (c in Session.cats(Kind.LIVE)) {
@@ -166,9 +170,9 @@ class LiveActivity : BaseActivity() {
         val q = search.text.toString().trim()
         val list = when {
             q.isNotEmpty() -> all.filter { it.name.contains(q, ignoreCase = true) }
-            currentCat == FAV -> all.filter { it.id in favorites }
+            currentCat == FAV -> all.filter(::isFav)
             currentCat == ALL -> all
-            else -> all.filter { it.categoryId == currentCat }
+            else -> all.filter { it.inCat(currentCat) }
         }
         channelAdapter.submit(list)
         rvChannels.scrollToPosition(0)
@@ -286,8 +290,13 @@ class LiveActivity : BaseActivity() {
         startActivity(Intent(this, PlayerActivity::class.java))
     }
 
+    /** Une chaîne fusionnée est favorite si l'une de ses versions l'est. */
+    private fun isFav(item: Item) = item.allIds.any { it in favorites }
+
     private fun toggleFavorite(item: Item) {
-        val added = prefs.toggleFavorite(item.id)
+        val added = if (isFav(item)) {
+            prefs.removeFavorites(item.allIds); false
+        } else prefs.toggleFavorite(item.id)
         favorites = prefs.favorites()
         toast(if (added) "★ ${item.name} ajoutée aux favoris" else "${item.name} retirée des favoris")
         buildCategories()

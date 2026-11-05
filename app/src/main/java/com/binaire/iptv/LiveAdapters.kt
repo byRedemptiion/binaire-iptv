@@ -69,7 +69,7 @@ class CatAdapter(
 class ChannelAdapter(
     private val scope: CoroutineScope,
     private val accent: Int,
-    private val isFavorite: (String) -> Boolean,
+    private val isFavorite: (Item) -> Boolean,
     private val onFocus: (Item) -> Unit,
     private val onClick: (Item) -> Unit,
     private val onLongClick: (Item) -> Unit
@@ -91,6 +91,7 @@ class ChannelAdapter(
         val name: TextView = v.findViewById(R.id.name)
         val now: TextView = v.findViewById(R.id.now)
         val star: ImageView = v.findViewById(R.id.star)
+        val badge: TextView = v.findViewById(R.id.badge)
         var boundId: String? = null
         var epgJob: Job? = null
     }
@@ -110,7 +111,9 @@ class ChannelAdapter(
         h.boundId = item.id
         h.num.text = item.num.orEmpty()
         h.name.text = item.name
-        h.star.visibility = if (isFavorite(item.id)) View.VISIBLE else View.GONE
+        h.star.visibility = if (isFavorite(item)) View.VISIBLE else View.GONE
+        h.badge.text = item.quality.orEmpty()
+        h.badge.visibility = if (item.quality.isNullOrEmpty()) View.GONE else View.VISIBLE
         h.logo.load(item.icon) {
             placeholder(R.drawable.ic_tile_tv)
             error(R.drawable.ic_tile_tv)
