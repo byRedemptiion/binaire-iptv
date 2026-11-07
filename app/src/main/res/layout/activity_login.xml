@@ -66,6 +66,19 @@
                 android:importantForAutofill="no"
                 android:inputType="textPassword" />
 
+            <CheckBox
+                android:id="@+id/cbShowPass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginTop="-8dp"
+                android:layout_marginBottom="10dp"
+                android:paddingStart="6dp"
+                android:paddingEnd="10dp"
+                android:text="Afficher le mot de passe"
+                android:textColor="@color/muted"
+                android:textSize="12sp" />
+
             <Button
                 android:id="@+id/btnLogin"
                 style="@style/Btn"

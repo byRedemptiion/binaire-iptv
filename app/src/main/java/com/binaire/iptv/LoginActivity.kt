@@ -4,7 +4,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.content.res.ColorStateList
+import android.text.InputType
 import android.view.inputmethod.EditorInfo
+import android.widget.CheckBox
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
@@ -51,6 +54,17 @@ class LoginActivity : BaseActivity() {
         etServer.setText(prefs.lastServer)
         etUser.setText(prefs.lastUser)
         tvError.text = intent.getStringExtra(EXTRA_ERROR).orEmpty()
+
+        val cbShowPass: CheckBox = findViewById(R.id.cbShowPass)
+        cbShowPass.buttonTintList = ColorStateList.valueOf(accent)
+        cbShowPass.background = BTheme.selector(this, 8f, 0, BTheme.WHITE12, accent, null, 2f)
+        cbShowPass.setOnCheckedChangeListener { _, show ->
+            val cursor = etPass.selectionEnd
+            etPass.inputType = InputType.TYPE_CLASS_TEXT or
+                if (show) InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD else InputType.TYPE_TEXT_VARIATION_PASSWORD
+            etPass.typeface = etUser.typeface // garde la police de l'appli
+            etPass.setSelection(cursor.coerceIn(0, etPass.text.length))
+        }
 
         btnLogin.setOnClickListener { attemptLogin() }
         etPass.setOnEditorActionListener { _, actionId, _ ->
