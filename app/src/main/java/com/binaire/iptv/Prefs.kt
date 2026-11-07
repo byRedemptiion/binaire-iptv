@@ -4,28 +4,53 @@ import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Réglages et identifiants, stockés uniquement sur l'appareil. */
-class Prefs(context: Context) {
-    private val sp = context.applicationContext.getSharedPreferences("binaire", Context.MODE_PRIVATE)
+/**
+ * Réglages, stockés uniquement sur l'appareil.
+ * L'abonnement est commun à l'appareil ; tout le reste (favoris, rangement, apparence, lecture)
+ * appartient au profil en cours.
+ */
+class Prefs private constructor(context: Context, profileId: String?) {
 
-    // --- Abonnement ---
-    val server: String? get() = sp.getString("server", null)
-    val user: String? get() = sp.getString("user", null)
-    val pass: String? get() = sp.getString("pass", null)
-    val lastServer: String get() = sp.getString("last_server", "") ?: ""
-    val lastUser: String get() = sp.getString("last_user", "") ?: ""
+    constructor(context: Context) : this(context, null)
+
+    companion object {
+        fun forProfile(context: Context, id: String) = Prefs(context, id)
+
+        /** Couleur déjà choisie avant l'arrivée des profils (pour le premier profil). */
+        fun legacyAccent(context: Context): Int =
+            context.applicationContext.getSharedPreferences("binaire", Context.MODE_PRIVATE).getInt("accent", 0)
+    }
+
+    private val dev = context.applicationContext.getSharedPreferences("binaire", Context.MODE_PRIVATE)
+    private val sp = context.applicationContext.getSharedPreferences(
+        Profiles.prefsFile(profileId ?: Profiles.currentId(context)), Context.MODE_PRIVATE
+    )
+    private val kid: Boolean =
+        (profileId?.let { Profiles.get(context, it) } ?: Profiles.current(context))?.kid == true
+
+    /** Efface les réglages de ce profil (suppression d'un profil). */
+    fun wipe() {
+        sp.edit().clear().apply()
+    }
+
+    // --- Abonnement (commun à l'appareil) ---
+    val server: String? get() = dev.getString("server", null)
+    val user: String? get() = dev.getString("user", null)
+    val pass: String? get() = dev.getString("pass", null)
+    val lastServer: String get() = dev.getString("last_server", "") ?: ""
+    val lastUser: String get() = dev.getString("last_user", "") ?: ""
 
     fun hasLogin() = !server.isNullOrBlank() && !user.isNullOrBlank() && !pass.isNullOrBlank()
 
     fun saveLogin(server: String, user: String, pass: String) {
-        sp.edit()
+        dev.edit()
             .putString("server", server).putString("user", user).putString("pass", pass)
             .putString("last_server", server).putString("last_user", user)
             .apply()
     }
 
     fun clearLogin() {
-        sp.edit().remove("server").remove("user").remove("pass").apply()
+        dev.edit().remove("server").remove("user").remove("pass").apply()
     }
 
     // --- Favoris (chaînes) ---
@@ -107,7 +132,7 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putString("pref_quality", v).apply()
 
     var hideAdult: Boolean
-        get() = sp.getBoolean("hide_adult", true)
+        get() = kid || sp.getBoolean("hide_adult", true)
         set(v) = sp.edit().putBoolean("hide_adult", v).apply()
 
     /** Catégories masquées à la main, par type (clés stables, voir Library). */

@@ -5,7 +5,18 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /** Reprise de lecture, épisodes vus et « Ma liste », sur l'appareil. */
-class WatchStore(context: Context) {
+class WatchStore private constructor(context: Context, profileId: String?) {
+
+    constructor(context: Context) : this(context, null)
+
+    companion object {
+        fun forProfile(context: Context, id: String) = WatchStore(context, id)
+    }
+
+    fun wipe() {
+        sp.edit().clear().apply()
+    }
+
 
     data class Resume(
         val meta: WatchMeta,
@@ -18,7 +29,9 @@ class WatchStore(context: Context) {
         val remainingMin: Long get() = ((duration - position).coerceAtLeast(0) / 60000)
     }
 
-    private val sp = context.applicationContext.getSharedPreferences("binaire_watch", Context.MODE_PRIVATE)
+    private val sp = context.applicationContext.getSharedPreferences(
+        Profiles.watchFile(profileId ?: Profiles.currentId(context)), Context.MODE_PRIVATE
+    )
 
     // ---------- Reprise ----------
     fun resumes(): List<Resume> {

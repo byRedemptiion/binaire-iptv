@@ -35,9 +35,12 @@ class HomeActivity : BaseActivity() {
         setupTile(R.id.tileSeries, R.drawable.ic_tile_series, "SÉRIES", "$nSeries séries") {
             startActivity(Intent(this, VodActivity::class.java).putExtra(VodActivity.EXTRA_KIND, Kind.SERIES.name))
         }
-        setupTile(R.id.tileSettings, R.drawable.ic_tile_settings, "RÉGLAGES", "Couleurs, lecture, compte") {
-            startActivity(Intent(this, SettingsActivity::class.java))
+        setupTile(R.id.tileSettings, R.drawable.ic_tile_settings, "RÉGLAGES", "Couleurs, lecture, profils") {
+            val parental = Profiles.parentalPin(this)
+            val open = { startActivity(Intent(this, SettingsActivity::class.java)) }
+            if (Profiles.current(this).kid && parental != null) askPin("Code parental", parental, open) else open()
         }
+        setupProfileChip()
 
         val acc = Session.account
         val tvAccount: TextView = findViewById(R.id.tvAccount)
@@ -60,6 +63,21 @@ class HomeActivity : BaseActivity() {
         val w = ((wDp - 96f - 4 * 20f) / 4f).coerceIn(110f, 180f)
         val h = (w * 1.33f).coerceAtMost((hDp - 170f).coerceAtLeast(140f))
         dp(w) to dp(h)
+    }
+
+    /** Pastille du profil en haut à droite : ouvre « Qui regarde ? ». */
+    private fun setupProfileChip() {
+        val chip: TextView = findViewById(R.id.headerProfile)
+        val p = Profiles.current(this)
+        val color = BTheme.accents.getOrElse(p.color) { BTheme.accents[0] }.second
+        val initial = p.name.trim().take(1).uppercase(Locale.FRANCE)
+        val badge = android.text.SpannableString(" $initial ").apply {
+            setSpan(RoundedBadgeSpan(color, dp(26f)), 0, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        chip.text = android.text.TextUtils.concat(badge, "  ", p.name)
+        chip.background = BTheme.selector(this, 18f, BTheme.PANEL, accent, BTheme.WHITE, null, 2f)
+        chip.visibility = View.VISIBLE
+        chip.setOnClickListener { startActivity(Intent(this, ProfilesActivity::class.java)) }
     }
 
     private fun setupTile(id: Int, icon: Int, label: String, sub: String, onClick: () -> Unit) {

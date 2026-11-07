@@ -36,6 +36,7 @@
         <activity android:name=".SeriesDetailActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
         <activity android:name=".CountriesActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
         <activity android:name=".OrganizeActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
+        <activity android:name=".ProfilesActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
         <activity android:name=".SettingsActivity" android:exported="false" android:screenOrientation="sensorLandscape" />
 
         <activity

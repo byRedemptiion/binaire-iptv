@@ -137,7 +137,7 @@ abstract class BaseActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val ok = kotlinx.coroutines.withTimeoutOrNull(90_000) {
                 withContext(Dispatchers.Default) {
-                    Library.rebuild(prefs) { pct ->
+                    Library.rebuild(Prefs(this@BaseActivity)) { pct ->
                         runOnUiThread {
                             bar.progress = pct
                             label.text = "Rangement de ta liste… $pct %"
@@ -153,6 +153,68 @@ abstract class BaseActivity : AppCompatActivity() {
             dialog.dismiss()
             after()
         }
+    }
+
+    private fun pinField(): android.widget.EditText = android.widget.EditText(this).apply {
+        inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        filters = arrayOf(android.text.InputFilter.LengthFilter(4))
+        hint = "4 chiffres"
+        gravity = android.view.Gravity.CENTER
+        textSize = 22f
+        letterSpacing = 0.4f
+    }
+
+    private fun padded(v: View): View = android.widget.FrameLayout(this).apply {
+        setPadding(dp(24f), dp(8f), dp(24f), 0)
+        addView(v)
+    }
+
+    /** Demande un code ; onOk n'est appelé que s'il est correct. */
+    protected fun askPin(title: String, expected: String, onOk: () -> Unit) {
+        val field = pinField()
+        val d = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(padded(field))
+            .setPositiveButton("Valider", null)
+            .setNegativeButton("Annuler", null)
+            .create()
+        d.setOnShowListener {
+            val check = {
+                if (field.text.toString() == expected) {
+                    d.dismiss(); onOk()
+                } else {
+                    field.text.clear(); field.error = "Code incorrect"
+                }
+            }
+            d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener { check() }
+            field.setOnEditorActionListener { _, _, _ -> check(); true }
+            field.requestFocus()
+        }
+        d.show()
+    }
+
+    /** Choisir un nouveau code (saisi deux fois). */
+    protected fun newPin(title: String, onSet: (String) -> Unit) {
+        val first = pinField()
+        val d = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage("Choisis un code à 4 chiffres.")
+            .setView(padded(first))
+            .setPositiveButton("Suivant", null)
+            .setNegativeButton("Annuler", null)
+            .create()
+        d.setOnShowListener {
+            d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val code = first.text.toString()
+                if (code.length != 4) {
+                    first.error = "4 chiffres"
+                    return@setOnClickListener
+                }
+                d.dismiss()
+                askPin("Confirme le code", code) { onSet(code) }
+            }
+        }
+        d.show()
     }
 
     protected fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()

@@ -66,6 +66,22 @@
         android:visibility="gone" />
 
     <TextView
+        android:id="@+id/headerProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginEnd="14dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:paddingStart="6dp"
+        android:paddingEnd="14dp"
+        android:singleLine="true"
+        android:textColor="@color/text"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <TextView
         android:id="@+id/clock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

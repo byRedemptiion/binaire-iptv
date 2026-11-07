@@ -116,6 +116,12 @@ class SplashActivity : BaseActivity() {
             }
             if (failures.isNotEmpty()) toast("Chargement incomplet : ${failures.joinToString(", ")}")
 
+            if (Profiles.all(this@SplashActivity).size > 1 && Profiles.askOnStart(this@SplashActivity)) {
+                Session.ready = true
+                startActivity(Intent(this@SplashActivity, ProfilesActivity::class.java).putExtra(ProfilesActivity.EXTRA_START, true))
+                finish()
+                return@launch
+            }
             status.text = "Rangement de ta liste… 0 %"
             val finishedInTime = withTimeoutOrNull(60_000) {
                 withContext(Dispatchers.Default) {

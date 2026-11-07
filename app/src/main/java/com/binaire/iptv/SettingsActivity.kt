@@ -40,9 +40,10 @@ class SettingsActivity : BaseActivity() {
 
     private val sections = listOf(
         Section("Apparence", R.drawable.ic_sec_look, "Apparence", "Les couleurs et le style de l'appli."),
+        Section("Profils", R.drawable.ic_sec_account, "Profils", "Chaque membre de la famille a ses favoris et sa liste rangée."),
         Section("Chaînes & catégories", R.drawable.ic_sec_list, "Chaînes & catégories", "Remettre en ordre la liste de ton fournisseur."),
         Section("Lecture", R.drawable.ic_sec_play, "Lecture", "Comment les chaînes, films et séries se lancent."),
-        Section("Abonnement", R.drawable.ic_sec_account, "Abonnement", "Ton abonnement IPTV sur cet appareil."),
+        Section("Abonnement", R.drawable.ic_sec_info, "Abonnement", "Ton abonnement IPTV sur cet appareil."),
         Section("Mises à jour", R.drawable.ic_sec_update, "Mises à jour", "Garder Binaire IPTV à jour."),
         Section("À propos", R.drawable.ic_sec_info, "À propos", "Binaire IPTV · Simple. Numérique. Intuitif.")
     )
@@ -121,6 +122,25 @@ class SettingsActivity : BaseActivity() {
             }
         )
         1 -> {
+            val p = Profiles.current(this)
+            val n = Profiles.all(this).size
+            listOf(
+                SettingRow("Profil actuel", "Changer de profil", p.name) {
+                    startActivity(Intent(this, ProfilesActivity::class.java))
+                },
+                SettingRow("Gérer les profils", "Ajouter, renommer, changer la couleur, profil Enfant, codes",
+                    "$n profil" + if (n > 1) "s" else "") {
+                    startActivity(Intent(this, ProfilesActivity::class.java).putExtra(ProfilesActivity.EXTRA_MANAGE, true))
+                },
+                SettingRow("Demander « Qui regarde ? » au démarrage", "Quand il y a plusieurs profils",
+                    switchOn = Profiles.askOnStart(this)) {
+                    Profiles.setAskOnStart(this, !Profiles.askOnStart(this)); refreshRows()
+                },
+                SettingRow("Code parental", "Protège les Réglages des profils Enfant",
+                    if (Profiles.parentalPin(this) != null) "Défini" else "Aucun") { parentalCode() }
+            )
+        }
+        2 -> {
             val countries = prefs.allowedCountries
             val countriesLabel = when {
                 countries.isEmpty() -> "Tous"
@@ -145,7 +165,7 @@ class SettingsActivity : BaseActivity() {
                 }
             )
         }
-        2 -> listOf(
+        3 -> listOf(
             SettingRow(
                 "Qualité préférée", "Pour les chaînes disponibles en plusieurs qualités",
                 Library.qualityChoices.firstOrNull { it.first == prefs.preferredQuality }?.second ?: "Automatique"
@@ -171,7 +191,7 @@ class SettingsActivity : BaseActivity() {
                 if (prefs.largeBuffer) "Grande" else "Normale"
             ) { prefs.largeBuffer = !prefs.largeBuffer; refreshRows() }
         )
-        3 -> {
+        4 -> {
             val acc = Session.account
             val exp = acc?.expDate?.takeIf { it > 0 }?.let { SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(it * 1000)) }
             listOf(
@@ -188,7 +208,7 @@ class SettingsActivity : BaseActivity() {
                 SettingRow("Changer d'abonnement", "Se déconnecter de cet appareil (favoris et reprises conservés)", "") { confirmLogout() }
             )
         }
-        4 -> listOf(
+        5 -> listOf(
             SettingRow("Version installée", if (Updater.enabled) "Vérifiée à chaque ouverture de l'appli" else "Mises à jour automatiques non configurées pour cette version", BuildConfig.VERSION_NAME),
             SettingRow("Vérifier maintenant", "Cherche une nouvelle version", "") { checkUpdate() }
         )
@@ -204,6 +224,24 @@ class SettingsActivity : BaseActivity() {
     }
 
     // ---------- Choix ----------
+    private fun parentalCode() {
+        val current = Profiles.parentalPin(this)
+        if (current == null) {
+            newPin("Code parental") { Profiles.setParentalPin(this, it); refreshRows(); toast("Code parental enregistré") }
+            return
+        }
+        askPin("Code parental actuel", current) {
+            AlertDialog.Builder(this)
+                .setTitle("Code parental")
+                .setItems(arrayOf("Changer le code", "Retirer le code")) { _, w ->
+                    if (w == 0) newPin("Nouveau code parental") { Profiles.setParentalPin(this, it); refreshRows(); toast("Code changé") }
+                    else { Profiles.setParentalPin(this, null); refreshRows(); toast("Code parental retiré") }
+                }
+                .setNegativeButton("Annuler", null)
+                .show()
+        }
+    }
+
     private fun organize(kind: Kind) {
         startActivity(Intent(this, OrganizeActivity::class.java).putExtra(OrganizeActivity.EXTRA_KIND, kind.name))
     }
