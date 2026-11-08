@@ -127,6 +127,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onStop()
         savePosition()
         releasePlayer()
+        Sync.pushLater(this)
     }
 
     override fun onDestroy() {

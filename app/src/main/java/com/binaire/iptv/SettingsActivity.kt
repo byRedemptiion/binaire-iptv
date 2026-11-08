@@ -41,6 +41,7 @@ class SettingsActivity : BaseActivity() {
     private val sections = listOf(
         Section("Apparence", R.drawable.ic_sec_look, "Apparence", "Les couleurs et le style de l'appli."),
         Section("Profils", R.drawable.ic_sec_account, "Profils", "Chaque membre de la famille a ses favoris et sa liste rangée."),
+        Section("Compte Binaire", R.drawable.ic_sec_account, "Compte Binaire", "Tes abonnements et profils sur tous tes appareils."),
         Section("Chaînes & catégories", R.drawable.ic_sec_list, "Chaînes & catégories", "Remettre en ordre la liste de ton fournisseur."),
         Section("Lecture", R.drawable.ic_sec_play, "Lecture", "Comment les chaînes, films et séries se lancent."),
         Section("Abonnement", R.drawable.ic_sec_info, "Abonnement", "Ton abonnement IPTV sur cet appareil."),
@@ -82,6 +83,7 @@ class SettingsActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        loadSubs()
         if (::rowAdapter.isInitialized) refreshRows()
     }
 
@@ -112,8 +114,27 @@ class SettingsActivity : BaseActivity() {
         if (same) rowAdapter.notifyItemRangeChanged(0, newRows.size) else rowAdapter.notifyDataSetChanged()
     }
 
-    private fun buildRows(i: Int): List<SettingRow> = when (i) {
-        0 -> listOf(
+    private fun buildRows(i: Int): List<SettingRow> = when (sections[i].label) {
+        "Compte Binaire" -> {
+            if (Cloud.isLinked(this)) {
+                val subs = cachedSubs
+                listOf(
+                    SettingRow("Compte", "Cet appareil est connecté à ton compte Binaire", Cloud.ownerEmail(this) ?: "Connecté"),
+                    SettingRow(
+                        "Abonnement utilisé", "Choisis parmi les abonnements de ton compte",
+                        subs?.firstOrNull { it.id == Cloud.subId(this) }?.name ?: if (subs == null) "…" else "—"
+                    ) { pickSub() },
+                    SettingRow("Synchroniser maintenant", "Profils, favoris, reprises de lecture", "") { syncNow() },
+                    SettingRow("Gérer mon compte", "Abonnements et appareils, depuis ton téléphone", Cloud.WEB_URL.removePrefix("https://")),
+                    SettingRow("Déconnecter cet appareil", "Il garde son abonnement actuel mais ne se synchronise plus", "") { unlinkDevice() }
+                )
+            } else listOf(
+                SettingRow(
+                    "Connecter cet appareil", "Avec un QR code : plus rien à taper, tes profils et abonnements te suivent partout", ""
+                ) { startActivity(Intent(this, ActivateActivity::class.java)) }
+            )
+        }
+        "Apparence" -> listOf(
             SettingRow("Couleur principale", "Sélection, boutons et logo texte", BTheme.accentName(this), swatch = accent) { pickAccent() },
             SettingRow("Fond d'écran", "Thème Binaire, Aurore, Noir ou image floutée", BTheme.backgroundName(this)) { pickBackground() },
             SettingRow("Afficher l'heure", "En haut de chaque écran", switchOn = prefs.showClock) {
@@ -121,7 +142,7 @@ class SettingsActivity : BaseActivity() {
                 recreate()
             }
         )
-        1 -> {
+        "Profils" -> {
             val p = Profiles.current(this)
             val n = Profiles.all(this).size
             listOf(
@@ -140,7 +161,7 @@ class SettingsActivity : BaseActivity() {
                     if (Profiles.parentalPin(this) != null) "Défini" else "Aucun") { parentalCode() }
             )
         }
-        2 -> {
+        "Chaînes & catégories" -> {
             val countries = prefs.allowedCountries
             val countriesLabel = when {
                 countries.isEmpty() -> "Tous"
@@ -165,7 +186,7 @@ class SettingsActivity : BaseActivity() {
                 }
             )
         }
-        3 -> listOf(
+        "Lecture" -> listOf(
             SettingRow(
                 "Qualité préférée", "Pour les chaînes disponibles en plusieurs qualités",
                 Library.qualityChoices.firstOrNull { it.first == prefs.preferredQuality }?.second ?: "Automatique"
@@ -191,7 +212,7 @@ class SettingsActivity : BaseActivity() {
                 if (prefs.largeBuffer) "Grande" else "Normale"
             ) { prefs.largeBuffer = !prefs.largeBuffer; refreshRows() }
         )
-        4 -> {
+        "Abonnement" -> {
             val acc = Session.account
             val exp = acc?.expDate?.takeIf { it > 0 }?.let { SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(it * 1000)) }
             listOf(
@@ -208,7 +229,7 @@ class SettingsActivity : BaseActivity() {
                 SettingRow("Changer d'abonnement", "Se déconnecter de cet appareil (favoris et reprises conservés)", "") { confirmLogout() }
             )
         }
-        5 -> listOf(
+        "Mises à jour" -> listOf(
             SettingRow("Version installée", if (Updater.enabled) "Vérifiée à chaque ouverture de l'appli" else "Mises à jour automatiques non configurées pour cette version", BuildConfig.VERSION_NAME),
             SettingRow("Vérifier maintenant", "Cherche une nouvelle version", "") { checkUpdate() }
         )
@@ -221,6 +242,67 @@ class SettingsActivity : BaseActivity() {
             },
             SettingRow("Police Outfit", "SIL Open Font License 1.1", "Voir") { showLicense() }
         )
+    }
+
+    // ---------- Compte Binaire ----------
+    private var cachedSubs: List<Cloud.Sub>? = null
+
+    private fun loadSubs() {
+        if (!Cloud.isLinked(this)) return
+        lifecycleScope.launch {
+            cachedSubs = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching { Cloud.subs(this@SettingsActivity) }.getOrNull()
+            } ?: emptyList()
+            if (::rowAdapter.isInitialized && sections[current].label == "Compte Binaire") refreshRows()
+        }
+    }
+
+    private fun pickSub() {
+        val subs = cachedSubs ?: return
+        if (subs.isEmpty()) {
+            toast("Ajoute un abonnement depuis ton téléphone : ${Cloud.WEB_URL.removePrefix("https://")}")
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Abonnement utilisé")
+            .setSingleChoiceItems(subs.map { it.name }.toTypedArray(), subs.indexOfFirst { it.id == Cloud.subId(this) }) { d, w ->
+                d.dismiss()
+                val s = subs[w]
+                prefs.saveLogin(XtreamClient.normalize(s.server), s.user, s.pass)
+                Cloud.setSubId(this, s.id)
+                Session.clear()
+                EpgCache.clear()
+                startActivity(Intent(this, SplashActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+                finish()
+            }
+            .setNegativeButton("Annuler", null)
+            .show()
+    }
+
+    private fun syncNow() {
+        toast("Synchronisation…")
+        lifecycleScope.launch {
+            val r = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { Sync.pull(this@SettingsActivity) } }
+            if (r.isSuccess) {
+                toast("Compte synchronisé")
+                rebuildWithProgress { recreate() }
+            } else toast("Synchronisation impossible : ${r.exceptionOrNull()?.message}")
+        }
+    }
+
+    private fun unlinkDevice() {
+        AlertDialog.Builder(this)
+            .setTitle("Déconnecter cet appareil ?")
+            .setMessage("Il garde son abonnement et ses profils actuels, mais ne se synchronise plus avec ton compte Binaire.")
+            .setPositiveButton("Déconnecter") { _, _ ->
+                lifecycleScope.launch {
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { Cloud.unlink(this@SettingsActivity) }
+                    toast("Appareil déconnecté")
+                    refreshRows()
+                }
+            }
+            .setNegativeButton("Annuler", null)
+            .show()
     }
 
     // ---------- Choix ----------

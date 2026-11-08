@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070912">
+<title>Binaire IPTV — Mon compte</title>
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070912;
+    --panel: rgba(18, 20, 28, 0.78);
+    --panel-solid: #12141c;
+    --field: #1c202b;
+    --line: rgba(255, 255, 255, 0.10);
+    --text: #f2f4f8;
+    --muted: #b8c0cc;
+    --faint: #8a94a6;
+    --accent: #e5203a;
+    --accent-ink: #ffffff;
+    --ok: #3ccf7a;
+    --warn: #ff8a98;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(60% 45% at 0% 0%, rgba(30, 107, 255, 0.55) 0%, transparent 70%),
+      radial-gradient(60% 45% at 100% 100%, rgba(255, 31, 61, 0.45) 0%, transparent 70%),
+      radial-gradient(40% 35% at 85% 10%, rgba(91, 42, 158, 0.30) 0%, transparent 70%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: Outfit, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  main {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: max(20px, env(safe-area-inset-top)) 16px 40px;
+  }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+  header img { height: 40px; width: auto; display: block; }
+  .who { font-size: 13px; color: var(--muted); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+  h1 { font-size: 26px; font-weight: 800; line-height: 1.15; margin: 0 0 6px; }
+  h2 { font-size: 17px; font-weight: 700; margin: 26px 0 10px; }
+  p.lead { color: var(--muted); margin: 0 0 18px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+  input {
+    height: 50px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: var(--field);
+    color: var(--text);
+    font: 16px Outfit, system-ui, sans-serif;
+    padding: 0 14px;
+    outline: none;
+    width: 100%;
+  }
+  input:focus { border-color: var(--accent); }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .check { flex-direction: row; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+  .check input { width: 20px; height: 20px; accent-color: var(--accent); }
+  button {
+    min-height: 50px;
+    border-radius: 25px;
+    border: none;
+    padding: 0 20px;
+    font: 700 16px Outfit, system-ui, sans-serif;
+    cursor: pointer;
+    color: var(--accent-ink);
+    background: var(--accent);
+  }
+  button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  button.secondary { background: rgba(255, 255, 255, 0.12); color: var(--text); font-weight: 500; }
+  button.ghost { background: transparent; color: var(--muted); font-weight: 500; min-height: 44px; }
+  button.small { min-height: 38px; padding: 0 14px; font-size: 14px; border-radius: 19px; }
+  button:disabled { opacity: 0.55; cursor: default; }
+  .tabs { display: flex; background: var(--field); border-radius: 25px; padding: 4px; margin-bottom: 14px; }
+  .tabs button { flex: 1; min-height: 42px; background: transparent; color: var(--muted); font-weight: 500; }
+  .tabs button[aria-selected="true"] { background: #fff; color: #070912; font-weight: 700; }
+  .msg { font-size: 14px; border-radius: 12px; padding: 10px 12px; display: none; }
+  .msg.err { display: block; background: rgba(229, 32, 58, 0.16); color: var(--warn); }
+  .msg.ok { display: block; background: rgba(60, 207, 122, 0.14); color: var(--ok); }
+  .code {
+    font-size: 34px; font-weight: 800; letter-spacing: 6px; text-align: center; color: var(--accent);
+    margin: 4px 0 2px;
+  }
+  .tv {
+    width: 84px; height: 84px; border-radius: 42px; background: rgba(255, 255, 255, 0.08);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
+  }
+  .center { text-align: center; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--panel-solid); border-radius: 12px; padding: 12px 12px 12px 14px;
+  }
+  .item .grow { flex: 1; min-width: 0; }
+  .item .t { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .s { font-size: 13px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 10px; flex: none;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff;
+  }
+  .empty { color: var(--faint); font-size: 14px; padding: 4px 2px; }
+  .hint { font-size: 13px; color: var(--faint); }
+  a { color: #ff9aa7; }
+  .hidden { display: none !important; }
+  footer { margin-top: 30px; text-align: center; font-size: 12px; color: var(--faint); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="logo.png" alt="Binaire IPTV">
+    <div class="who" id="who"></div>
+  </header>
+
+  <!-- Chargement -->
+  <section id="v-loading" class="center">
+    <p class="lead">Chargement…</p>
+  </section>
+
+  <!-- Connexion / création de compte -->
+  <section id="v-auth" class="hidden">
+    <h1 id="auth-title">Ton compte Binaire</h1>
+    <p class="lead" id="auth-lead">Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.</p>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-signup" aria-selected="true">Créer un compte</button>
+      <button type="button" role="tab" id="tab-login" aria-selected="false">Se connecter</button>
+    </div>
+    <form id="f-auth" class="card stack" novalidate>
+      <label>E-mail
+        <input type="email" id="a-email" autocomplete="email" required placeholder="toi@exemple.fr">
+      </label>
+      <label>Mot de passe
+        <input type="password" id="a-pass" autocomplete="new-password" required minlength="6" placeholder="6 caractères minimum">
+      </label>
+      <label class="check"><input type="checkbox" id="a-show"> Afficher le mot de passe</label>
+      <div class="msg" id="a-msg" role="alert"></div>
+      <button type="submit" id="a-submit">Créer mon compte</button>
+      <button type="button" class="ghost hidden" id="a-forgot">Mot de passe oublié ?</button>
+    </form>
+  </section>
+
+  <!-- Ajouter un abonnement -->
+  <section id="v-sub" class="hidden">
+    <h1 id="sub-title">Ajoute ton abonnement</h1>
+    <p class="lead">Les identifiants Xtream Codes donnés par ton fournisseur. Tu ne les taperas plus jamais sur la TV.</p>
+    <form id="f-sub" class="card stack" novalidate>
+      <label>Nom (pour t'y retrouver)
+        <input type="text" id="s-name" placeholder="Mon abonnement" maxlength="40">
+      </label>
+      <label>Serveur
+        <input type="url" id="s-server" placeholder="http://exemple.com:8080" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </label>
+      <label>Nom d'utilisateur
+        <input type="text" id="s-user" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </label>
+      <label>Mot de passe
+        <input type="password" id="s-pass" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </label>
+      <label class="check"><input type="checkbox" id="s-show"> Afficher le mot de passe</label>
+      <p class="hint">Astuce : colle ton lien M3U complet dans « Serveur », les champs se remplissent tout seuls.</p>
+      <div class="msg" id="s-msg" role="alert"></div>
+      <button type="submit" id="s-submit">Enregistrer l'abonnement</button>
+      <button type="button" class="ghost" id="s-cancel">Annuler</button>
+    </form>
+  </section>
+
+  <!-- Autoriser une TV -->
+  <section id="v-approve" class="hidden">
+    <div class="card stack center">
+      <div class="tv" aria-hidden="true">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#f2f4f8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <h1>Autoriser cet appareil ?</h1>
+      <p class="lead" style="margin:0">Un appareil demande l'accès à ton compte avec le code</p>
+      <div class="code" id="ap-code"></div>
+      <p class="hint" id="ap-model" style="margin:0"></p>
+      <label style="text-align:left">Nom de l'appareil
+        <input type="text" id="ap-name" maxlength="30" placeholder="TV du salon">
+      </label>
+      <div class="msg" id="ap-msg" role="alert"></div>
+      <button type="button" id="ap-ok">Autoriser</button>
+      <button type="button" class="ghost" id="ap-no">Ce n'est pas moi</button>
+    </div>
+  </section>
+
+  <!-- Succès -->
+  <section id="v-done" class="hidden">
+    <div class="card stack center">
+      <div class="tv" aria-hidden="true" style="background: rgba(60,207,122,0.16)">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3ccf7a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+      </div>
+      <h1>C'est fait !</h1>
+      <p class="lead" style="margin:0">Regarde ta TV : elle se connecte toute seule à ton abonnement.</p>
+      <button type="button" class="secondary" id="done-account">Voir mon compte</button>
+    </div>
+  </section>
+
+  <!-- Mon compte -->
+  <section id="v-account" class="hidden">
+    <h1>Mon compte</h1>
+    <p class="lead">Tes abonnements et tes appareils Binaire IPTV.</p>
+
+    <form id="f-code" class="card stack" novalidate>
+      <label>Autoriser une TV avec son code
+        <input type="text" id="c-code" placeholder="ABC-123" maxlength="7" autocapitalize="characters" autocomplete="off" spellcheck="false">
+      </label>
+      <div class="msg" id="c-msg" role="alert"></div>
+      <button type="submit" class="secondary">Continuer</button>
+    </form>
+
+    <h2>Mes abonnements</h2>
+    <div class="list" id="subs"></div>
+    <button type="button" class="secondary" id="add-sub" style="margin-top:10px; width:100%">+ Ajouter un abonnement</button>
+
+    <h2>Mes appareils</h2>
+    <div class="list" id="devices"></div>
+
+    <h2>Profils</h2>
+    <div class="list" id="profiles"></div>
+    <p class="hint">Les profils se créent et se modifient sur la TV (« Qui regarde ? ») et se synchronisent automatiquement.</p>
+
+    <button type="button" class="ghost" id="logout" style="margin-top:20px; width:100%">Se déconnecter</button>
+  </section>
+
+  <footer>Binaire IPTV · Simple. Numérique. Intuitif.<br>L'appli lit ton abonnement, elle ne fournit aucune chaîne.</footer>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    sendPasswordResetEmail, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyD4AGPutgrGhmttoeeVuHhJQs8rzqJuQac",
+    authDomain: "binaire-iptv.firebaseapp.com",
+    projectId: "binaire-iptv",
+    storageBucket: "binaire-iptv.firebasestorage.app",
+    messagingSenderId: "712562892693",
+    appId: "1:712562892693:web:3c4b359ea30a0fff9b209c"
+  });
+  const auth = getAuth(app);
+  auth.languageCode = "fr";
+  const db = getFirestore(app);
+
+  const COLORS = ["#E5203A", "#3B7BF6", "#16A34A", "#EA7A0C", "#8B5CF6", "#DB2777", "#0E9F9A", "#C9A227"];
+  const $ = (id) => document.getElementById(id);
+  const views = ["v-loading", "v-auth", "v-sub", "v-approve", "v-done", "v-account"];
+
+  function show(view) {
+    for (const v of views) $(v).classList.toggle("hidden", v !== view);
+    window.scrollTo(0, 0);
+  }
+  function msg(id, text, ok = false) {
+    const el = $(id);
+    el.textContent = text || "";
+    el.className = "msg" + (text ? (ok ? " ok" : " err") : "");
+  }
+  function cleanCode(v) {
+    return (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+  }
+  function prettyCode(c) { return c.length === 6 ? c.slice(0, 3) + "-" + c.slice(3) : c; }
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  }
+  function authError(e) {
+    const c = (e && e.code) || "";
+    if (c.includes("email-already-in-use")) return "Un compte existe déjà avec cet e-mail : utilise « Se connecter ».";
+    if (c.includes("invalid-email")) return "Cette adresse e-mail n'est pas valide.";
+    if (c.includes("weak-password")) return "Mot de passe trop court (6 caractères minimum).";
+    if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found")) return "E-mail ou mot de passe incorrect.";
+    if (c.includes("too-many-requests")) return "Trop d'essais. Réessaie dans quelques minutes.";
+    if (c.includes("network")) return "Pas de connexion Internet.";
+    if (c.includes("permission-denied")) return "Action refusée par le serveur.";
+    return "Une erreur est survenue (" + (c || (e && e.message) || "inconnue") + ").";
+  }
+
+  // ---------- État ----------
+  let pendingCode = cleanCode(new URLSearchParams(location.search).get("code"));
+  let mode = "signup";
+  let editingSub = null;      // id de l'abonnement modifié, ou null
+  let afterSub = null;        // que faire après l'enregistrement d'un abonnement
+
+  // ---------- Connexion ----------
+  function setMode(m) {
+    mode = m;
+    $("tab-signup").setAttribute("aria-selected", m === "signup");
+    $("tab-login").setAttribute("aria-selected", m === "login");
+    $("a-submit").textContent = m === "signup" ? "Créer mon compte" : "Se connecter";
+    $("a-pass").autocomplete = m === "signup" ? "new-password" : "current-password";
+    $("a-forgot").classList.toggle("hidden", m !== "login");
+    msg("a-msg", "");
+  }
+  $("tab-signup").onclick = () => setMode("signup");
+  $("tab-login").onclick = () => setMode("login");
+  $("a-show").onchange = (e) => { $("a-pass").type = e.target.checked ? "text" : "password"; };
+  $("s-show").onchange = (e) => { $("s-pass").type = e.target.checked ? "text" : "password"; };
+
+  $("f-auth").onsubmit = async (e) => {
+    e.preventDefault();
+    const email = $("a-email").value.trim();
+    const pass = $("a-pass").value;
+    if (!email || !pass) return msg("a-msg", "Remplis l'e-mail et le mot de passe.");
+    $("a-submit").disabled = true;
+    msg("a-msg", "");
+    try {
+      if (mode === "signup") await createUserWithEmailAndPassword(auth, email, pass);
+      else await signInWithEmailAndPassword(auth, email, pass);
+    } catch (err) {
+      msg("a-msg", authError(err));
+    } finally {
+      $("a-submit").disabled = false;
+    }
+  };
+  $("a-forgot").onclick = async () => {
+    const email = $("a-email").value.trim();
+    if (!email) return msg("a-msg", "Écris d'abord ton e-mail ci-dessus.");
+    try {
+      await sendPasswordResetEmail(auth, email);
+      msg("a-msg", "E-mail envoyé : suis le lien pour choisir un nouveau mot de passe.", true);
+    } catch (err) {
+      msg("a-msg", authError(err));
+    }
+  };
+  $("logout").onclick = () => signOut(auth);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      $("who").textContent = "";
+      $("auth-title").textContent = pendingCode ? "Connecte ta TV" : "Ton compte Binaire";
+      $("auth-lead").textContent = pendingCode
+        ? "Crée ton compte Binaire (ou connecte-toi) pour autoriser ta TV. Ensuite, plus rien à taper."
+        : "Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.";
+      setMode("signup");
+      show("v-auth");
+      return;
+    }
+    $("who").textContent = user.email || "";
+    try {
+      await setDoc(doc(db, "users", user.uid), { email: user.email || "" }, { merge: true });
+    } catch (err) { /* sans gravité */ }
+    if (pendingCode) await startApprove(pendingCode);
+    else await openAccount();
+  });
+
+  // ---------- Abonnements ----------
+  async function loadSubs() {
+    const snap = await getDocs(collection(db, "users", auth.currentUser.uid, "subs"));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  }
+
+  function openSubForm(sub, then) {
+    editingSub = sub ? sub.id : null;
+    afterSub = then;
+    $("sub-title").textContent = sub ? "Modifier l'abonnement" : "Ajoute ton abonnement";
+    $("s-name").value = sub ? sub.name || "" : "";
+    $("s-server").value = sub ? sub.server || "" : "";
+    $("s-user").value = sub ? sub.user || "" : "";
+    $("s-pass").value = sub ? sub.pass || "" : "";
+    $("s-cancel").classList.toggle("hidden", !then || then === "approve-required");
+    msg("s-msg", "");
+    show("v-sub");
+  }
+
+  $("s-server").addEventListener("input", (e) => {
+    const v = e.target.value.trim();
+    if (!v.includes("username=")) return;
+    try {
+      const u = new URL(v.includes("://") ? v : "http://" + v);
+      const user = u.searchParams.get("username");
+      const pass = u.searchParams.get("password");
+      if (user) $("s-user").value = user;
+      if (pass) $("s-pass").value = pass;
+      e.target.value = u.protocol + "//" + u.host;
+      msg("s-msg", "Lien M3U détecté : identifiants remplis.", true);
+    } catch (err) { /* lien incomplet, on attend la suite */ }
+  });
+
+  $("s-cancel").onclick = () => (afterSub === "approve" ? startApprove(pendingCode) : openAccount());
+
+  $("f-sub").onsubmit = async (e) => {
+    e.preventDefault();
+    let server = $("s-server").value.trim();
+    const user = $("s-user").value.trim();
+    const pass = $("s-pass").value.trim();
+    if (!server || !user || !pass) return msg("s-msg", "Remplis le serveur, le nom d'utilisateur et le mot de passe.");
+    if (!/^https?:\/\//i.test(server)) server = "http://" + server;
+    server = server.replace(/\/(player_api\.php|get\.php|c)\/?$/i, "").replace(/\/+$/, "");
+    $("s-submit").disabled = true;
+    try {
+      const id = editingSub || ("s" + Date.now().toString(36));
+      await setDoc(doc(db, "users", auth.currentUser.uid, "subs", id), {
+        name: $("s-name").value.trim() || "Mon abonnement",
+        server, user, pass,
+        updatedAt: Date.now()
+      }, { merge: true });
+      if (afterSub === "approve" || afterSub === "approve-required") await startApprove(pendingCode);
+      else await openAccount();
+    } catch (err) {
+      msg("s-msg", authError(err));
+    } finally {
+      $("s-submit").disabled = false;
+    }
+  };
+
+  // ---------- Autorisation d'une TV ----------
+  let approving = null; // { code, tvUid, model }
+
+  async function startApprove(code) {
+    pendingCode = code;
+    msg("ap-msg", "");
+    show("v-loading");
+    let snap;
+    try {
+      snap = await getDoc(doc(db, "activations", code));
+    } catch (err) {
+      pendingCode = "";
+      await openAccount();
+      return msg("c-msg", authError(err));
+    }
+    if (!snap.exists()) {
+      pendingCode = "";
+      await openAccount();
+      return msg("c-msg", "Code inconnu ou expiré. Vérifie le code affiché sur la TV.");
+    }
+    const a = snap.data();
+    if (a.owner) {
+      pendingCode = "";
+      history.replaceState(null, "", location.pathname);
+      if (a.owner === auth.currentUser.uid) return show("v-done");
+      await openAccount();
+      return msg("c-msg", "Ce code a déjà été utilisé.");
+    }
+    // Il faut au moins un abonnement dans le compte pour que la TV ait quelque chose à lire.
+    const subs = await loadSubs();
+    if (subs.length === 0) return openSubForm(null, "approve-required");
+    approving = { code, tvUid: a.tvUid, model: a.model || "" };
+    $("ap-code").textContent = prettyCode(code);
+    $("ap-model").textContent = a.model ? "Appareil : " + a.model : "";
+    $("ap-name").value = "";
+    show("v-approve");
+    $("ap-name").focus();
+  }
+
+  $("ap-ok").onclick = async () => {
+    if (!approving) return;
+    const uid = auth.currentUser.uid;
+    const name = $("ap-name").value.trim() || approving.model || "Ma TV";
+    $("ap-ok").disabled = true;
+    msg("ap-msg", "");
+    try {
+      // 1. l'appareil est ajouté au compte, 2. la demande est validée (la TV le détecte).
+      await setDoc(doc(db, "users", uid, "devices", approving.tvUid), {
+        name, model: approving.model, addedAt: Date.now(), lastSeen: Date.now()
+      });
+      await updateDoc(doc(db, "activations", approving.code), {
+        owner: uid, email: auth.currentUser.email || "", deviceName: name, approvedAt: Date.now()
+      });
+      approving = null;
+      pendingCode = "";
+      history.replaceState(null, "", location.pathname);
+      show("v-done");
+    } catch (err) {
+      msg("ap-msg", authError(err));
+    } finally {
+      $("ap-ok").disabled = false;
+    }
+  };
+  $("ap-no").onclick = async () => {
+    approving = null;
+    pendingCode = "";
+    history.replaceState(null, "", location.pathname);
+    await openAccount();
+  };
+  $("done-account").onclick = () => openAccount();
+
+  $("f-code").onsubmit = async (e) => {
+    e.preventDefault();
+    const c = cleanCode($("c-code").value);
+    if (c.length !== 6) return msg("c-msg", "Le code fait 6 caractères (ex. ABC-123).");
+    $("c-code").value = "";
+    msg("c-msg", "");
+    await startApprove(c);
+  };
+
+  // ---------- Mon compte ----------
+  async function openAccount() {
+    show("v-account");
+    const uid = auth.currentUser.uid;
+    const subsBox = $("subs");
+    const devBox = $("devices");
+    const profBox = $("profiles");
+    subsBox.innerHTML = devBox.innerHTML = profBox.innerHTML = '<p class="empty">Chargement…</p>';
+
+    try {
+      const subs = await loadSubs();
+      subsBox.innerHTML = subs.length ? "" : '<p class="empty">Aucun abonnement pour l\'instant.</p>';
+      for (const s of subs) {
+        const host = (() => { try { return new URL(s.server).host; } catch (e) { return s.server; } })();
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = `<div class="grow"><div class="t">${esc(s.name || "Abonnement")}</div><div class="s">${esc(host)} · ${esc(s.user)}</div></div>`;
+        const edit = document.createElement("button");
+        edit.className = "secondary small"; edit.textContent = "Modifier";
+        edit.onclick = () => openSubForm(s, "account");
+        const del = document.createElement("button");
+        del.className = "ghost small"; del.textContent = "Supprimer";
+        del.onclick = async () => {
+          if (!confirm(`Supprimer « ${s.name || "Abonnement"} » de ton compte ?`)) return;
+          await deleteDoc(doc(db, "users", uid, "subs", s.id));
+          openAccount();
+        };
+        row.append(edit, del);
+        subsBox.append(row);
+      }
+    } catch (err) { subsBox.innerHTML = `<p class="empty">${esc(authError(err))}</p>`; }
+
+    try {
+      const devs = (await getDocs(collection(db, "users", uid, "devices"))).docs.map((d) => ({ id: d.id, ...d.data() }));
+      devBox.innerHTML = devs.length ? "" : '<p class="empty">Aucun appareil. Ouvre Binaire IPTV sur ta TV et scanne le QR code.</p>';
+      for (const d of devs.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0))) {
+        const seen = d.lastSeen ? new Date(d.lastSeen).toLocaleDateString("fr-FR", { day: "numeric", month: "long" }) : "";
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = `<div class="grow"><div class="t">${esc(d.name || "Appareil")}</div><div class="s">${esc(d.model || "")}${seen ? " · vu le " + esc(seen) : ""}</div></div>`;
+        const del = document.createElement("button");
+        del.className = "secondary small"; del.textContent = "Retirer";
+        del.onclick = async () => {
+          if (!confirm(`Retirer « ${d.name || "cet appareil"} » ? Il ne pourra plus lire tes abonnements ni tes profils.`)) return;
+          await deleteDoc(doc(db, "users", uid, "devices", d.id));
+          openAccount();
+        };
+        row.append(del);
+        devBox.append(row);
+      }
+    } catch (err) { devBox.innerHTML = `<p class="empty">${esc(authError(err))}</p>`; }
+
+    try {
+      const profs = (await getDocs(collection(db, "users", uid, "profiles"))).docs.map((d) => ({ id: d.id, ...d.data() }));
+      profBox.innerHTML = profs.length ? "" : '<p class="empty">Les profils apparaîtront ici après la première synchronisation de ta TV.</p>';
+      for (const p of profs) {
+        const row = document.createElement("div");
+        row.className = "item";
+        const color = COLORS[Number(p.color) || 0] || COLORS[0];
+        const initial = (p.name || "?").trim().charAt(0).toUpperCase();
+        row.innerHTML = `<div class="avatar" style="background:${color}">${esc(initial)}</div><div class="grow"><div class="t">${esc(p.name || "Profil")}</div><div class="s">${p.kid ? "Profil Enfant" : ""}${p.pin ? (p.kid ? " · " : "") + "protégé par un code" : ""}</div></div>`;
+        profBox.append(row);
+      }
+    } catch (err) { profBox.innerHTML = `<p class="empty">${esc(authError(err))}</p>`; }
+  }
+
+  $("add-sub").onclick = () => openSubForm(null, "account");
+</script>
+</body>
+</html>

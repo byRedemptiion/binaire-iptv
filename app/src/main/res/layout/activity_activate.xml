@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="48dp"
+    android:paddingTop="26dp"
+    android:paddingEnd="48dp"
+    android:paddingBottom="22dp">
+
+    <include
+        layout="@layout/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/qrBox"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:padding="14dp">
+
+            <ImageView
+                android:id="@+id/qr"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="QR code d'activation"
+                android:scaleType="fitCenter" />
+
+            <ProgressBar
+                android:id="@+id/qrLoading"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/outfit_extrabold"
+                android:text="Scanne ce code avec ton téléphone"
+                android:textColor="@color/text"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/steps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:lineSpacingMultiplier="1.35"
+                android:text="1.  Ouvre l'appareil photo et vise le QR code\n2.  Connecte-toi ou crée ton compte Binaire\n3.  Autorise ce téléviseur : ton abonnement arrive tout seul"
+                android:textColor="#C9D1DD"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/manualUrl"
+                style="@style/T.Muted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/code"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/outfit_extrabold"
+                android:letterSpacing="0.25"
+                android:textSize="38sp" />
+
+            <TextView
+                android:id="@+id/status"
+                style="@style/T.Muted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Préparation…"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnEmail"
+            style="@style/Btn"
+            android:layout_marginEnd="10dp"
+            android:text="Se connecter avec e-mail" />
+
+        <Button
+            android:id="@+id/btnManual"
+            style="@style/Btn"
+            android:layout_marginEnd="10dp"
+            android:text="Saisir mon abonnement à la main" />
+
+        <Button
+            android:id="@+id/btnLater"
+            style="@style/Btn"
+            android:text="Plus tard"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

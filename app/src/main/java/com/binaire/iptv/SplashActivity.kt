@@ -29,8 +29,10 @@ class SplashActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!prefs.hasLogin()) {
-            openLogin(null)
+        // Pas d'abonnement et pas de compte : on propose le compte Binaire (QR code).
+        if (!prefs.hasLogin() && !Cloud.isLinked(this)) {
+            startActivity(Intent(this, ActivateActivity::class.java))
+            finish()
             return
         }
         setContentView(R.layout.activity_splash)
@@ -56,6 +58,19 @@ class SplashActivity : BaseActivity() {
         status.text = "Connexion à ton abonnement…"
         lifecycleScope.launch {
             val started = System.currentTimeMillis()
+            if (Cloud.isLinked(this@SplashActivity)) {
+                status.text = "Synchronisation de ton compte Binaire…"
+                val ok = kotlinx.coroutines.withTimeoutOrNull(12_000) {
+                    withContext(Dispatchers.IO) { syncAccount() }
+                }
+                if (ok == false) toast("Cet appareil a été retiré de ton compte Binaire")
+            }
+            if (!prefs.hasLogin()) {
+                startActivity(Intent(this@SplashActivity, ActivateActivity::class.java))
+                finish()
+                return@launch
+            }
+            status.text = "Connexion à ton abonnement…"
             val c = Session.client ?: XtreamClient(prefs.server!!, prefs.user!!, prefs.pass!!).also { Session.client = it }
 
             try {
@@ -160,6 +175,33 @@ class SplashActivity : BaseActivity() {
         status.text = msg
         errorButtons.visibility = View.VISIBLE
         findViewById<View>(R.id.btnRetry).requestFocus()
+    }
+
+    /**
+     * Compte Binaire : vérifie l'autorisation, récupère les profils et l'abonnement à jour.
+     * Renvoie false si l'appareil a été retiré du compte. Hors ligne, on continue avec l'existant.
+     */
+    private fun syncAccount(): Boolean {
+        if (!Cloud.stillAuthorized(this)) {
+            Cloud.setOwner(this, null, null)
+            return false
+        }
+        runCatching { Sync.pull(this) }
+        runCatching {
+            val subs = Cloud.subs(this)
+            if (subs.isEmpty()) return true
+            val chosen = subs.firstOrNull { it.id == Cloud.subId(this) } ?: if (!prefs.hasLogin()) subs.first() else null
+            if (chosen != null) {
+                val server = XtreamClient.normalize(chosen.server)
+                // Abonnement modifié depuis le téléphone : on prend la nouvelle version.
+                if (server != prefs.server || chosen.user != prefs.user || chosen.pass != prefs.pass) {
+                    prefs.saveLogin(server, chosen.user, chosen.pass)
+                    Session.client = null
+                }
+                Cloud.setSubId(this, chosen.id)
+            }
+        }
+        return true
     }
 
     private fun openLogin(error: String?) {

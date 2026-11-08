@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// Binaire IPTV — règles de sécurité Firestore.
+// Chaque compte ne voit que ses données ; une TV n'y accède qu'après avoir été autorisée
+// depuis le compte (users/{uid}/devices/{identifiant de la TV}).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isRealAccount() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function isDevice(uid) {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(uid)/devices/$(request.auth.uid));
+    }
+
+    match /users/{uid} {
+      allow read, write: if isOwner(uid) && isRealAccount();
+      allow read: if isDevice(uid);
+
+      // Abonnements IPTV : le compte les gère, ses appareils les lisent.
+      match /subs/{id} {
+        allow read, write: if isOwner(uid) && isRealAccount();
+        allow read: if isDevice(uid);
+      }
+
+      // Profils famille synchronisés : le compte et ses appareils.
+      match /profiles/{id} {
+        allow read, write: if (isOwner(uid) && isRealAccount()) || isDevice(uid);
+      }
+
+      // Appareils autorisés.
+      match /devices/{dev} {
+        allow read, write: if isOwner(uid) && isRealAccount();
+        // Une TV peut vérifier son autorisation, signaler sa présence et se délier.
+        allow get, delete: if signedIn() && request.auth.uid == dev;
+        allow update: if signedIn() && request.auth.uid == dev
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'model']);
+      }
+    }
+
+    // Demandes d'activation par QR code (code à 6 caractères).
+    match /activations/{code} {
+      allow create: if signedIn()
+        && code.size() == 6
+        && request.resource.data.tvUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['tvUid', 'model', 'createdAt']);
+      allow get: if signedIn();
+      // Le téléphone (vrai compte) accepte la demande une seule fois, à son nom.
+      allow update: if isRealAccount()
+        && resource.data.get('owner', null) == null
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['owner', 'email', 'deviceName', 'approvedAt']);
+      allow delete: if signedIn()
+        && (resource.data.tvUid == request.auth.uid || resource.data.get('owner', null) == request.auth.uid);
+    }
+  }
+}

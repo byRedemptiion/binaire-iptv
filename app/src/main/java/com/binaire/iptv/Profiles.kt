@@ -85,9 +85,14 @@ object Profiles {
     /** Crée un profil ; il reprend le choix des pays du profil actuel. */
     fun add(ctx: Context, name: String, color: Int, kid: Boolean): Profile {
         val list = all(ctx)
-        var n = list.size + 1
-        while (list.any { it.id == "p$n" }) n++
-        val p = Profile("p$n", name.trim().ifBlank { "Profil $n" }, color, kid, null)
+        // Identifiant aléatoire : pas de collision entre profils créés sur deux appareils.
+        val chars = "abcdefghijkmnpqrstuvwxyz23456789"
+        val rnd = java.security.SecureRandom()
+        var id: String
+        do {
+            id = "p" + (1..7).map { chars[rnd.nextInt(chars.length)] }.joinToString("")
+        } while (list.any { it.id == id })
+        val p = Profile(id, name.trim().ifBlank { "Profil ${list.size + 1}" }, color, kid, null)
         save(ctx, list + p)
         val from = Prefs(ctx)
         val to = Prefs.forProfile(ctx, p.id)
@@ -98,9 +103,16 @@ object Profiles {
         return p
     }
 
-    fun remove(ctx: Context, id: String) {
+    /** Ajoute ou met à jour un profil reçu du compte Binaire. */
+    fun upsertFromSync(ctx: Context, p: Profile) {
+        val list = all(ctx)
+        save(ctx, if (list.any { it.id == p.id }) list.map { if (it.id == p.id) p else it } else list + p)
+    }
+
+    fun remove(ctx: Context, id: String, fromSync: Boolean = false) {
         val list = all(ctx)
         if (list.size <= 1) return
+        if (!fromSync) Sync.deleteRemote(ctx, id)
         save(ctx, list.filter { it.id != id })
         if (currentId(ctx) == id) setCurrent(ctx, list.first { it.id != id }.id)
         if (id != "p1") {

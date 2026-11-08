@@ -67,6 +67,13 @@ class LoginActivity : BaseActivity() {
         }
 
         btnLogin.setOnClickListener { attemptLogin() }
+        val btnAccount: Button = findViewById(R.id.btnAccount)
+        btnAccount.background = BTheme.selector(this, 20f, BTheme.WHITE18, accent, BTheme.WHITE, null, 2.5f)
+        btnAccount.setTextColor(BTheme.WHITE)
+        btnAccount.setOnClickListener {
+            startActivity(Intent(this, ActivateActivity::class.java))
+            finish()
+        }
         etPass.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
                 attemptLogin(); true

@@ -117,6 +117,7 @@ abstract class BaseActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         handler.removeCallbacks(tick)
+        Sync.pushLater(this) // envoie favoris, reprises, rangement… au compte Binaire
     }
 
     /** Reconstruit les listes en affichant une fenêtre avec le pourcentage d'avancement. */

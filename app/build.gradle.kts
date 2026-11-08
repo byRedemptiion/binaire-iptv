@@ -72,4 +72,5 @@ dependencies {
     implementation("androidx.media3:media3-datasource-okhttp:$media3")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("io.coil-kt:coil:2.7.0")
+    implementation("com.google.zxing:core:3.5.3")
 }
