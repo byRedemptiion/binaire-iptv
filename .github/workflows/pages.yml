@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
     paths: ["web/**", ".github/workflows/pages.yml"]
+  # Après chaque build de main (donc après chaque nouvelle version publiée).
+  workflow_run:
+    workflows: ["Binaire IPTV"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -13,7 +18,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -23,6 +28,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Copie de la dernière version de l'appli
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo "${{ github.repository }}" --pattern "Binaire-IPTV.apk" --dir /tmp/apk \
+            && cp /tmp/apk/Binaire-IPTV.apk web/binaire.apk \
+            || echo "Pas encore de version publiée"
+          ls -l web
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

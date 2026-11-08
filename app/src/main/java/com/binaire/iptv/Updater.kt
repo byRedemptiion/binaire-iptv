@@ -73,7 +73,22 @@ object Updater {
             val dir = File(activity.cacheDir, "updates").apply { mkdirs() }
             dir.listFiles()?.forEach { it.delete() }
             val out = File(dir, "Binaire-IPTV-${release.version}.apk")
-            val req = Request.Builder().url(release.apkUrl).build()
+            // GitHub en premier, la copie de la page Binaire si le serveur de GitHub ne répond pas.
+            val urls = listOf(release.apkUrl, Cloud.WEB_URL + "binaire.apk")
+            var lastError: Exception? = null
+            for (url in urls) {
+                try {
+                    fetch(url, out, onProgress)
+                    return@withContext out
+                } catch (e: Exception) {
+                    lastError = e
+                }
+            }
+            throw lastError ?: IllegalStateException("Téléchargement impossible")
+        }
+
+    private suspend fun fetch(url: String, out: File, onProgress: (Int) -> Unit) {
+            val req = Request.Builder().url(url).build()
             XtreamClient.http.newCall(req).execute().use { r ->
                 if (!r.isSuccessful) throw IllegalStateException("Téléchargement impossible (${r.code})")
                 val body = r.body ?: throw IllegalStateException("Fichier vide")
@@ -99,8 +114,7 @@ object Updater {
                     }
                 }
             }
-            out
-        }
+    }
 
     /** Lance l'installeur Android. Renvoie false si l'autorisation doit d'abord être donnée. */
     private fun install(activity: Activity, file: File): Boolean {
