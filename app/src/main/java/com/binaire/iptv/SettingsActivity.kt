@@ -11,6 +11,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -44,6 +45,7 @@ class SettingsActivity : BaseActivity() {
         Section("Compte Binaire", R.drawable.ic_sec_account, "Compte Binaire", "Tes abonnements et profils sur tous tes appareils."),
         Section("Chaînes & catégories", R.drawable.ic_sec_list, "Chaînes & catégories", "Remettre en ordre la liste de ton fournisseur."),
         Section("Lecture", R.drawable.ic_sec_play, "Lecture", "Comment les chaînes, films et séries se lancent."),
+        Section("Multi-TV", R.drawable.ic_tile_tv, "Multi-TV", "La même image sur deux TV, avec une seule connexion à ton abonnement."),
         Section("Abonnement", R.drawable.ic_sec_info, "Abonnement", "Ton abonnement IPTV sur cet appareil."),
         Section("Mises à jour", R.drawable.ic_sec_update, "Mises à jour", "Garder Binaire IPTV à jour."),
         Section("À propos", R.drawable.ic_sec_info, "À propos", "Binaire IPTV · Simple. Numérique. Intuitif.")
@@ -112,6 +114,62 @@ class SettingsActivity : BaseActivity() {
         val same = newRows.size == rowAdapter.rows.size
         rowAdapter.rows = newRows
         if (same) rowAdapter.notifyItemRangeChanged(0, newRows.size) else rowAdapter.notifyDataSetChanged()
+    }
+
+    /** Cherche les TV qui partagent sur le réseau, ou adresse saisie à la main. */
+    private fun joinMultiTv() {
+        data class Found(val name: String, val host: String, val port: Int)
+        val found = mutableListOf<Found>()
+        val adapter = android.widget.ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mutableListOf("Recherche des TV qui partagent…"))
+        var finder: MultiTvFinder? = null
+        val open = { name: String, host: String, port: Int ->
+            finder?.stop()
+            startActivity(
+                Intent(this, GuestPlayerActivity::class.java)
+                    .putExtra(GuestPlayerActivity.EXTRA_HOST, host)
+                    .putExtra(GuestPlayerActivity.EXTRA_PORT, port)
+                    .putExtra(GuestPlayerActivity.EXTRA_NAME, name)
+            )
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Rejoindre une TV")
+            .setAdapter(adapter) { _, w -> found.getOrNull(w)?.let { open(it.name, it.host, it.port) } }
+            .setPositiveButton("Saisir l'adresse") { _, _ ->
+                finder?.stop()
+                val input = EditText(this).apply {
+                    hint = "ex. 192.168.1.20"
+                    inputType = android.text.InputType.TYPE_CLASS_TEXT
+                }
+                val pad = dp(22f)
+                val box = FrameLayout(this).apply { setPadding(pad, dp(8f), pad, 0); addView(input) }
+                AlertDialog.Builder(this)
+                    .setTitle("Adresse de la TV qui partage")
+                    .setMessage("Elle s'affiche sur la TV qui partage quand tu actives Multi-TV.")
+                    .setView(box)
+                    .setPositiveButton("Rejoindre") { _, _ ->
+                        val t = input.text.toString().trim()
+                        if (t.isNotEmpty()) open("TV principale", t.substringBefore(':'), t.substringAfter(':', "").toIntOrNull() ?: MultiTv.DEFAULT_PORT)
+                    }
+                    .setNegativeButton("Annuler", null)
+                    .show()
+            }
+            .setNegativeButton("Fermer") { _, _ -> finder?.stop() }
+            .setOnCancelListener { finder?.stop() }
+            .show()
+        finder = MultiTvFinder(this) { name, host, port ->
+            if (found.any { it.host == host && it.port == port }) return@MultiTvFinder
+            if (found.isEmpty()) adapter.clear()
+            found.add(Found(name, host, port))
+            adapter.add("📺  $name")
+            adapter.notifyDataSetChanged()
+        }.also { it.start() }
+        window.decorView.postDelayed({
+            if (dialog.isShowing && found.isEmpty()) {
+                adapter.clear()
+                adapter.add("Aucune TV trouvée. Lance « Multi-TV » sur l'autre TV, ou saisis son adresse.")
+                adapter.notifyDataSetChanged()
+            }
+        }, 8000)
     }
 
     private fun buildRows(i: Int): List<SettingRow> = when (sections[i].label) {
@@ -186,6 +244,14 @@ class SettingsActivity : BaseActivity() {
                 }
             )
         }
+        "Multi-TV" -> listOf(
+            SettingRow("Rejoindre une TV", "Afficher ici ce que regarde une autre TV de la maison", "") { joinMultiTv() },
+            SettingRow(
+                "Partager depuis cette TV",
+                "Lance une chaîne ou un film, puis Options (ou touche Menu) → Multi-TV", ""
+            ),
+            SettingRow("Adresse de cette TV", "Sur le réseau de la maison", MultiTv.localIp() ?: "Pas de Wi-Fi")
+        )
         "Lecture" -> listOf(
             SettingRow(
                 "Qualité préférée", "Pour les chaînes disponibles en plusieurs qualités",

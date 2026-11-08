@@ -3,6 +3,7 @@ package com.binaire.iptv
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
 import android.widget.TextView
@@ -29,6 +30,8 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.File
 
 /** Lecteur plein écran : direct (avec zapping), films et épisodes (avec reprise). */
 @OptIn(UnstableApi::class)
@@ -54,9 +57,18 @@ class PlayerActivity : AppCompatActivity() {
     private val current: PlayItem? get() = playlist.getOrNull(index)
 
     private val listener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) = pushState()
+
+        override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) = pushState()
+
         override fun onPlayerError(error: PlaybackException) {
             val p = player ?: return
             val item = current ?: return
+            if (MultiTvHost.running) {
+                if (item.isLive && shareErrors++ < 6) handler.postDelayed({ newLiveEpoch() }, 1000)
+                else showMessage("Lecture impossible", "Le flux partagé s'est arrêté. (${error.errorCodeName})")
+                return
+            }
             if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
                 p.seekToDefaultPosition()
                 p.prepare()
@@ -126,6 +138,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         savePosition()
+        if (MultiTvHost.running) stopSharing(false)
         releasePlayer()
         Sync.pushLater(this)
     }
@@ -152,7 +165,7 @@ class PlayerActivity : AppCompatActivity() {
         play(index, 0)
     }
 
-    private fun play(i: Int, tryIndex: Int) {
+    private fun play(i: Int, tryIndex: Int, at: Long? = null) {
         val p = player ?: return
         // On enregistre la progression de l'élément quitté (épisode précédent…).
         if (i != index) savePosition()
@@ -166,9 +179,14 @@ class PlayerActivity : AppCompatActivity() {
             .apply { if (url.substringBefore('?').endsWith(".m3u8")) setMimeType(MimeTypes.APPLICATION_M3U8) }
             .build()
 
-        val resumeAt = item.watch?.let { m ->
+        val resumeAt = at ?: item.watch?.let { m ->
             watch.resume(m.key)?.takeIf { it.progress in 0.01f..0.95f }?.position
         } ?: 0L
+        if (MultiTvHost.running) {
+            openShared(item, if (item.isLive) 0 else resumeAt)
+            showOverlay(item, resumeAt)
+            return
+        }
         if (resumeAt > 0) p.setMediaItem(media, resumeAt) else p.setMediaItem(media)
         p.prepare()
         if (tryIndex == 0) showOverlay(item, resumeAt)
@@ -257,6 +275,11 @@ class PlayerActivity : AppCompatActivity() {
         val subs = trackChoices(C.TRACK_TYPE_TEXT)
         val entries = mutableListOf<Pair<String, () -> Unit>>()
         val current = resizeModes.firstOrNull { it.first == prefs.resizeMode }?.second ?: resizeModes[0].second
+        if (MultiTvHost.running) {
+            entries.add("Multi-TV : arrêter le partage (${MultiTvHost.guestCount} autre TV)" to { stopSharing(true) })
+        } else {
+            entries.add("Multi-TV : regarder aussi sur une autre TV" to { startSharing() })
+        }
         entries.add("Format d'image : $current" to { pickResize() })
         if (audio.size > 1) entries.add("Langue audio" to { pickTrack("Langue audio", audio, null) })
         if (subs.isNotEmpty()) entries.add("Sous-titres" to {
@@ -338,6 +361,112 @@ class PlayerActivity : AppCompatActivity() {
         } else {
             watch.save(m, item.url, position, duration)
         }
+    }
+
+    // ---------- Multi-TV : cette TV partage ce qu'elle lit ----------
+    private var shareErrors = 0
+
+    private val hostListener = object : MultiTvHost.Listener {
+        override fun onCommand(action: String, pos: Long) {
+            val p = player ?: return
+            when (action) {
+                "play" -> p.play()
+                "pause" -> p.pause()
+                "seek" -> if (current?.isLive != true) p.seekTo(pos)
+                "resync" -> if (current?.isLive == true) newLiveEpoch()
+            }
+            pushState()
+        }
+
+        override fun onGuestJoined() {
+            // En direct, tout le monde repart du même point du flux : les positions deviennent comparables.
+            if (current?.isLive == true) newLiveEpoch() else pushState()
+        }
+
+        override fun onGuestsChanged(count: Int) {
+            showMessage(
+                "Multi-TV",
+                if (count == 0) "Plus aucune autre TV connectée.\nAdresse : ${MultiTvHost.address()}"
+                else "$count autre${if (count > 1) "s" else ""} TV connectée${if (count > 1) "s" else ""}. Pause et avance sont partagées."
+            )
+        }
+    }
+
+    private val stateTick = object : Runnable {
+        override fun run() {
+            if (!MultiTvHost.running) return
+            pushState()
+            handler.postDelayed(this, 500)
+        }
+    }
+
+    private fun startSharing() {
+        val p = player ?: return
+        val item = current ?: return
+        val pos = if (item.isLive) 0 else p.currentPosition
+        p.stop() // on ferme la connexion directe avant d'ouvrir celle du relais
+        MultiTvHost.listener = hostListener
+        MultiTvHost.start(this, Cloud.deviceName())
+        shareErrors = 0
+        openShared(item, pos)
+        handler.removeCallbacks(stateTick)
+        handler.post(stateTick)
+        showMessage(
+            "Multi-TV activé",
+            "Sur l'autre TV : Réglages → Multi-TV → Rejoindre une TV.\nAdresse si besoin : ${MultiTvHost.address()}"
+        )
+    }
+
+    private fun stopSharing(resume: Boolean) {
+        handler.removeCallbacks(stateTick)
+        val p = player
+        val pos = p?.currentPosition ?: 0L
+        p?.stop()
+        MultiTvHost.listener = null
+        MultiTvHost.stop()
+        if (resume && p != null && current != null) {
+            play(index, 0, if (current?.isLive == true) 0L else pos)
+            showMessage("Multi-TV", "Partage arrêté.")
+        }
+    }
+
+    private fun loadMsg(item: PlayItem, cache: RelayCache, path: String, pos: Long): JSONObject {
+        val p = player
+        return JSONObject().put("t", "load").put("id", cache.id).put("live", item.isLive).put("title", item.title)
+            .put("path", path).put("pos", pos).put("playing", p?.isPlaying == true)
+            .put("pwr", p?.playWhenReady ?: true).put("h", SystemClock.elapsedRealtime())
+    }
+
+    private fun openShared(item: PlayItem, pos: Long) {
+        val p = player ?: return
+        p.stop()
+        MultiTvHost.currentCache()?.close() // une seule connexion au fournisseur à la fois
+        val cache = RelayCache(File(cacheDir, "multitv.bin"), MultiTv.relayUrl(item), item.isLive)
+        val path = "/media?id=${cache.id}&from=${if (item.isLive) cache.head() else 0}"
+        MultiTvHost.setMedia(cache, loadMsg(item, cache, path, pos))
+        val media = MediaItem.fromUri(MultiTvHost.localUrl(path))
+        if (!item.isLive && pos > 0) p.setMediaItem(media, pos) else p.setMediaItem(media)
+        p.prepare()
+    }
+
+    private fun newLiveEpoch() {
+        val p = player ?: return
+        val item = current ?: return
+        val cache = MultiTvHost.currentCache() ?: return
+        val path = "/media?id=${cache.id}&from=${cache.head()}"
+        MultiTvHost.setMedia(cache, loadMsg(item, cache, path, 0))
+        p.setMediaItem(MediaItem.fromUri(MultiTvHost.localUrl(path)))
+        p.prepare()
+    }
+
+    private fun pushState() {
+        if (!MultiTvHost.running) return
+        val p = player ?: return
+        val cache = MultiTvHost.currentCache() ?: return
+        MultiTvHost.broadcast(
+            JSONObject().put("t", "state").put("id", cache.id).put("pos", p.currentPosition)
+                .put("playing", p.isPlaying).put("pwr", p.playWhenReady).put("h", SystemClock.elapsedRealtime())
+        )
     }
 
     private fun releasePlayer() {
