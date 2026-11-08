@@ -88,6 +88,14 @@ class GuestPlayerActivity : AppCompatActivity() {
             "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL
             else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
         }
+        BTheme.stylePlayerControls(playerView, BTheme.accent(this))
+        findViewById<TextView>(R.id.multiTvBadge).apply {
+            val size = (16 * resources.displayMetrics.density).toInt()
+            compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
+            setCompoundDrawablesRelative(compoundDrawablesRelative[0], null, null, null)
+            text = "Multi-TV · avec $hostName"
+            visibility = View.VISIBLE
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).let {
             it.hide(WindowInsetsCompat.Type.systemBars())
@@ -127,6 +135,12 @@ class GuestPlayerActivity : AppCompatActivity() {
                     DefaultHttpDataSource.Factory().setConnectTimeoutMs(8000).setReadTimeoutMs(60_000)
                 )
             )
+            .build()
+        p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+            .setPreferredAudioLanguages("fr", "fra", "fre")
+            .setPreferredTextLanguages()
+            .setSelectUndeterminedTextLanguage(false)
+            .setIgnoredTextSelectionFlags(androidx.media3.common.C.SELECTION_FLAG_DEFAULT)
             .build()
         p.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
@@ -252,7 +266,10 @@ class GuestPlayerActivity : AppCompatActivity() {
 
     private fun onMessage(o: JSONObject) {
         when (o.optString("t")) {
-            "hello" -> o.optString("name").takeIf { it.isNotBlank() }?.let { hostName = it }
+            "hello" -> o.optString("name").takeIf { it.isNotBlank() }?.let {
+                hostName = it
+                findViewById<TextView>(R.id.multiTvBadge).text = "Multi-TV · avec $hostName"
+            }
             "pong" -> {
                 val now = SystemClock.elapsedRealtime()
                 val c = o.optLong("c")

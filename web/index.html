@@ -155,7 +155,24 @@
       <div class="msg" id="a-msg" role="alert"></div>
       <button type="submit" id="a-submit">Créer mon compte</button>
       <button type="button" class="ghost hidden" id="a-forgot">Mot de passe oublié ?</button>
+      <p class="hint" style="margin:0; text-align:center">Ton e-mail sert uniquement à ton compte Binaire : connexion et récupération du mot de passe.</p>
     </form>
+  </section>
+
+  <!-- Vérification de l'adresse e-mail -->
+  <section id="v-verify" class="hidden">
+    <div class="card stack center">
+      <div class="tv" aria-hidden="true">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f2f4f8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+      </div>
+      <h1>Confirme ton e-mail</h1>
+      <p class="lead" style="margin:0">On t'a envoyé un lien à <strong id="vf-email"></strong>. Ouvre-le, puis reviens ici : la suite se fait toute seule.</p>
+      <p class="hint" style="margin:0">Rien reçu ? Regarde dans les spams, ou renvoie l'e-mail.</p>
+      <div class="msg" id="vf-msg" role="alert"></div>
+      <button type="button" id="vf-check">J'ai cliqué sur le lien</button>
+      <button type="button" class="secondary" id="vf-resend">Renvoyer l'e-mail</button>
+      <button type="button" class="ghost" id="vf-out">Changer d'adresse</button>
+    </div>
   </section>
 
   <!-- Ajouter un abonnement -->
@@ -248,7 +265,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    sendPasswordResetEmail, signOut
+    sendPasswordResetEmail, signOut, sendEmailVerification, reload
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp
@@ -268,7 +285,7 @@
 
   const COLORS = ["#E5203A", "#3B7BF6", "#16A34A", "#EA7A0C", "#8B5CF6", "#DB2777", "#0E9F9A", "#C9A227"];
   const $ = (id) => document.getElementById(id);
-  const views = ["v-loading", "v-auth", "v-sub", "v-approve", "v-done", "v-account"];
+  const views = ["v-loading", "v-auth", "v-verify", "v-sub", "v-approve", "v-done", "v-account"];
 
   function show(view) {
     for (const v of views) $(v).classList.toggle("hidden", v !== view);
@@ -327,8 +344,10 @@
     $("a-submit").disabled = true;
     msg("a-msg", "");
     try {
-      if (mode === "signup") await createUserWithEmailAndPassword(auth, email, pass);
-      else await signInWithEmailAndPassword(auth, email, pass);
+      if (mode === "signup") {
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        try { await sendEmailVerification(cred.user); } catch (err) { /* renvoyable depuis l'écran suivant */ }
+      } else await signInWithEmailAndPassword(auth, email, pass);
     } catch (err) {
       msg("a-msg", authError(err));
     } finally {
@@ -359,12 +378,52 @@
       return;
     }
     $("who").textContent = user.email || "";
+    if (!user.emailVerified) return showVerify(user);
     try {
       await setDoc(doc(db, "users", user.uid), { email: user.email || "" }, { merge: true });
     } catch (err) { /* sans gravité */ }
     if (pendingCode) await startApprove(pendingCode);
     else await openAccount();
   });
+
+  // ---------- Vérification de l'e-mail ----------
+  let verifyTimer = null;
+  function showVerify(user) {
+    $("vf-email").textContent = user.email || "";
+    msg("vf-msg", "");
+    show("v-verify");
+    clearInterval(verifyTimer);
+    verifyTimer = setInterval(() => checkVerified(false), 4000);
+  }
+  async function checkVerified(manual) {
+    const user = auth.currentUser;
+    if (!user) return clearInterval(verifyTimer);
+    try {
+      await reload(user);
+      if (!auth.currentUser.emailVerified) {
+        if (manual) msg("vf-msg", "Pas encore confirmé. Ouvre le lien reçu par mail, puis réessaie.");
+        return;
+      }
+      clearInterval(verifyTimer);
+      await auth.currentUser.getIdToken(true); // jeton à jour pour le serveur
+      $("who").textContent = auth.currentUser.email || "";
+      try { await setDoc(doc(db, "users", auth.currentUser.uid), { email: auth.currentUser.email || "" }, { merge: true }); } catch (err) {}
+      if (pendingCode) await startApprove(pendingCode);
+      else await openAccount();
+    } catch (err) {
+      if (manual) msg("vf-msg", authError(err));
+    }
+  }
+  $("vf-check").onclick = () => checkVerified(true);
+  $("vf-resend").onclick = async () => {
+    try {
+      await sendEmailVerification(auth.currentUser);
+      msg("vf-msg", "E-mail renvoyé.", true);
+    } catch (err) {
+      msg("vf-msg", authError(err));
+    }
+  };
+  $("vf-out").onclick = () => { clearInterval(verifyTimer); signOut(auth); };
 
   // ---------- Abonnements ----------
   async function loadSubs() {

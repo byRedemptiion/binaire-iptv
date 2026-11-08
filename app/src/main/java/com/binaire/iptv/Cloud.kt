@@ -117,14 +117,28 @@ object Cloud {
     }
 
     /** Connexion avec l'e-mail du compte (sans stocker le mot de passe) : renvoie (uid, jeton). */
+    /** Lit l'indication « e-mail confirmé » dans le jeton de connexion. */
+    private fun emailVerified(idToken: String): Boolean = try {
+        val part = idToken.split('.')[1]
+        val json = String(android.util.Base64.decode(part, android.util.Base64.URL_SAFE or android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP))
+        JSONObject(json).optBoolean("email_verified", false)
+    } catch (e: Exception) {
+        false
+    }
+
     fun signInEmail(email: String, password: String): Pair<String, String> {
         try {
             val o = postJson(
                 "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$API_KEY",
                 JSONObject().put("email", email.trim()).put("password", password).put("returnSecureToken", true)
             )
-            return o.getString("localId") to o.getString("idToken")
+            val idToken = o.getString("idToken")
+            if (!emailVerified(idToken)) throw CloudException(
+                "Valide d'abord ton adresse e-mail : clique sur le lien reçu par mail (regarde aussi dans les spams), puis réessaie.", 403
+            )
+            return o.getString("localId") to idToken
         } catch (e: CloudException) {
+            if (e.code == 403) throw e
             throw CloudException(
                 when {
                     e.message?.contains("INVALID") == true || e.message?.contains("NOT_FOUND") == true -> "E-mail ou mot de passe incorrect"

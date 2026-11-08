@@ -137,4 +137,32 @@ object BTheme {
             previous?.onFocusChange(view, has)
         }
     }
+
+    /**
+     * Commandes du lecteur bien visibles à la télécommande : le bouton qui a le focus
+     * prend la couleur principale avec un contour blanc, et grossit un peu.
+     */
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    fun stylePlayerControls(root: View, accent: Int) {
+        val ctx = root.context
+        fun walk(v: View) {
+            val name = v.javaClass.simpleName
+            if (name.contains("TimeBar")) {
+                (v as? androidx.media3.ui.DefaultTimeBar)?.let {
+                    it.setPlayedColor(accent)
+                    it.setScrubberColor(accent)
+                }
+                return
+            }
+            if (v is android.view.ViewGroup) {
+                for (i in 0 until v.childCount) walk(v.getChildAt(i))
+                return
+            }
+            if (v.isFocusable && v.isClickable) {
+                v.background = selector(ctx, 24f, android.graphics.Color.TRANSPARENT, accent, WHITE, null, 2.5f)
+                zoomOnFocus(v, 1.15f)
+            }
+        }
+        walk(root)
+    }
 }

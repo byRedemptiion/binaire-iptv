@@ -44,6 +44,10 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var overlayTitle: TextView
     private lateinit var overlaySub: TextView
     private lateinit var btnOptions: TextView
+    private lateinit var btnMultiTv: TextView
+    private lateinit var topBar: View
+    private lateinit var multiTvBadge: TextView
+    private var tracksDecided = false
 
     private var player: ExoPlayer? = null
     private var index = 0
@@ -58,6 +62,13 @@ class PlayerActivity : AppCompatActivity() {
 
     private val listener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) = pushState()
+
+        override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+            if (!tracksDecided && !tracks.isEmpty) {
+                tracksDecided = true
+                applyLanguageDefaults(tracks)
+            }
+        }
 
         override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) = pushState()
 
@@ -115,11 +126,23 @@ class PlayerActivity : AppCompatActivity() {
         overlayTitle = findViewById(R.id.overlayTitle)
         overlaySub = findViewById(R.id.overlaySub)
         btnOptions = findViewById(R.id.btnOptions)
+        btnMultiTv = findViewById(R.id.btnMultiTv)
+        topBar = findViewById(R.id.topBar)
+        multiTvBadge = findViewById(R.id.multiTvBadge)
         val size = (16 * resources.displayMetrics.density).toInt()
-        btnOptions.compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
-        btnOptions.setCompoundDrawablesRelative(btnOptions.compoundDrawablesRelative[0], null, null, null)
+        val accent = BTheme.accent(this)
+        for (b in listOf(btnOptions, btnMultiTv, multiTvBadge)) {
+            b.compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
+            b.setCompoundDrawablesRelative(b.compoundDrawablesRelative[0], null, null, null)
+        }
+        for (b in listOf(btnOptions, btnMultiTv)) {
+            b.background = BTheme.selector(this, 12f, 0xCC000000.toInt(), accent, BTheme.WHITE, null, 2.5f)
+            BTheme.zoomOnFocus(b, 1.08f)
+        }
         btnOptions.setOnClickListener { showOptions() }
-        playerView.setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { v -> btnOptions.visibility = v })
+        btnMultiTv.setOnClickListener { multiTvClicked() }
+        playerView.setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { v -> topBar.visibility = v })
+        BTheme.stylePlayerControls(playerView, accent)
         applyResizeMode()
         index = Session.playIndex.coerceIn(0, playlist.size - 1)
 
@@ -158,6 +181,13 @@ class PlayerActivity : AppCompatActivity() {
             .setLoadControl(loadControl)
             .setMediaSourceFactory(DefaultMediaSourceFactory(this).setDataSourceFactory(OkHttpDataSource.Factory(XtreamClient.http)))
             .build()
+        // Par défaut : audio en français, sous-titres coupés (sauf sous-titres « forcés »).
+        p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+            .setPreferredAudioLanguages("fr", "fra", "fre")
+            .setPreferredTextLanguages()
+            .setSelectUndeterminedTextLanguage(false)
+            .setIgnoredTextSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+            .build()
         p.addListener(listener)
         p.playWhenReady = true
         playerView.player = p
@@ -173,6 +203,7 @@ class PlayerActivity : AppCompatActivity() {
         index = i
         Session.playIndex = i
         attempt = tryIndex
+        tracksDecided = false
         val url = item.attempts.getOrElse(tryIndex) { item.url }
         val media = MediaItem.Builder()
             .setUri(url)
@@ -275,11 +306,6 @@ class PlayerActivity : AppCompatActivity() {
         val subs = trackChoices(C.TRACK_TYPE_TEXT)
         val entries = mutableListOf<Pair<String, () -> Unit>>()
         val current = resizeModes.firstOrNull { it.first == prefs.resizeMode }?.second ?: resizeModes[0].second
-        if (MultiTvHost.running) {
-            entries.add("Multi-TV : arrêter le partage (${MultiTvHost.guestCount} autre TV)" to { stopSharing(true) })
-        } else {
-            entries.add("Multi-TV : regarder aussi sur une autre TV" to { startSharing() })
-        }
         entries.add("Format d'image : $current" to { pickResize() })
         if (audio.size > 1) entries.add("Langue audio" to { pickTrack("Langue audio", audio, null) })
         if (subs.isNotEmpty()) entries.add("Sous-titres" to {
@@ -383,13 +409,7 @@ class PlayerActivity : AppCompatActivity() {
             if (current?.isLive == true) newLiveEpoch() else pushState()
         }
 
-        override fun onGuestsChanged(count: Int) {
-            showMessage(
-                "Multi-TV",
-                if (count == 0) "Plus aucune autre TV connectée.\nAdresse : ${MultiTvHost.address()}"
-                else "$count autre${if (count > 1) "s" else ""} TV connectée${if (count > 1) "s" else ""}. Pause et avance sont partagées."
-            )
-        }
+        override fun onGuestsChanged(count: Int) = updateBadge()
     }
 
     private val stateTick = object : Runnable {
@@ -411,10 +431,92 @@ class PlayerActivity : AppCompatActivity() {
         openShared(item, pos)
         handler.removeCallbacks(stateTick)
         handler.post(stateTick)
-        showMessage(
-            "Multi-TV activé",
-            "Sur l'autre TV : Réglages → Multi-TV → Rejoindre une TV.\nAdresse si besoin : ${MultiTvHost.address()}"
-        )
+        updateBadge()
+    }
+
+    /** Pastille Multi-TV : reste affichée tant que le partage est actif. */
+    private fun updateBadge() {
+        if (!::multiTvBadge.isInitialized) return
+        if (!MultiTvHost.running) {
+            multiTvBadge.visibility = View.GONE
+            btnMultiTv.text = "Multi-TV"
+            return
+        }
+        val n = MultiTvHost.guestCount
+        val who = when (n) {
+            0 -> "en attente de l'autre TV (accueil → Multi-TV)"
+            1 -> "1 autre TV connectée"
+            else -> "$n autres TV connectées"
+        }
+        multiTvBadge.text = "Multi-TV · $who · adresse ${MultiTv.localIp() ?: "?"}"
+        multiTvBadge.visibility = View.VISIBLE
+        btnMultiTv.text = if (n > 0) "Multi-TV · $n" else "Multi-TV · actif"
+    }
+
+    private fun multiTvClicked() {
+        if (!MultiTvHost.running) {
+            startSharing()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Multi-TV actif")
+            .setMessage(
+                "Sur l'autre TV : accueil → bouton Multi-TV (en haut).\n" +
+                    "Adresse si elle n'apparaît pas : ${MultiTv.localIp() ?: "?"}\n\n" +
+                    "${MultiTvHost.guestCount} autre(s) TV connectée(s). Pause et avance sont partagées."
+            )
+            .setPositiveButton("Continuer", null)
+            .setNegativeButton("Arrêter le partage") { _, _ -> stopSharing(true) }
+            .show()
+    }
+
+    /**
+     * Langues par défaut : VF si elle existe (sous-titres coupés) ;
+     * film sans piste française (VOSTFR) : sous-titres français activés.
+     */
+    private fun applyLanguageDefaults(tracks: androidx.media3.common.Tracks) {
+        val p = player ?: return
+        fun isFrench(f: androidx.media3.common.Format): Boolean {
+            val lang = f.language?.lowercase().orEmpty()
+            if (lang.startsWith("fr") || lang == "fre" || lang == "fra") return true
+            val label = f.label?.lowercase().orEmpty()
+            return Regex("\\b(vf|vff|vfq|vfi|french|fran[cç]ais)\\b").containsMatchIn(label)
+        }
+        var frAudio: Pair<androidx.media3.common.TrackGroup, Int>? = null
+        var audioCount = 0
+        var frAudioSelected = false
+        var frText: Pair<androidx.media3.common.TrackGroup, Int>? = null
+        for (g in tracks.groups) {
+            for (i in 0 until g.length) {
+                if (!g.isTrackSupported(i)) continue
+                val f = g.getTrackFormat(i)
+                when (g.type) {
+                    C.TRACK_TYPE_AUDIO -> {
+                        audioCount++
+                        if (isFrench(f)) {
+                            if (frAudio == null) frAudio = g.mediaTrackGroup to i
+                            if (g.isTrackSelected(i)) frAudioSelected = true
+                        }
+                    }
+                    C.TRACK_TYPE_TEXT -> if (isFrench(f) && frText == null &&
+                        (f.selectionFlags and C.SELECTION_FLAG_FORCED) == 0
+                    ) frText = g.mediaTrackGroup to i
+                }
+            }
+        }
+        val b = p.trackSelectionParameters.buildUpon()
+        var changed = false
+        val fa = frAudio
+        if (fa != null && !frAudioSelected) {
+            b.setOverrideForType(TrackSelectionOverride(fa.first, fa.second)); changed = true
+        }
+        val ft = frText
+        if (fa == null && audioCount > 0 && ft != null) {
+            // VOSTFR : pas de piste française, on affiche les sous-titres français.
+            b.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+            b.setOverrideForType(TrackSelectionOverride(ft.first, ft.second)); changed = true
+        }
+        if (changed) p.trackSelectionParameters = b.build()
     }
 
     private fun stopSharing(resume: Boolean) {
@@ -424,6 +526,7 @@ class PlayerActivity : AppCompatActivity() {
         p?.stop()
         MultiTvHost.listener = null
         MultiTvHost.stop()
+        updateBadge()
         if (resume && p != null && current != null) {
             play(index, 0, if (current?.isLive == true) 0L else pos)
             showMessage("Multi-TV", "Partage arrêté.")
