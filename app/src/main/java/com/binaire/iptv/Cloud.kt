@@ -116,6 +116,16 @@ object Cloud {
         return s.getString("id_token", null)!!
     }
 
+    /** Envoie l'e-mail « mot de passe oublié » (en français). */
+    fun sendPasswordReset(email: String) {
+        val req = Request.Builder()
+            .url("https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=$API_KEY")
+            .header("X-Firebase-Locale", "fr")
+            .post(JSONObject().put("requestType", "PASSWORD_RESET").put("email", email).toString().toRequestBody(JSON))
+            .build()
+        exec(req)
+    }
+
     /** Lit l'indication « e-mail confirmé » dans le jeton de connexion. */
     private fun emailVerified(idToken: String): Boolean = try {
         val part = idToken.split('.')[1]

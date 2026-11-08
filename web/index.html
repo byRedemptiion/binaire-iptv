@@ -154,7 +154,7 @@
       <label class="check"><input type="checkbox" id="a-show"> Afficher le mot de passe</label>
       <div class="msg" id="a-msg" role="alert"></div>
       <button type="submit" id="a-submit">Créer mon compte</button>
-      <button type="button" class="ghost hidden" id="a-forgot">Mot de passe oublié ?</button>
+      <button type="button" class="secondary hidden" id="a-forgot">Mot de passe oublié ?</button>
       <p class="hint" style="margin:0; text-align:center">Ton e-mail sert uniquement à ton compte Binaire : connexion et récupération du mot de passe.</p>
     </form>
   </section>
@@ -349,7 +349,10 @@
         try { await sendEmailVerification(cred.user); } catch (err) { /* renvoyable depuis l'écran suivant */ }
       } else await signInWithEmailAndPassword(auth, email, pass);
     } catch (err) {
+      const c = (err && err.code) || "";
+      if (c.includes("email-already-in-use")) setMode("login");
       msg("a-msg", authError(err));
+      if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("email-already-in-use")) $("a-forgot").classList.remove("hidden");
     } finally {
       $("a-submit").disabled = false;
     }

@@ -197,6 +197,25 @@ class ActivateActivity : BaseActivity() {
                     }
                 }
             }
+            .setNeutralButton("Mot de passe oublié ?") { _, _ ->
+                val e = email.text.toString().trim()
+                if (e.isEmpty()) {
+                    toast("Écris d'abord ton e-mail")
+                    emailDialog()
+                    return@setNeutralButton
+                }
+                lifecycleScope.launch {
+                    val ok = withContext(Dispatchers.IO) { runCatching { Cloud.sendPasswordReset(e) }.isSuccess }
+                    AlertDialog.Builder(this@ActivateActivity)
+                        .setTitle(if (ok) "E-mail envoyé" else "Envoi impossible")
+                        .setMessage(
+                            if (ok) "Si un compte existe pour $e, tu vas recevoir un lien pour choisir un nouveau mot de passe (regarde aussi dans les spams). Ensuite, reconnecte-toi ici."
+                            else "Vérifie l'adresse e-mail et ta connexion Internet, puis réessaie."
+                        )
+                        .setPositiveButton("OK") { _, _ -> if (ok) emailDialog() }
+                        .show()
+                }
+            }
             .setNegativeButton("Annuler", null)
             .show()
     }
