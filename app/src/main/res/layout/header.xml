@@ -66,6 +66,25 @@
         android:visibility="gone" />
 
     <TextView
+        android:id="@+id/headerMultiTv"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginEnd="10dp"
+        android:clickable="true"
+        android:drawableStart="@drawable/ic_tile_tv"
+        android:drawablePadding="8dp"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="14dp"
+        android:singleLine="true"
+        android:text="Multi-TV"
+        android:textColor="@color/text"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <TextView
         android:id="@+id/headerProfile"
         android:layout_width="wrap_content"
         android:layout_height="36dp"

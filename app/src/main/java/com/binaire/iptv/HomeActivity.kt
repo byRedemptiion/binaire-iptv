@@ -41,6 +41,7 @@ class HomeActivity : BaseActivity() {
             if (Profiles.current(this).kid && parental != null) askPin("Code parental", parental, open) else open()
         }
         setupProfileChip()
+        setupMultiTvChip()
 
         val acc = Session.account
         val tvAccount: TextView = findViewById(R.id.tvAccount)
@@ -63,6 +64,17 @@ class HomeActivity : BaseActivity() {
         val w = ((wDp - 96f - 4 * 20f) / 4f).coerceIn(110f, 180f)
         val h = (w * 1.33f).coerceAtMost((hDp - 170f).coerceAtLeast(140f))
         dp(w) to dp(h)
+    }
+
+    /** Bouton Multi-TV en haut : rejoindre une TV de la maison qui partage. */
+    private fun setupMultiTvChip() {
+        val chip: TextView = findViewById(R.id.headerMultiTv)
+        val size = dp(18f)
+        chip.compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
+        chip.setCompoundDrawablesRelative(chip.compoundDrawablesRelative[0], null, null, null)
+        chip.background = BTheme.selector(this, 18f, BTheme.PANEL, accent, BTheme.WHITE, null, 2f)
+        chip.visibility = View.VISIBLE
+        chip.setOnClickListener { joinMultiTv() }
     }
 
     /** Pastille du profil en haut à droite : ouvre « Qui regarde ? ». */

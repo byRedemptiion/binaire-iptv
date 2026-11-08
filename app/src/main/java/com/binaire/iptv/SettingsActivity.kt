@@ -116,62 +116,6 @@ class SettingsActivity : BaseActivity() {
         if (same) rowAdapter.notifyItemRangeChanged(0, newRows.size) else rowAdapter.notifyDataSetChanged()
     }
 
-    /** Cherche les TV qui partagent sur le réseau, ou adresse saisie à la main. */
-    private fun joinMultiTv() {
-        data class Found(val name: String, val host: String, val port: Int)
-        val found = mutableListOf<Found>()
-        val adapter = android.widget.ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mutableListOf("Recherche des TV qui partagent…"))
-        var finder: MultiTvFinder? = null
-        val open = { name: String, host: String, port: Int ->
-            finder?.stop()
-            startActivity(
-                Intent(this, GuestPlayerActivity::class.java)
-                    .putExtra(GuestPlayerActivity.EXTRA_HOST, host)
-                    .putExtra(GuestPlayerActivity.EXTRA_PORT, port)
-                    .putExtra(GuestPlayerActivity.EXTRA_NAME, name)
-            )
-        }
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Rejoindre une TV")
-            .setAdapter(adapter) { _, w -> found.getOrNull(w)?.let { open(it.name, it.host, it.port) } }
-            .setPositiveButton("Saisir l'adresse") { _, _ ->
-                finder?.stop()
-                val input = EditText(this).apply {
-                    hint = "ex. 192.168.1.20"
-                    inputType = android.text.InputType.TYPE_CLASS_TEXT
-                }
-                val pad = dp(22f)
-                val box = FrameLayout(this).apply { setPadding(pad, dp(8f), pad, 0); addView(input) }
-                AlertDialog.Builder(this)
-                    .setTitle("Adresse de la TV qui partage")
-                    .setMessage("Elle s'affiche sur la TV qui partage quand tu actives Multi-TV.")
-                    .setView(box)
-                    .setPositiveButton("Rejoindre") { _, _ ->
-                        val t = input.text.toString().trim()
-                        if (t.isNotEmpty()) open("TV principale", t.substringBefore(':'), t.substringAfter(':', "").toIntOrNull() ?: MultiTv.DEFAULT_PORT)
-                    }
-                    .setNegativeButton("Annuler", null)
-                    .show()
-            }
-            .setNegativeButton("Fermer") { _, _ -> finder?.stop() }
-            .setOnCancelListener { finder?.stop() }
-            .show()
-        finder = MultiTvFinder(this) { name, host, port ->
-            if (found.any { it.host == host && it.port == port }) return@MultiTvFinder
-            if (found.isEmpty()) adapter.clear()
-            found.add(Found(name, host, port))
-            adapter.add("📺  $name")
-            adapter.notifyDataSetChanged()
-        }.also { it.start() }
-        window.decorView.postDelayed({
-            if (dialog.isShowing && found.isEmpty()) {
-                adapter.clear()
-                adapter.add("Aucune TV trouvée. Lance « Multi-TV » sur l'autre TV, ou saisis son adresse.")
-                adapter.notifyDataSetChanged()
-            }
-        }, 8000)
-    }
-
     private fun buildRows(i: Int): List<SettingRow> = when (sections[i].label) {
         "Compte Binaire" -> {
             if (Cloud.isLinked(this)) {
