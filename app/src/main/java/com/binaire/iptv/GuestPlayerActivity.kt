@@ -83,11 +83,7 @@ class GuestPlayerActivity : AppCompatActivity() {
         overlay = findViewById(R.id.overlay)
         overlayTitle = findViewById(R.id.overlayTitle)
         overlaySub = findViewById(R.id.overlaySub)
-        playerView.resizeMode = when (Prefs(this).resizeMode) {
-            "zoom" -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL
-            else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
-        }
+        BTheme.applyImageFormat(playerView, Prefs(this).resizeMode)
         BTheme.stylePlayerControls(playerView, BTheme.accent(this))
         findViewById<TextView>(R.id.multiTvBadge).apply {
             val size = (16 * resources.displayMetrics.density).toInt()

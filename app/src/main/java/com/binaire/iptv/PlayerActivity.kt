@@ -258,19 +258,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     // ---------- Options : format d'image, audio, sous-titres ----------
-    private val resizeModes = listOf(
-        "fit" to "Ajusté (bandes noires)",
-        "zoom" to "Plein écran (recadré)",
-        "fill" to "Étiré"
-    )
-
-    private fun applyResizeMode() {
-        playerView.resizeMode = when (prefs.resizeMode) {
-            "zoom" -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-            "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL
-            else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
-        }
-    }
+    private fun applyResizeMode() = BTheme.applyImageFormat(playerView, prefs.resizeMode)
 
     private class TrackChoice(val label: String, val apply: () -> Unit)
 
@@ -305,7 +293,7 @@ class PlayerActivity : AppCompatActivity() {
         val audio = trackChoices(C.TRACK_TYPE_AUDIO)
         val subs = trackChoices(C.TRACK_TYPE_TEXT)
         val entries = mutableListOf<Pair<String, () -> Unit>>()
-        val current = resizeModes.firstOrNull { it.first == prefs.resizeMode }?.second ?: resizeModes[0].second
+        val current = BTheme.imageFormatName(prefs.resizeMode)
         entries.add("Format d'image : $current" to { pickResize() })
         if (audio.size > 1) entries.add("Langue audio" to { pickTrack("Langue audio", audio, null) })
         if (subs.isNotEmpty()) entries.add("Sous-titres" to {
@@ -323,6 +311,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun pickResize() {
+        val resizeModes = BTheme.imageFormats
         val idx = resizeModes.indexOfFirst { it.first == prefs.resizeMode }.coerceAtLeast(0)
         AlertDialog.Builder(this)
             .setTitle("Format d'image")

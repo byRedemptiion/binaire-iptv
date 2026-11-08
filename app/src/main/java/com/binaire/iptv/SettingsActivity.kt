@@ -203,9 +203,10 @@ class SettingsActivity : BaseActivity() {
             ) { pickQuality() },
             SettingRow(
                 "Format d'image", "Aussi modifiable pendant la lecture (bouton Options ou touche Menu)",
-                when (prefs.resizeMode) { "zoom" -> "Plein écran (recadré)"; "fill" -> "Étiré"; else -> "Ajusté" }
+                BTheme.imageFormatName(prefs.resizeMode)
             ) {
-                prefs.resizeMode = when (prefs.resizeMode) { "fit" -> "zoom"; "zoom" -> "fill"; else -> "fit" }
+                val keys = BTheme.imageFormats.map { it.first }
+                prefs.resizeMode = keys[(keys.indexOf(prefs.resizeMode) + 1) % keys.size]
                 refreshRows()
             },
             SettingRow("Aperçu des chaînes", "Lance la chaîne en petit dans l'écran TV", switchOn = prefs.livePreview) {

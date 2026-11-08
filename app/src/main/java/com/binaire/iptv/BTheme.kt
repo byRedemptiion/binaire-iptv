@@ -165,4 +165,30 @@ object BTheme {
         }
         walk(root)
     }
+
+    /** Formats d'image proposés (clé enregistrée → libellé). */
+    val imageFormats = listOf(
+        "fit" to "Ajusté (image entière)",
+        "zoom" to "Plein écran (recadré)",
+        "fill" to "Étiré",
+        "z115" to "Zoom léger (+15 %)",
+        "z133" to "Zoom cinéma (enlève les bandes noires)"
+    )
+
+    fun imageFormatName(key: String): String = imageFormats.firstOrNull { it.first == key }?.second ?: imageFormats[0].second
+
+    /**
+     * Applique le format : les 3 premiers jouent sur le cadre de la vidéo, les zooms agrandissent
+     * l'image elle-même (utile quand les bandes noires sont incrustées dans le film).
+     */
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    fun applyImageFormat(view: androidx.media3.ui.PlayerView, key: String) {
+        view.resizeMode = when (key) {
+            "zoom" -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            "fill" -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL
+            else -> androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+        }
+        val scale = when (key) { "z115" -> 1.15f; "z133" -> 1.34f; else -> 1f }
+        view.videoSurfaceView?.let { it.scaleX = scale; it.scaleY = scale }
+    }
 }
