@@ -116,7 +116,6 @@ object Cloud {
         return s.getString("id_token", null)!!
     }
 
-    /** Connexion avec l'e-mail du compte (sans stocker le mot de passe) : renvoie (uid, jeton). */
     /** Lit l'indication « e-mail confirmé » dans le jeton de connexion. */
     private fun emailVerified(idToken: String): Boolean = try {
         val part = idToken.split('.')[1]
@@ -126,6 +125,7 @@ object Cloud {
         false
     }
 
+    /** Connexion avec l'e-mail du compte (sans stocker le mot de passe) : renvoie (uid, jeton). */
     fun signInEmail(email: String, password: String): Pair<String, String> {
         try {
             val o = postJson(

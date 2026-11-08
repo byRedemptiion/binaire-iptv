@@ -42,6 +42,11 @@ service cloud.firestore {
         allow read, write: if (isOwner(uid) && isVerified()) || isDevice(uid);
       }
 
+      // Appareil en train de lire (abonnement à 1 écran : le dernier qui lance prend la main).
+      match /live/{doc} {
+        allow read, write: if (isOwner(uid) && isVerified()) || isDevice(uid);
+      }
+
       // Appareils autorisés.
       match /devices/{dev} {
         allow read, write: if isOwner(uid) && isVerified();

@@ -48,6 +48,9 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var topBar: View
     private lateinit var multiTvBadge: TextView
     private var tracksDecided = false
+    private lateinit var btnBack: View
+    private val guard by lazy { PlaybackGuard(this) { name -> kicked(name) } }
+    private var takeoverRetries = 0
 
     private var player: ExoPlayer? = null
     private var index = 0
@@ -75,6 +78,17 @@ class PlayerActivity : AppCompatActivity() {
         override fun onPlayerError(error: PlaybackException) {
             val p = player ?: return
             val item = current ?: return
+            // On vient de prendre la main sur un autre appareil : le fournisseur met quelques
+            // secondes à libérer la connexion, on réessaie.
+            val refused = error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||
+                error.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ||
+                error.errorCode == PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE
+            if (refused && guard.mayBeBusy && System.currentTimeMillis() - guard.claimedAt < 45_000 && takeoverRetries < 12) {
+                takeoverRetries++
+                showMessage("Un instant…", "L'autre appareil libère ton abonnement (essai $takeoverRetries).")
+                handler.postDelayed({ if (player != null) play(index, attempt, keepClaim = true) }, 3500)
+                return
+            }
             if (MultiTvHost.running) {
                 if (item.isLive && shareErrors++ < 6) handler.postDelayed({ newLiveEpoch() }, 1000)
                 else showMessage("Lecture impossible", "Le flux partagé s'est arrêté. (${error.errorCodeName})")
@@ -96,6 +110,7 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == Player.STATE_READY) takeoverRetries = 0
             if (playbackState != Player.STATE_ENDED) return
             val item = current ?: return
             if (item.isLive) return
@@ -135,13 +150,19 @@ class PlayerActivity : AppCompatActivity() {
             b.compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
             b.setCompoundDrawablesRelative(b.compoundDrawablesRelative[0], null, null, null)
         }
-        for (b in listOf(btnOptions, btnMultiTv)) {
-            b.background = BTheme.selector(this, 12f, 0xCC000000.toInt(), accent, BTheme.WHITE, null, 2.5f)
-            BTheme.zoomOnFocus(b, 1.08f)
+        btnBack = findViewById(R.id.btnBack)
+        (btnBack as TextView).let { b ->
+            b.compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
+            b.setCompoundDrawablesRelative(b.compoundDrawablesRelative[0], null, null, null)
         }
+        for (b in listOf(btnOptions, btnMultiTv, btnBack)) {
+            b.background = BTheme.selector(this, 12f, 0xCC000000.toInt(), BTheme.soft(accent), BTheme.WHITE, null, 2f)
+            BTheme.zoomOnFocus(b, 1.04f)
+        }
+        btnBack.setOnClickListener { finish() }
         btnOptions.setOnClickListener { showOptions() }
         btnMultiTv.setOnClickListener { multiTvClicked() }
-        playerView.setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { v -> topBar.visibility = v })
+        playerView.setControllerVisibilityListener(PlayerView.ControllerVisibilityListener { v -> topBar.visibility = v; btnBack.visibility = v })
         BTheme.stylePlayerControls(playerView, accent)
         applyResizeMode()
         index = Session.playIndex.coerceIn(0, playlist.size - 1)
@@ -162,6 +183,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onStop()
         savePosition()
         if (MultiTvHost.running) stopSharing(false)
+        guard.stop()
         releasePlayer()
         Sync.pushLater(this)
     }
@@ -195,7 +217,7 @@ class PlayerActivity : AppCompatActivity() {
         play(index, 0)
     }
 
-    private fun play(i: Int, tryIndex: Int, at: Long? = null) {
+    private fun play(i: Int, tryIndex: Int, at: Long? = null, keepClaim: Boolean = false) {
         val p = player ?: return
         // On enregistre la progression de l'élément quitté (épisode précédent…).
         if (i != index) savePosition()
@@ -204,6 +226,8 @@ class PlayerActivity : AppCompatActivity() {
         Session.playIndex = i
         attempt = tryIndex
         tracksDecided = false
+        // Abonnement à 1 écran : on prend la main, les autres appareils du compte s'arrêtent.
+        if (!keepClaim) guard.start(claim = true)
         val url = item.attempts.getOrElse(tryIndex) { item.url }
         val media = MediaItem.Builder()
             .setUri(url)
@@ -376,6 +400,24 @@ class PlayerActivity : AppCompatActivity() {
         } else {
             watch.save(m, item.url, position, duration)
         }
+    }
+
+    /** Un autre appareil du compte a lancé une lecture : on libère l'abonnement. */
+    private fun kicked(name: String) {
+        if (isFinishing) return
+        savePosition()
+        if (MultiTvHost.running) stopSharing(false)
+        player?.stop()
+        AlertDialog.Builder(this)
+            .setTitle("Lecture arrêtée")
+            .setMessage("« $name » regarde maintenant avec ton abonnement (1 écran à la fois).")
+            .setCancelable(false)
+            .setPositiveButton("Reprendre ici") { _, _ ->
+                val item = current
+                play(index, 0, if (item?.isLive == true) 0L else null)
+            }
+            .setNegativeButton("Quitter") { _, _ -> finish() }
+            .show()
     }
 
     // ---------- Multi-TV : cette TV partage ce qu'elle lit ----------

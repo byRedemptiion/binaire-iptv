@@ -57,6 +57,15 @@ class LiveActivity : BaseActivity() {
     private var preview: ExoPlayer? = null
     private var previewId: String? = null
     private var previewFallbackTried = false
+    /** Un autre appareil du compte lance une lecture : l'aperçu libère l'abonnement. */
+    private val previewGuard by lazy {
+        PlaybackGuard(this) { name ->
+            stopPreview()
+            previewHint.visibility = View.VISIBLE
+            previewHint.text = "Aperçu coupé : « $name » regarde avec ton abonnement"
+            liveBadge.visibility = View.GONE
+        }
+    }
     private var focusedItem: Item? = null
 
     private var catJob: Job? = null
@@ -276,9 +285,11 @@ class LiveActivity : BaseActivity() {
         liveBadge.visibility = View.GONE
         p.setMediaItem(mediaItem(Session.livePlayItem(client, item, false).url))
         p.prepare()
+        previewGuard.start(claim = false)
     }
 
     private fun stopPreview() {
+        previewGuard.stop()
         preview?.let {
             it.release()
             previewView.player = null

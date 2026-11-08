@@ -85,6 +85,14 @@ class GuestPlayerActivity : AppCompatActivity() {
         overlaySub = findViewById(R.id.overlaySub)
         BTheme.applyImageFormat(playerView, Prefs(this).resizeMode)
         BTheme.stylePlayerControls(playerView, BTheme.accent(this))
+        findViewById<TextView>(R.id.btnBack).let { b ->
+            val sz = (16 * resources.displayMetrics.density).toInt()
+            b.compoundDrawablesRelative[0]?.setBounds(0, 0, sz, sz)
+            b.setCompoundDrawablesRelative(b.compoundDrawablesRelative[0], null, null, null)
+            b.background = BTheme.selector(this, 12f, 0xCC000000.toInt(), BTheme.soft(BTheme.accent(this)), BTheme.WHITE, null, 2f)
+            b.setOnClickListener { finish() }
+            playerView.setControllerVisibilityListener(androidx.media3.ui.PlayerView.ControllerVisibilityListener { v -> b.visibility = v })
+        }
         findViewById<TextView>(R.id.multiTvBadge).apply {
             val size = (16 * resources.displayMetrics.density).toInt()
             compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)

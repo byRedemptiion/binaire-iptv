@@ -159,12 +159,15 @@ object BTheme {
                 return
             }
             if (v.isFocusable && v.isClickable) {
-                v.background = selector(ctx, 24f, android.graphics.Color.TRANSPARENT, accent, WHITE, null, 2.5f)
-                zoomOnFocus(v, 1.15f)
+                v.background = selector(ctx, 24f, android.graphics.Color.TRANSPARENT, soft(accent), WHITE, null, 2f)
+                zoomOnFocus(v, 1.06f)
             }
         }
         walk(root)
     }
+
+    /** Couleur principale adoucie (fond des boutons sélectionnés du lecteur). */
+    fun soft(color: Int): Int = (color and 0x00FFFFFF) or (0x99 shl 24)
 
     /** Formats d'image proposés (clé enregistrée → libellé). */
     val imageFormats = listOf(
