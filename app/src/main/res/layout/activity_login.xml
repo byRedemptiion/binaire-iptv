@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="18dp"
-                android:text="Connecte ton abonnement (Xtream Codes)"
+                android:text="Connecte ton abonnement (Xtream Codes ou lien M3U)"
                 android:textSize="13sp" />
 
             <EditText
@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:text="Astuce : colle ton lien M3U complet dans « Serveur », les champs se remplissent tout seuls." />
+                android:text="Lien M3U : colle-le dans « Serveur ». S'il contient ton identifiant, les champs se remplissent tout seuls ; sinon laisse-les vides." />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

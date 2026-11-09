@@ -231,7 +231,7 @@ class PlayerActivity : AppCompatActivity() {
         val url = item.attempts.getOrElse(tryIndex) { item.url }
         val media = MediaItem.Builder()
             .setUri(url)
-            .apply { if (url.substringBefore('?').endsWith(".m3u8")) setMimeType(MimeTypes.APPLICATION_M3U8) }
+            .apply { if (url.substringBefore('?').endsWith(".m3u8") || url.contains(".m3u8", true) || url.contains("/hls/", true)) setMimeType(MimeTypes.APPLICATION_M3U8) }
             .build()
 
         val resumeAt = at ?: item.watch?.let { m ->

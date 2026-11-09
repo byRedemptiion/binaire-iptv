@@ -183,17 +183,29 @@
       <label>Nom (pour t'y retrouver)
         <input type="text" id="s-name" placeholder="Mon abonnement" maxlength="40">
       </label>
-      <label>Serveur
-        <input type="url" id="s-server" placeholder="http://exemple.com:8080" autocapitalize="off" autocorrect="off" spellcheck="false">
-      </label>
-      <label>Nom d'utilisateur
-        <input type="text" id="s-user" autocapitalize="off" autocorrect="off" spellcheck="false">
-      </label>
-      <label>Mot de passe
-        <input type="password" id="s-pass" autocapitalize="off" autocorrect="off" spellcheck="false">
-      </label>
-      <label class="check"><input type="checkbox" id="s-show"> Afficher le mot de passe</label>
-      <p class="hint">Astuce : colle ton lien M3U complet dans « Serveur », les champs se remplissent tout seuls.</p>
+      <div class="tabs" role="tablist" style="margin:0">
+        <button type="button" role="tab" id="tab-xtream" aria-selected="true">Identifiants Xtream</button>
+        <button type="button" role="tab" id="tab-m3u" aria-selected="false">Lien M3U</button>
+      </div>
+      <div class="stack" id="xtream-fields">
+        <label>Serveur
+          <input type="url" id="s-server" placeholder="http://exemple.com:8080" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </label>
+        <label>Nom d'utilisateur
+          <input type="text" id="s-user" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </label>
+        <label>Mot de passe
+          <input type="password" id="s-pass" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </label>
+        <label class="check"><input type="checkbox" id="s-show"> Afficher le mot de passe</label>
+        <p class="hint">Astuce : colle ton lien M3U complet dans « Serveur », les champs se remplissent tout seuls.</p>
+      </div>
+      <div class="stack hidden" id="m3u-fields">
+        <label>Lien de la liste M3U
+          <input type="url" id="s-m3u" placeholder="http://exemple.com/liste.m3u" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </label>
+        <p class="hint">Le lien que t'a donné ton fournisseur. Chaînes, films et séries sont rangés automatiquement.</p>
+      </div>
       <div class="msg" id="s-msg" role="alert"></div>
       <button type="submit" id="s-submit">Enregistrer l'abonnement</button>
       <button type="button" class="ghost" id="s-cancel">Annuler</button>
@@ -434,14 +446,30 @@
     return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }
 
+  const M3U = "m3u:";
+  let subMode = "xtream";
+  function setSubMode(m) {
+    subMode = m;
+    $("tab-xtream").setAttribute("aria-selected", m === "xtream");
+    $("tab-m3u").setAttribute("aria-selected", m === "m3u");
+    $("xtream-fields").classList.toggle("hidden", m !== "xtream");
+    $("m3u-fields").classList.toggle("hidden", m !== "m3u");
+    msg("s-msg", "");
+  }
+  $("tab-xtream").onclick = () => setSubMode("xtream");
+  $("tab-m3u").onclick = () => setSubMode("m3u");
+
   function openSubForm(sub, then) {
     editingSub = sub ? sub.id : null;
     afterSub = then;
     $("sub-title").textContent = sub ? "Modifier l'abonnement" : "Ajoute ton abonnement";
     $("s-name").value = sub ? sub.name || "" : "";
-    $("s-server").value = sub ? sub.server || "" : "";
-    $("s-user").value = sub ? sub.user || "" : "";
-    $("s-pass").value = sub ? sub.pass || "" : "";
+    const isM3u = !!(sub && (sub.server || "").startsWith(M3U));
+    setSubMode(isM3u ? "m3u" : "xtream");
+    $("s-m3u").value = isM3u ? sub.server.slice(M3U.length) : "";
+    $("s-server").value = sub && !isM3u ? sub.server || "" : "";
+    $("s-user").value = sub && !isM3u ? sub.user || "" : "";
+    $("s-pass").value = sub && !isM3u ? sub.pass || "" : "";
     $("s-cancel").classList.toggle("hidden", !then || then === "approve-required");
     msg("s-msg", "");
     show("v-sub");
@@ -463,14 +491,33 @@
 
   $("s-cancel").onclick = () => (afterSub === "approve" ? startApprove(pendingCode) : openAccount());
 
+  // Un lien M3U qui contient l'identifiant est en fait un abonnement Xtream : on remplit les champs.
+  $("s-m3u").addEventListener("input", (e) => {
+    const v = e.target.value.trim();
+    if (!v.includes("username=")) return;
+    setSubMode("xtream");
+    $("s-server").value = v;
+    $("s-server").dispatchEvent(new Event("input"));
+    e.target.value = "";
+  });
+
   $("f-sub").onsubmit = async (e) => {
     e.preventDefault();
-    let server = $("s-server").value.trim();
-    const user = $("s-user").value.trim();
-    const pass = $("s-pass").value.trim();
-    if (!server || !user || !pass) return msg("s-msg", "Remplis le serveur, le nom d'utilisateur et le mot de passe.");
-    if (!/^https?:\/\//i.test(server)) server = "http://" + server;
-    server = server.replace(/\/(player_api\.php|get\.php|c)\/?$/i, "").replace(/\/+$/, "");
+    let server, user, pass;
+    if (subMode === "m3u") {
+      let link = $("s-m3u").value.trim();
+      if (!link) return msg("s-msg", "Colle le lien de ta liste M3U.");
+      if (!/^https?:\/\//i.test(link)) link = "http://" + link;
+      try { new URL(link); } catch (err) { return msg("s-msg", "Ce lien n'est pas valide."); }
+      server = M3U + link; user = "m3u"; pass = "m3u";
+    } else {
+      server = $("s-server").value.trim();
+      user = $("s-user").value.trim();
+      pass = $("s-pass").value.trim();
+      if (!server || !user || !pass) return msg("s-msg", "Remplis le serveur, le nom d'utilisateur et le mot de passe.");
+      if (!/^https?:\/\//i.test(server)) server = "http://" + server;
+      server = server.replace(/\/(player_api\.php|get\.php|c)\/?$/i, "").replace(/\/+$/, "");
+    }
     $("s-submit").disabled = true;
     try {
       const id = editingSub || ("s" + Date.now().toString(36));
@@ -581,10 +628,11 @@
       const subs = await loadSubs();
       subsBox.innerHTML = subs.length ? "" : '<p class="empty">Aucun abonnement pour l\'instant.</p>';
       for (const s of subs) {
-        const host = (() => { try { return new URL(s.server).host; } catch (e) { return s.server; } })();
+        const isM3u = (s.server || "").startsWith(M3U);
+        const host = (() => { try { return new URL(isM3u ? s.server.slice(M3U.length) : s.server).host; } catch (e) { return s.server; } })();
         const row = document.createElement("div");
         row.className = "item";
-        row.innerHTML = `<div class="grow"><div class="t">${esc(s.name || "Abonnement")}</div><div class="s">${esc(host)} · ${esc(s.user)}</div></div>`;
+        row.innerHTML = `<div class="grow"><div class="t">${esc(s.name || "Abonnement")}</div><div class="s">${esc(host)} · ${isM3u ? "Lien M3U" : esc(s.user)}</div></div>`;
         const edit = document.createElement("button");
         edit.className = "secondary small"; edit.textContent = "Modifier";
         edit.onclick = () => openSubForm(s, "account");

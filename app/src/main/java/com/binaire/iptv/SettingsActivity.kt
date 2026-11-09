@@ -227,7 +227,8 @@ class SettingsActivity : BaseActivity() {
             val acc = Session.account
             val exp = acc?.expDate?.takeIf { it > 0 }?.let { SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(it * 1000)) }
             listOf(
-                SettingRow("Serveur", "Adresse de ton fournisseur", Uri.parse(prefs.server.orEmpty()).host ?: prefs.server.orEmpty()),
+                if (XtreamClient.isM3u(prefs.server)) SettingRow("Type", "Liste de liens", "Lien M3U · " + (Uri.parse(prefs.server.orEmpty().removePrefix(XtreamClient.M3U_PREFIX)).host ?: ""))
+                else SettingRow("Serveur", "Adresse de ton fournisseur", Uri.parse(prefs.server.orEmpty()).host ?: prefs.server.orEmpty()),
                 SettingRow("Statut", "Selon ton fournisseur", acc?.status?.let { statusFr(it).replaceFirstChar(Char::uppercase) } ?: "—"),
                 SettingRow("Expiration", "Date de fin de ton abonnement", exp ?: "Sans date"),
                 SettingRow("Connexions simultanées", "Nombre d'écrans en même temps", acc?.maxConnections ?: "—"),

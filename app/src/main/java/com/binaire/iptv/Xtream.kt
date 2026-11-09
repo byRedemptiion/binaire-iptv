@@ -143,7 +143,7 @@ internal fun parseDurationSecs(o: JSONObject?): Long {
 }
 
 /** Client pour l'API "player_api.php" des serveurs Xtream Codes. */
-class XtreamClient(rawServer: String, val user: String, val pass: String) {
+open class XtreamClient(rawServer: String, val user: String, val pass: String) {
 
     val server: String = normalize(rawServer)
 
@@ -162,7 +162,17 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
                 .build()
         }
 
+        /** Préfixe des abonnements « lien M3U simple » (enregistrés comme serveur = m3u:<lien>). */
+        const val M3U_PREFIX = "m3u:"
+
+        /** Le bon lecteur de liste selon le type d'abonnement. */
+        fun create(server: String, user: String, pass: String): XtreamClient =
+            if (server.startsWith(M3U_PREFIX)) M3uClient(server) else XtreamClient(server, user, pass)
+
+        fun isM3u(server: String?) = server?.startsWith(M3U_PREFIX) == true
+
         fun normalize(input: String): String {
+            if (input.startsWith(M3U_PREFIX)) return input.trim()
             var u = input.trim()
             if (!u.startsWith("http://", true) && !u.startsWith("https://", true)) u = "http://$u"
             u = u.trimEnd('/')
@@ -210,7 +220,7 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
         null
     }
 
-    fun login(): AccountInfo {
+    open fun login(): AccountInfo {
         val root = obj(request(null))
             ?: throw XtreamException("Réponse inattendue : ce serveur n'est peut-être pas un serveur Xtream Codes")
         val ui = root.optJSONObject("user_info") ?: throw XtreamException("Identifiants refusés")
@@ -227,7 +237,7 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
         )
     }
 
-    fun categories(kind: Kind): List<Category> {
+    open fun categories(kind: Kind): List<Category> {
         val action = when (kind) {
             Kind.LIVE -> "get_live_categories"
             Kind.MOVIE -> "get_vod_categories"
@@ -296,7 +306,7 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
         "num", "added", "last_modified", "rating"
     )
 
-    fun streams(kind: Kind): List<Item> {
+    open fun streams(kind: Kind): List<Item> {
         val action = when (kind) {
             Kind.LIVE -> "get_live_streams"
             Kind.MOVIE -> "get_vod_streams"
@@ -337,7 +347,7 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
         }
     }
 
-    fun vodInfo(vodId: String): VodInfo {
+    open fun vodInfo(vodId: String): VodInfo {
         val root = obj(request("get_vod_info", mapOf("vod_id" to vodId)))
             ?: throw XtreamException("Film introuvable sur le serveur")
         val info = root.optJSONObject("info") ?: JSONObject()
@@ -355,7 +365,7 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
         )
     }
 
-    fun seriesInfo(seriesId: String): SeriesInfo {
+    open fun seriesInfo(seriesId: String): SeriesInfo {
         val root = obj(request("get_series_info", mapOf("series_id" to seriesId)))
             ?: throw XtreamException("Série introuvable sur le serveur")
         val info = root.optJSONObject("info")
@@ -412,7 +422,7 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
         )
     }
 
-    fun shortEpg(streamId: String): List<EpgEntry> {
+    open fun shortEpg(streamId: String): List<EpgEntry> {
         val root = obj(request("get_short_epg", mapOf("stream_id" to streamId, "limit" to "2"))) ?: return emptyList()
         val arr = root.optJSONArray("epg_listings") ?: return emptyList()
         val out = ArrayList<EpgEntry>()
@@ -437,7 +447,7 @@ class XtreamClient(rawServer: String, val user: String, val pass: String) {
     }
 
     private fun creds() = "${Uri.encode(user)}/${Uri.encode(pass)}"
-    fun liveUrl(id: String, ext: String) = "$server/live/${creds()}/$id.$ext"
-    fun movieUrl(id: String, ext: String) = "$server/movie/${creds()}/$id.$ext"
-    fun episodeUrl(id: String, ext: String) = "$server/series/${creds()}/$id.$ext"
+    open fun liveUrl(id: String, ext: String) = "$server/live/${creds()}/$id.$ext"
+    open fun movieUrl(id: String, ext: String) = "$server/movie/${creds()}/$id.$ext"
+    open fun episodeUrl(id: String, ext: String) = "$server/series/${creds()}/$id.$ext"
 }

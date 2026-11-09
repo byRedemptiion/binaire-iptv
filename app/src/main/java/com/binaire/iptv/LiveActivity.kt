@@ -272,7 +272,7 @@ class LiveActivity : BaseActivity() {
 
     private fun mediaItem(url: String): MediaItem = MediaItem.Builder()
         .setUri(url)
-        .apply { if (url.substringBefore('?').endsWith(".m3u8")) setMimeType(MimeTypes.APPLICATION_M3U8) }
+        .apply { if (url.substringBefore('?').endsWith(".m3u8") || url.contains(".m3u8", true) || url.contains("/hls/", true)) setMimeType(MimeTypes.APPLICATION_M3U8) }
         .build()
 
     private fun startPreview(item: Item) {

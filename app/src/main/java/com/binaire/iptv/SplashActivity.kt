@@ -71,7 +71,7 @@ class SplashActivity : BaseActivity() {
                 return@launch
             }
             status.text = "Connexion à ton abonnement…"
-            val c = Session.client ?: XtreamClient(prefs.server!!, prefs.user!!, prefs.pass!!).also { Session.client = it }
+            val c = Session.client ?: XtreamClient.create(prefs.server!!, prefs.user!!, prefs.pass!!).also { Session.client = it }
 
             try {
                 Session.account = withContext(Dispatchers.IO) { c.login() }

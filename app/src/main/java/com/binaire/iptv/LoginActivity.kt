@@ -99,18 +99,24 @@ class LoginActivity : BaseActivity() {
     }
 
     private fun attemptLogin() {
-        val server = etServer.text.toString().trim()
-        val user = etUser.text.toString().trim()
-        val pass = etPass.text.toString().trim()
+        var server = etServer.text.toString().trim()
+        var user = etUser.text.toString().trim()
+        var pass = etPass.text.toString().trim()
+        // Lien M3U simple (sans identifiant dedans) : collé seul dans « Serveur ».
+        if (user.isEmpty() && pass.isEmpty() && server.contains("://") && server.length > 12) {
+            server = XtreamClient.M3U_PREFIX + server
+            user = "m3u"
+            pass = "m3u"
+        }
         if (server.isEmpty() || user.isEmpty() || pass.isEmpty()) {
-            tvError.text = "Remplis les trois champs."
+            tvError.text = "Remplis les trois champs, ou colle seulement ton lien M3U dans « Serveur »."
             return
         }
         setBusy(true)
         tvError.text = ""
         lifecycleScope.launch {
             try {
-                val c = XtreamClient(server, user, pass)
+                val c = XtreamClient.create(server, user, pass)
                 val account = withContext(Dispatchers.IO) { c.login() }
                 prefs.saveLogin(c.server, user, pass)
                 Session.clear()

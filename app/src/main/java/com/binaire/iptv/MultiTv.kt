@@ -46,7 +46,7 @@ object MultiTv {
 
     /** Adresse directe d'un flux Xtream en MPEG-TS (le HLS ne se relaie pas aussi simplement). */
     fun relayUrl(item: PlayItem): String =
-        if (item.isLive && item.url.substringBefore('?').endsWith(".m3u8")) item.url.substringBefore('?').removeSuffix(".m3u8") + ".ts"
+        if (item.isLive && item.url.contains("/live/") && item.url.substringBefore('?').endsWith(".m3u8")) item.url.substringBefore('?').removeSuffix(".m3u8") + ".ts"
         else item.url
 }
 
