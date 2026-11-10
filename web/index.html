@@ -388,18 +388,39 @@
       $("auth-lead").textContent = pendingCode
         ? "Crée ton compte Binaire (ou connecte-toi) pour autoriser ta TV. Ensuite, plus rien à taper."
         : "Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.";
-      setMode("signup");
+      setMode(blockedNotice ? "login" : "signup");
+      if (blockedNotice) msg("a-msg", "Ce compte est suspendu. Contacte le support Binaire.");
+      blockedNotice = false;
       show("v-auth");
       return;
     }
     $("who").textContent = user.email || "";
     if (!user.emailVerified) return showVerify(user);
     try {
-      await setDoc(doc(db, "users", user.uid), { email: user.email || "" }, { merge: true });
+      await saveProfile(user);
     } catch (err) { /* sans gravité */ }
+    if (await isBlocked()) return;
     if (pendingCode) await startApprove(pendingCode);
     else await openAccount();
   });
+
+  // ---------- Fiche du compte (visible par l'administrateur, sans les codes IPTV) ----------
+  async function saveProfile(user) {
+    const created = Date.parse(user.metadata && user.metadata.creationTime) || Date.now();
+    await setDoc(doc(db, "users", user.uid), { email: user.email || "", createdAt: created, lastLogin: Date.now() }, { merge: true });
+  }
+  let blockedNotice = false;
+  async function isBlocked() {
+    try {
+      const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+      if (snap.exists() && snap.data().blocked) {
+        blockedNotice = true;
+        await signOut(auth);
+        return true;
+      }
+    } catch (err) {}
+    return false;
+  }
 
   // ---------- Vérification de l'e-mail ----------
   let verifyTimer = null;
@@ -422,7 +443,8 @@
       clearInterval(verifyTimer);
       await auth.currentUser.getIdToken(true); // jeton à jour pour le serveur
       $("who").textContent = auth.currentUser.email || "";
-      try { await setDoc(doc(db, "users", auth.currentUser.uid), { email: auth.currentUser.email || "" }, { merge: true }); } catch (err) {}
+      try { await saveProfile(auth.currentUser); } catch (err) {}
+      if (await isBlocked()) return;
       if (pendingCode) await startApprove(pendingCode);
       else await openAccount();
     } catch (err) {
@@ -626,6 +648,9 @@
 
     try {
       const subs = await loadSubs();
+      // Résumé pour l'administrateur : nombre et types d'abonnements, jamais les codes.
+      const types = [...new Set(subs.map((x) => (x.server || "").startsWith(M3U) ? "M3U" : "Xtream"))];
+      setDoc(doc(db, "users", uid), { subCount: subs.length, subTypes: types }, { merge: true }).catch(() => {});
       subsBox.innerHTML = subs.length ? "" : '<p class="empty">Aucun abonnement pour l\'instant.</p>';
       for (const s of subs) {
         const isM3u = (s.server || "").startsWith(M3U);

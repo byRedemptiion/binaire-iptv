@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070912">
+<meta name="robots" content="noindex, nofollow">
+<title>Binaire Admin</title>
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="admin.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070912;
+    --panel: #11131b;
+    --panel-2: #171a24;
+    --field: #1c202b;
+    --line: rgba(255, 255, 255, 0.09);
+    --text: #f2f4f8;
+    --muted: #b8c0cc;
+    --faint: #8a94a6;
+    --accent: #e5203a;
+    --blue: #3b7bf6;
+    --ok: #3ccf7a;
+    --warn: #ff8a98;
+    --gold: #e8b931;
+    --violet: #a27bf6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(50% 40% at 0% 0%, rgba(30, 107, 255, 0.28) 0%, transparent 70%),
+      radial-gradient(50% 40% at 100% 100%, rgba(255, 31, 61, 0.22) 0%, transparent 70%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font: 15px/1.45 Outfit, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  main { max-width: 1240px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+  header img { height: 34px; display: block; }
+  .tag { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: var(--faint); border: 1px solid var(--line); padding: 3px 8px; border-radius: 6px; }
+  .spacer { flex: 1; }
+  .who { color: var(--faint); font-size: 13px; }
+  h1 { font-size: 24px; margin: 0 0 6px; font-weight: 800; }
+  p { margin: 0; }
+  .muted { color: var(--muted); }
+  .faint { color: var(--faint); }
+  button, .btn {
+    min-height: 38px; border-radius: 19px; border: none; padding: 0 16px; cursor: pointer;
+    font: 600 14px Outfit, system-ui, sans-serif; color: #fff; background: var(--accent);
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  button.secondary { background: rgba(255, 255, 255, 0.10); color: var(--text); }
+  button.ghost { background: transparent; color: var(--muted); }
+  button.small { min-height: 30px; padding: 0 12px; font-size: 13px; border-radius: 15px; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  input, select {
+    height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--field); color: var(--text);
+    font: 15px Outfit, system-ui, sans-serif; padding: 0 12px;
+  }
+  input:focus, select:focus { border-color: var(--accent); outline: none; }
+  .hidden { display: none !important; }
+
+  /* Connexion */
+  .login { max-width: 400px; margin: 10vh auto 0; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .login img { height: 40px; align-self: flex-start; margin-bottom: 4px; }
+  .login input { width: 100%; height: 48px; }
+  .login button { min-height: 48px; border-radius: 24px; }
+  .msg { font-size: 14px; border-radius: 10px; padding: 9px 12px; display: none; }
+  .msg.err { display: block; background: rgba(229, 32, 58, 0.16); color: var(--warn); }
+  .msg.ok { display: block; background: rgba(60, 207, 122, 0.14); color: var(--ok); }
+
+  /* Chiffres */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 18px 0 22px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+  .stat .v { font-size: 30px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat .l { color: var(--faint); font-size: 13px; margin-top: 2px; }
+
+  /* Onglets et filtres */
+  .bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .tabs { display: flex; background: var(--field); border-radius: 21px; padding: 3px; }
+  .tabs button { background: transparent; color: var(--muted); min-height: 36px; font-weight: 500; }
+  .tabs button[aria-selected="true"] { background: #fff; color: #070912; font-weight: 700; }
+  .bar input[type="search"] { flex: 1; min-width: 200px; }
+
+  /* Tableau */
+  .table-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--faint); font-weight: 600; background: var(--panel-2); position: sticky; top: 0; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
+  td.num { font-variant-numeric: tabular-nums; }
+  .email { font-weight: 600; }
+  .sub { font-size: 12px; color: var(--faint); }
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 10px; white-space: nowrap; }
+  .b-free { background: rgba(255, 255, 255, 0.08); color: var(--muted); }
+  .b-tester { background: rgba(162, 123, 246, 0.18); color: var(--violet); }
+  .b-gift, .b-lifetime { background: rgba(232, 185, 49, 0.16); color: var(--gold); }
+  .b-monthly, .b-yearly { background: rgba(60, 207, 122, 0.15); color: var(--ok); }
+  .b-blocked { background: rgba(229, 32, 58, 0.18); color: var(--warn); }
+  .b-yes { background: rgba(60, 207, 122, 0.15); color: var(--ok); }
+  .actions { display: flex; gap: 6px; align-items: center; }
+  .actions select { height: 32px; font-size: 13px; padding: 0 8px; border-radius: 8px; }
+  .empty { padding: 28px; text-align: center; color: var(--faint); }
+  .toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: #070912;
+    font-weight: 600; padding: 10px 18px; border-radius: 20px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px);
+  }
+  .toast.show { opacity: 1; }
+  .note { font-size: 13px; color: var(--faint); margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- Connexion -->
+  <section id="v-login" class="hidden">
+    <form class="login" id="f-login" novalidate>
+      <img src="logo.png" alt="Binaire IPTV">
+      <h1>Administration</h1>
+      <p class="muted" style="margin-bottom:6px">Réservé au compte administrateur de Binaire.</p>
+      <input type="email" id="l-email" placeholder="E-mail administrateur" autocomplete="username">
+      <input type="password" id="l-pass" placeholder="Mot de passe" autocomplete="current-password">
+      <div class="msg" id="l-msg" role="alert"></div>
+      <button type="submit" id="l-go">Se connecter</button>
+    </form>
+  </section>
+
+  <!-- Refusé -->
+  <section id="v-denied" class="hidden">
+    <div class="login">
+      <img src="logo.png" alt="Binaire IPTV">
+      <h1>Accès refusé</h1>
+      <p class="muted" id="denied-text">Ce compte n'est pas administrateur.</p>
+      <button type="button" class="secondary" id="denied-out">Changer de compte</button>
+    </div>
+  </section>
+
+  <!-- Tableau de bord -->
+  <section id="v-dash" class="hidden">
+    <header>
+      <img src="logo.png" alt="Binaire IPTV">
+      <span class="tag">ADMIN</span>
+      <span class="spacer"></span>
+      <span class="who" id="who"></span>
+      <button type="button" class="secondary small" id="refresh">Actualiser</button>
+      <button type="button" class="ghost small" id="logout">Déconnexion</button>
+    </header>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="bar">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-users" aria-selected="true">Utilisateurs</button>
+        <button type="button" role="tab" id="tab-testers" aria-selected="false">Testeurs</button>
+      </div>
+      <input type="search" id="q" placeholder="Rechercher un e-mail ou un prénom…">
+      <select id="filter" aria-label="Filtrer">
+        <option value="all">Tous</option>
+        <option value="premium">Premium (payant ou offert)</option>
+        <option value="free">Gratuit</option>
+        <option value="tester">Testeurs</option>
+        <option value="blocked">Bloqués</option>
+      </select>
+      <button type="button" class="secondary hidden" id="copy-gmail">Copier les Gmail pour Google Play</button>
+    </div>
+
+    <div class="table-wrap" id="table"></div>
+    <p class="note" id="note"></p>
+  </section>
+
+  <section id="v-loading">
+    <p class="faint" style="text-align:center;margin-top:20vh">Chargement…</p>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyD4AGPutgrGhmttoeeVuHhJQs8rzqJuQac",
+    authDomain: "binaire-iptv.firebaseapp.com",
+    projectId: "binaire-iptv",
+    storageBucket: "binaire-iptv.firebasestorage.app",
+    messagingSenderId: "712562892693",
+    appId: "1:712562892693:web:3c4b359ea30a0fff9b209c"
+  });
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const $ = (id) => document.getElementById(id);
+  const views = ["v-login", "v-denied", "v-dash", "v-loading"];
+  const show = (v) => views.forEach((x) => $(x).classList.toggle("hidden", x !== v));
+
+  const PLANS = {
+    free: "Gratuit",
+    tester: "Testeur",
+    gift: "Premium offert",
+    monthly: "Mensuel",
+    yearly: "Annuel",
+    lifetime: "À vie"
+  };
+  const PREMIUM = new Set(["tester", "gift", "monthly", "yearly", "lifetime"]);
+  const DAY = 86400000;
+
+  let users = [];
+  let testers = [];
+  let tab = "users";
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const date = (t) => t ? new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "—";
+  function ago(t) {
+    if (!t) return "—";
+    const d = Date.now() - t;
+    if (d < 3600000) return "à l'instant";
+    if (d < DAY) return `il y a ${Math.round(d / 3600000)} h`;
+    if (d < 30 * DAY) return `il y a ${Math.round(d / DAY)} j`;
+    return date(t);
+  }
+  function toast(t) {
+    $("toast").textContent = t;
+    $("toast").classList.add("show");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => $("toast").classList.remove("show"), 2600);
+  }
+  function planOf(u) {
+    const p = u.plan || "free";
+    // Formule payante échue : retour au gratuit.
+    if ((p === "monthly" || p === "yearly") && u.planUntil && u.planUntil < Date.now()) return "free";
+    return PLANS[p] ? p : "free";
+  }
+
+  // ---------- Connexion ----------
+  $("f-login").onsubmit = async (e) => {
+    e.preventDefault();
+    $("l-go").disabled = true;
+    $("l-msg").className = "msg";
+    try {
+      await signInWithEmailAndPassword(auth, $("l-email").value.trim(), $("l-pass").value);
+    } catch (err) {
+      $("l-msg").textContent = "E-mail ou mot de passe incorrect.";
+      $("l-msg").className = "msg err";
+    } finally {
+      $("l-go").disabled = false;
+    }
+  };
+  $("logout").onclick = () => signOut(auth);
+  $("denied-out").onclick = () => signOut(auth);
+  $("refresh").onclick = () => load();
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user || user.isAnonymous) return show("v-login");
+    if (!user.emailVerified) {
+      $("denied-text").textContent = "Confirme d'abord l'adresse e-mail de ce compte (lien reçu par mail), puis reconnecte-toi.";
+      return show("v-denied");
+    }
+    $("who").textContent = user.email;
+    await load();
+  });
+
+  // ---------- Données ----------
+  async function load() {
+    show("v-loading");
+    try {
+      const snap = await getDocs(collection(db, "users"));
+      users = snap.docs.map((d) => ({ uid: d.id, ...d.data(), devices: [] }));
+    } catch (err) {
+      if ((err.code || "").includes("permission-denied")) {
+        $("denied-text").textContent = "Ce compte n'est pas administrateur de Binaire.";
+        return show("v-denied");
+      }
+      $("denied-text").textContent = "Chargement impossible : " + (err.message || err);
+      return show("v-denied");
+    }
+    // Appareils de chaque compte (pour le nombre et la dernière activité).
+    await Promise.all(users.map(async (u) => {
+      try {
+        const s = await getDocs(collection(db, "users", u.uid, "devices"));
+        u.devices = s.docs.map((d) => d.data());
+      } catch (e) { u.devices = []; }
+      u.lastSeen = Math.max(u.lastLogin || 0, ...u.devices.map((d) => d.lastSeen || 0)) || null;
+    }));
+    try {
+      const s = await getDocs(collection(db, "testers"));
+      testers = s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } catch (e) { testers = []; }
+    users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    show("v-dash");
+    render();
+  }
+
+  // ---------- Affichage ----------
+  function renderStats() {
+    const week = Date.now() - 7 * DAY;
+    const premium = users.filter((u) => PREMIUM.has(planOf(u))).length;
+    const paying = users.filter((u) => ["monthly", "yearly", "lifetime"].includes(planOf(u))).length;
+    const active = users.filter((u) => u.lastSeen && u.lastSeen > week).length;
+    const fresh = users.filter((u) => u.createdAt && u.createdAt > week).length;
+    const cards = [
+      [users.length, "comptes inscrits"],
+      [fresh, "nouveaux cette semaine"],
+      [active, "actifs cette semaine"],
+      [premium, `premium (dont ${paying} payants)`],
+      [testers.length, "testeurs inscrits"]
+    ];
+    $("stats").innerHTML = cards.map(([v, l]) => `<div class="stat"><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+  }
+
+  function setTab(t) {
+    tab = t;
+    $("tab-users").setAttribute("aria-selected", t === "users");
+    $("tab-testers").setAttribute("aria-selected", t === "testers");
+    $("filter").classList.toggle("hidden", t !== "users");
+    $("copy-gmail").classList.toggle("hidden", t !== "testers");
+    render();
+  }
+  $("tab-users").onclick = () => setTab("users");
+  $("tab-testers").onclick = () => setTab("testers");
+  $("q").oninput = () => render();
+  $("filter").onchange = () => render();
+
+  function render() {
+    renderStats();
+    if (tab === "users") renderUsers(); else renderTesters();
+  }
+
+  function renderUsers() {
+    const q = $("q").value.trim().toLowerCase();
+    const f = $("filter").value;
+    const list = users.filter((u) => {
+      if (q && !(u.email || "").toLowerCase().includes(q)) return false;
+      const p = planOf(u);
+      if (f === "premium") return PREMIUM.has(p);
+      if (f === "free") return p === "free";
+      if (f === "tester") return p === "tester";
+      if (f === "blocked") return !!u.blocked;
+      return true;
+    });
+    if (!list.length) {
+      $("table").innerHTML = `<div class="empty">${users.length ? "Aucun compte ne correspond." : "Aucun compte pour l'instant."}</div>`;
+      $("note").textContent = "";
+      return;
+    }
+    const rows = list.map((u) => {
+      const p = planOf(u);
+      const until = (p === "monthly" || p === "yearly") && u.planUntil ? `<div class="sub">jusqu'au ${date(u.planUntil)}</div>` : "";
+      const types = u.subTypes && u.subTypes.length ? u.subTypes.join(", ") : (u.subCount === 0 ? "aucun" : "—");
+      return `<tr data-uid="${esc(u.uid)}">
+        <td><div class="email">${esc(u.email || "(sans e-mail)")}</div><div class="sub">${esc(u.uid.slice(0, 8))}…</div></td>
+        <td class="num">${date(u.createdAt)}</td>
+        <td class="num">${ago(u.lastSeen)}</td>
+        <td><span class="badge b-${p}">${PLANS[p]}</span>${u.blocked ? ' <span class="badge b-blocked">Bloqué</span>' : ""}${until}</td>
+        <td class="num">${u.devices.length}</td>
+        <td>${esc(types)}${u.subCount ? `<div class="sub">${u.subCount} abonnement${u.subCount > 1 ? "s" : ""}</div>` : ""}</td>
+        <td><div class="actions">
+          <select aria-label="Formule de ${esc(u.email)}" data-act="plan">
+            ${["free", "tester", "gift"].map((k) => `<option value="${k}" ${k === (u.plan || "free") ? "selected" : ""}>${PLANS[k]}</option>`).join("")}
+            ${["monthly", "yearly", "lifetime"].includes(u.plan) ? `<option value="${esc(u.plan)}" selected disabled>${PLANS[u.plan]} (payé)</option>` : ""}
+          </select>
+          <button type="button" class="${u.blocked ? "secondary" : "ghost"} small" data-act="block">${u.blocked ? "Débloquer" : "Bloquer"}</button>
+        </div></td>
+      </tr>`;
+    }).join("");
+    $("table").innerHTML = `<table>
+      <thead><tr><th>Compte</th><th>Inscrit le</th><th>Dernière activité</th><th>Formule</th><th>Appareils</th><th>Abonnement IPTV</th><th>Actions</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+    $("note").textContent = `${list.length} compte${list.length > 1 ? "s" : ""} affiché${list.length > 1 ? "s" : ""}. Les codes IPTV des utilisateurs ne sont jamais visibles ici.`;
+  }
+
+  function renderTesters() {
+    const q = $("q").value.trim().toLowerCase();
+    const byEmail = new Map(users.map((u) => [(u.email || "").toLowerCase(), u]));
+    const list = testers.filter((t) => !q || (t.email || "").includes(q) || (t.name || "").toLowerCase().includes(q));
+    if (!list.length) {
+      $("table").innerHTML = `<div class="empty">${testers.length ? "Aucun testeur ne correspond." : "Aucun testeur inscrit pour l'instant. Partage la page testeurs.html !"}</div>`;
+      $("note").textContent = "";
+      return;
+    }
+    const rows = list.map((t) => {
+      const u = byEmail.get((t.email || "").toLowerCase());
+      const acc = !u ? `<span class="faint">pas de compte Binaire</span>`
+        : PREMIUM.has(planOf(u)) ? `<span class="badge b-${planOf(u)}">${PLANS[planOf(u)]}</span>`
+        : `<button type="button" class="small" data-act="gift-tester" data-uid="${esc(u.uid)}">Offrir le premium</button>`;
+      return `<tr data-id="${esc(t.id)}">
+        <td><div class="email">${esc(t.name || "—")}</div></td>
+        <td>${esc(t.email)}</td>
+        <td>${esc(t.device || "—")}</td>
+        <td class="num">${date(t.createdAt)}</td>
+        <td>${t.invited ? '<span class="badge b-yes">Invité ✓</span>' : `<button type="button" class="secondary small" data-act="invited">Marquer invité</button>`}</td>
+        <td>${acc}</td>
+      </tr>`;
+    }).join("");
+    $("table").innerHTML = `<table>
+      <thead><tr><th>Prénom</th><th>Gmail</th><th>Appareil</th><th>Inscrit le</th><th>Invitation Play</th><th>Compte Binaire</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+    $("note").textContent = `${list.length} testeur${list.length > 1 ? "s" : ""}. Il en faut au moins 12 inscrits au test pendant 14 jours d'affilée.`;
+  }
+
+  // ---------- Actions ----------
+  $("table").addEventListener("change", async (e) => {
+    const sel = e.target.closest("select[data-act='plan']");
+    if (!sel) return;
+    const uid = sel.closest("tr").dataset.uid;
+    const u = users.find((x) => x.uid === uid);
+    const plan = sel.value;
+    sel.disabled = true;
+    try {
+      await updateDoc(doc(db, "users", uid), plan === "free"
+        ? { plan: deleteField(), grantedAt: deleteField() }
+        : { plan, grantedAt: Date.now() });
+      if (plan === "free") { delete u.plan; delete u.grantedAt; } else { u.plan = plan; u.grantedAt = Date.now(); }
+      toast(`${u.email} : ${PLANS[plan]}`);
+      render();
+    } catch (err) {
+      toast("Modification refusée : " + (err.code || err.message));
+      sel.disabled = false;
+    }
+  });
+
+  $("table").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-act]");
+    if (!b) return;
+    const act = b.dataset.act;
+    b.disabled = true;
+    try {
+      if (act === "block") {
+        const uid = b.closest("tr").dataset.uid;
+        const u = users.find((x) => x.uid === uid);
+        const next = !u.blocked;
+        if (next && !confirm(`Bloquer ${u.email} ? Ses appareils seront déconnectés au prochain démarrage.`)) { b.disabled = false; return; }
+        await updateDoc(doc(db, "users", uid), { blocked: next ? true : deleteField() });
+        if (next) u.blocked = true; else delete u.blocked;
+        toast(next ? `${u.email} bloqué` : `${u.email} débloqué`);
+      } else if (act === "gift-tester") {
+        const u = users.find((x) => x.uid === b.dataset.uid);
+        await updateDoc(doc(db, "users", u.uid), { plan: "tester", grantedAt: Date.now() });
+        u.plan = "tester";
+        toast(`Premium offert à ${u.email}`);
+      } else if (act === "invited") {
+        const id = b.closest("tr").dataset.id;
+        await updateDoc(doc(db, "testers", id), { invited: true });
+        testers.find((t) => t.id === id).invited = true;
+        toast("Marqué comme invité");
+      }
+      render();
+    } catch (err) {
+      toast("Action refusée : " + (err.code || err.message));
+      b.disabled = false;
+    }
+  });
+
+  $("copy-gmail").onclick = async () => {
+    const list = testers.map((t) => t.email).filter(Boolean).join(", ");
+    if (!list) return toast("Aucune adresse à copier");
+    try {
+      await navigator.clipboard.writeText(list);
+      toast(`${testers.length} adresse${testers.length > 1 ? "s" : ""} copiée${testers.length > 1 ? "s" : ""}`);
+    } catch (e) {
+      prompt("Copie cette liste :", list);
+    }
+  };
+</script>
+</body>
+</html>

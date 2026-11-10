@@ -23,13 +23,31 @@ service cloud.firestore {
       return isRealAccount() && request.auth.token.email_verified == true;
     }
 
+    // Administrateur de Binaire (page admin.html).
+    function isAdmin() {
+      return isVerified() && request.auth.token.email in ['binaireiptv@gmail.com'];
+    }
+
+    // Champs que seul l'administrateur (ou plus tard le serveur de paiement) peut écrire.
+    function adminKeys() {
+      return ['plan', 'planUntil', 'blocked', 'grantedAt', 'note'];
+    }
+
     function isDevice(uid) {
       return signedIn() && exists(/databases/$(database)/documents/users/$(uid)/devices/$(request.auth.uid));
     }
 
     match /users/{uid} {
-      allow read, write: if isOwner(uid) && isVerified();
+      allow read, delete: if isOwner(uid) && isVerified();
+      allow create: if isOwner(uid) && isVerified()
+        && !request.resource.data.keys().hasAny(adminKeys());
+      allow update: if isOwner(uid) && isVerified()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(adminKeys());
       allow read: if isDevice(uid);
+      // Administrateur : voit la fiche (jamais les codes IPTV) et gère la formule.
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(adminKeys());
 
       // Abonnements IPTV : le compte les gère, ses appareils les lisent.
       match /subs/{id} {
@@ -49,12 +67,28 @@ service cloud.firestore {
 
       // Appareils autorisés.
       match /devices/{dev} {
+        allow read: if isAdmin();
         allow read, write: if isOwner(uid) && isVerified();
         // Une TV peut vérifier son autorisation, signaler sa présence et se délier.
         allow get, delete: if signedIn() && request.auth.uid == dev;
         allow update: if signedIn() && request.auth.uid == dev
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'model']);
       }
+    }
+
+    // Inscriptions des testeurs (page testeurs.html) : une fiche par adresse Gmail.
+    match /testers/{email} {
+      allow create: if signedIn()
+        && email == request.resource.data.email
+        && request.resource.data.keys().hasOnly(['email', 'name', 'device', 'createdAt'])
+        && request.resource.data.email is string
+        && request.resource.data.email.size() <= 100
+        && request.resource.data.email.matches('^[a-z0-9._%+-]+@(gmail|googlemail)[.]com$')
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 40
+        && request.resource.data.device is string
+        && request.resource.data.device.size() <= 40;
+      allow read, update, delete: if isAdmin();
     }
 
     // Demandes d'activation par QR code (code à 6 caractères).

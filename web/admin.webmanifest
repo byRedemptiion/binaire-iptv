@@ -1,0 +1,10 @@
+{
+  "name": "Binaire Admin",
+  "short_name": "Binaire Admin",
+  "start_url": "admin.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070912",
+  "theme_color": "#070912",
+  "icons": [{ "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }]
+}

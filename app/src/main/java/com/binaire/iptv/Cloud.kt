@@ -326,7 +326,10 @@ object Cloud {
     fun stillAuthorized(ctx: Context): Boolean {
         val owner = ownerUid(ctx) ?: return false
         return try {
-            getDoc(token(ctx), "users/$owner/devices/${deviceUid(ctx)}") != null
+            val t = token(ctx)
+            if (getDoc(t, "users/$owner/devices/${deviceUid(ctx)}") == null) return false
+            // Compte suspendu par l'administrateur : l'appareil est délié.
+            getDoc(t, "users/$owner")?.get("blocked") != true
         } catch (e: CloudException) {
             if (e.code == 403 || e.code == 404) false else true // hors ligne : on ne délie pas
         }
