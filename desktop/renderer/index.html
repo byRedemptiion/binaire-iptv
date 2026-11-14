@@ -3,88 +3,92 @@
 <head>
 <meta charset="utf-8">
 <title>Binaire IPTV</title>
-<style>
-  :root{
-    --bg:#070912; --panel:#11131b; --panel2:#171a24; --field:#1c202b; --line:rgba(255,255,255,.10);
-    --text:#f2f4f8; --muted:#b8c0cc; --faint:#8a94a6; --accent:#e5203a; --ok:#3ccf7a; --warn:#ff8a98;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
-  body{
-    background:radial-gradient(50% 40% at 0 0,rgba(30,107,255,.28),transparent 70%),
-      radial-gradient(50% 40% at 100% 100%,rgba(255,31,61,.22),transparent 70%),var(--bg);
-    color:var(--text);font:15px/1.45 "Segoe UI",system-ui,sans-serif;height:100%;overflow:hidden;
-  }
-  .hidden{display:none!important}
-  button{min-height:40px;border:none;border-radius:20px;padding:0 18px;font:600 15px "Segoe UI",sans-serif;
-    color:#fff;background:var(--accent);cursor:pointer}
-  button.secondary{background:rgba(255,255,255,.12);color:var(--text)}
-  button:disabled{opacity:.5;cursor:default}
-  input{height:46px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--text);
-    font:15px "Segoe UI",sans-serif;padding:0 14px;width:100%}
-  input:focus{outline:none;border-color:var(--accent)}
-  .msg{font-size:14px;border-radius:10px;padding:9px 12px;display:none;margin-top:4px}
-  .msg.err{display:block;background:rgba(229,32,58,.16);color:var(--warn)}
-  .msg.ok{display:block;background:rgba(60,207,122,.14);color:var(--ok)}
-
-  /* Connexion */
-  #login{height:100%;display:flex;align-items:center;justify-content:center}
-  .card{width:380px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px;
-    display:flex;flex-direction:column;gap:12px}
-  .brand{font-size:26px;font-weight:800;letter-spacing:.5px}
-  .brand span{color:var(--accent)}
-  .lead{color:var(--muted);margin:0 0 6px}
-
-  /* Navigation */
-  #browse{height:100%;display:grid;grid-template-columns:230px 300px 1fr;grid-template-rows:54px 1fr}
-  header{grid-column:1/4;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--line)}
-  header .brand{font-size:18px}
-  header .who{margin-left:auto;color:var(--faint);font-size:13px}
-  .col{overflow-y:auto;border-right:1px solid var(--line)}
-  .col h3{margin:0;padding:12px 16px 8px;font-size:12px;letter-spacing:.6px;color:var(--faint);
-    text-transform:uppercase;position:sticky;top:0;background:var(--panel)}
-  .row{padding:10px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .row:hover{background:rgba(255,255,255,.04)}
-  .row.active{background:rgba(229,32,58,.16);color:#fff;border-left:3px solid var(--accent);padding-left:13px}
-  .stage{background:#000;display:flex;align-items:center;justify-content:center;position:relative}
-  video{width:100%;height:100%;background:#000}
-  .stage .hint{position:absolute;color:var(--faint);font-size:14px;text-align:center;padding:20px}
-  .pill{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.6);border-radius:14px;padding:6px 12px;
-    font-size:13px;color:#fff}
-</style>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
 <!-- Connexion -->
 <section id="login">
-  <form class="card" id="f-login">
-    <div class="brand">Binaire<span>IPTV</span></div>
-    <p class="lead">Connecte-toi à ton compte Binaire pour retrouver ton abonnement, sans rien retaper.</p>
-    <input type="email" id="email" placeholder="E-mail du compte" autocomplete="username">
-    <input type="password" id="pass" placeholder="Mot de passe" autocomplete="current-password">
-    <div class="msg" id="l-msg"></div>
-    <button id="l-go" type="submit">Se connecter</button>
-    <p style="font-size:12px;color:var(--faint);margin:0;text-align:center">Maquette bureau · lecture en direct</p>
-  </form>
-</section>
-
-<!-- Navigation -->
-<section id="browse" class="hidden">
-  <header>
-    <div class="brand">Binaire<span>IPTV</span></div>
-    <select id="subPick" style="height:34px;border-radius:8px;background:var(--field);color:var(--text);border:1px solid var(--line)"></select>
-    <span class="who" id="who"></span>
-    <button class="secondary" id="logout" style="min-height:32px;font-size:13px">Déconnexion</button>
-  </header>
-  <div class="col" id="cats"><h3>Catégories</h3></div>
-  <div class="col" id="chans"><h3>Chaînes</h3></div>
-  <div class="stage">
-    <video id="video" controls autoplay></video>
-    <div class="pill hidden" id="pill"></div>
-    <div class="hint" id="stageHint">Choisis une catégorie puis une chaîne pour lancer la lecture.</div>
+  <div class="center">
+    <form class="card" id="f-login">
+      <div class="brand">Binaire<b>IPTV</b></div>
+      <p class="lead">Connecte-toi à ton compte pour retrouver tes abonnements et profils.</p>
+      <input type="email" id="email" placeholder="E-mail du compte" autocomplete="username">
+      <input type="password" id="pass" placeholder="Mot de passe" autocomplete="current-password">
+      <div class="msg" id="l-msg"></div>
+      <button id="l-go" type="submit">Se connecter</button>
+    </form>
   </div>
 </section>
+
+<!-- Qui regarde ? -->
+<section id="who" class="hidden">
+  <div class="center">
+    <h1>Qui regarde ?</h1>
+    <div class="profiles" id="profList"></div>
+  </div>
+</section>
+
+<!-- Accueil -->
+<section id="home" class="hidden">
+  <div class="topbar">
+    <img class="logo" src="./logo.png" alt="Binaire">
+    <div class="sp"></div>
+    <select id="subPick" title="Abonnement"></select>
+    <div class="chip" id="profChip"><span class="dot"></span><span id="profName">Moi</span></div>
+    <button class="ghost" id="logout" style="min-height:34px;font-size:13px">Quitter</button>
+  </div>
+  <div class="tiles">
+    <div class="tile tv" data-kind="live"><div class="ic">📺</div><div class="t">TV</div><div class="d">Chaînes en direct</div></div>
+    <div class="tile films" data-kind="movie"><div class="ic">🎬</div><div class="t">FILMS</div><div class="d">Films à la demande</div></div>
+    <div class="tile series" data-kind="series"><div class="ic">📚</div><div class="t">SÉRIES</div><div class="d">Séries et épisodes</div></div>
+    <div class="tile reg" id="tileSettings"><div class="ic">⚙️</div><div class="t">RÉGLAGES</div><div class="d">Abonnement, profil, favoris</div></div>
+  </div>
+</section>
+
+<!-- Navigation TV / Films / Séries -->
+<section id="browse" class="hidden">
+  <header>
+    <button class="ghost" id="backHome" style="min-height:34px">← Accueil</button>
+    <div class="title" id="browseTitle">TV</div>
+    <div class="sp"></div>
+    <input type="search" id="search" placeholder="Rechercher…">
+  </header>
+  <div class="cats" id="cats"></div>
+  <div class="content" id="content"></div>
+</section>
+
+<!-- Réglages -->
+<section id="settings" class="hidden">
+  <div class="center">
+    <div class="card" style="width:460px">
+      <div class="brand" style="font-size:20px">Réglages</div>
+      <label class="lead">Abonnement utilisé</label>
+      <select id="setSub"></select>
+      <label class="lead">Profil</label>
+      <select id="setProf"></select>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="sec" id="setFavs">Mes favoris</button>
+        <button class="sec" id="setBack">Retour</button>
+      </div>
+      <p class="lead" id="setInfo" style="font-size:13px"></p>
+    </div>
+  </div>
+</section>
+
+<!-- Détail série -->
+<div id="seriesOverlay" class="overlay hidden">
+  <div class="bar"><div class="title" id="seriesTitle" style="font-weight:800"></div><div class="sp"></div><button class="ghost" id="seriesClose">Fermer ✕</button></div>
+  <div class="body"><div class="seasons" id="seasons"></div><div class="eplist" id="eplist"></div></div>
+</div>
+
+<!-- Lecteur -->
+<div id="player" class="overlay hidden">
+  <div class="bar"><div class="title" id="playTitle" style="font-weight:800"></div><div class="sp"></div><button class="ghost" id="playClose">Fermer ✕</button></div>
+  <div style="flex:1;position:relative"><video id="video" controls autoplay></video><div class="player-hint hidden" id="playHint"></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mpegts.js/1.7.3/mpegts.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>

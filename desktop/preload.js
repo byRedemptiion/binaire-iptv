@@ -1,2 +1,8 @@
-const { contextBridge } = require("electron");
-contextBridge.exposeInMainWorld("binaire", { platform: process.platform, version: "0.1.0" });
+const { contextBridge, ipcRenderer } = require("electron");
+
+contextBridge.exposeInMainWorld("binaire", {
+  platform: process.platform,
+  version: "0.2.0",
+  // Requête HTTP via le processus principal (en-têtes libres, pas de CORS).
+  httpGet: (url, headers) => ipcRenderer.invoke("http-get", url, headers)
+});
