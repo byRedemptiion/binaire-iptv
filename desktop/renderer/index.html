@@ -85,7 +85,19 @@
 <!-- Lecteur -->
 <div id="player" class="overlay hidden">
   <div class="bar"><div class="title" id="playTitle" style="font-weight:800"></div><div class="sp"></div><button class="ghost" id="playClose">Fermer ✕</button></div>
-  <div style="flex:1;position:relative"><video id="video" controls autoplay></video><div class="player-hint hidden" id="playHint"></div></div>
+  <div class="stage"><video id="video" autoplay></video><div class="player-hint hidden" id="playHint"></div></div>
+  <div class="pbar" id="pbar">
+    <button class="pbtn" id="pPlay" title="Lecture/Pause">⏸</button>
+    <button class="pbtn" id="pBack" title="-10 s">⏪</button>
+    <button class="pbtn" id="pFwd" title="+30 s">⏩</button>
+    <span class="ptime" id="pCur">0:00</span>
+    <input type="range" id="pSeek" min="0" max="1000" value="0" step="1">
+    <span class="ptime" id="pDur">0:00</span>
+    <span class="live hidden" id="pLive">● DIRECT</span>
+    <button class="pbtn" id="pMute" title="Son">🔊</button>
+    <input type="range" id="pVol" min="0" max="1" step="0.05" value="1">
+    <button class="pbtn" id="pFs" title="Plein écran">⛶</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>

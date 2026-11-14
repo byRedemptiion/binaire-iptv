@@ -198,7 +198,7 @@ function renderFavorites(kind) {
 
 // ---------- Lecteur ----------
 function openPlayer(title) { $("playTitle").textContent = title; $("playHint").classList.add("hidden"); $("player").classList.remove("hidden"); }
-$("playClose").onclick = () => { saveResume(); stopPlayback(); $("player").classList.add("hidden"); };
+$("playClose").onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); saveResume(); stopPlayback(); $("player").classList.add("hidden"); };
 function stopPlayback() { try { if (player) { player.destroy(); player = null; } } catch (e) {} const v = $("video"); try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {} resumeCtx = null; }
 
 async function playLive(it) {
@@ -221,6 +221,7 @@ function hint(t) { $("playHint").textContent = t; $("playHint").classList.remove
 
 function playMpegtsOrHls(tsUrl, hlsUrl) {
   stopPlaybackKeepPlayer();
+  setPlayerMode(true);
   const v = $("video");
   if (window.mpegts && mpegts.isSupported()) {
     player = mpegts.createPlayer({ type: "mpegts", isLive: true, url: tsUrl }, { enableWorker: true, liveBufferLatencyChasing: true });
@@ -241,6 +242,7 @@ let resumeCtx = null;
 function resumeKey(kind, id) { return `resume:${sub?.id}|${profile?.id}|${kind}|${id}`; }
 function playVod(url, key) {
   stopPlaybackKeepPlayer();
+  setPlayerMode(false);
   const v = $("video"); resumeCtx = key;
   if (url.toLowerCase().includes(".m3u8") && window.Hls && Hls.isSupported()) { player = new Hls(); player.loadSource(url); player.attachMedia(v); }
   else v.src = url;
@@ -279,3 +281,38 @@ function renderEpisodes(season) {
   }
 }
 $("seriesClose").onclick = () => $("seriesOverlay").classList.add("hidden");
+
+// ---------- Barre de lecture (toujours visible) ----------
+let seeking = false;
+function fmt(t) { if (!isFinite(t) || t < 0) return "0:00"; const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = Math.floor(t % 60); return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0"); }
+function setPlayerMode(live) {
+  $("pLive").classList.toggle("hidden", !live);
+  $("pSeek").classList.toggle("hidden", live);
+  $("pCur").classList.toggle("hidden", live);
+  $("pDur").classList.toggle("hidden", live);
+  $("pBack").classList.toggle("hidden", live);
+  $("pFwd").classList.toggle("hidden", live);
+}
+(function initPlayerBar() {
+  const v = $("video");
+  $("pPlay").onclick = () => { v.paused ? v.play() : v.pause(); };
+  v.addEventListener("play", () => { $("pPlay").textContent = "⏸"; });
+  v.addEventListener("pause", () => { $("pPlay").textContent = "▶"; });
+  $("pBack").onclick = () => { v.currentTime = Math.max(0, v.currentTime - 10); };
+  $("pFwd").onclick = () => { v.currentTime = Math.min((v.duration || 1e9), v.currentTime + 30); };
+  $("pSeek").addEventListener("input", () => { seeking = true; $("pCur").textContent = fmt((+$("pSeek").value / 1000) * (v.duration || 0)); });
+  $("pSeek").addEventListener("change", () => { if (v.duration) v.currentTime = (+$("pSeek").value / 1000) * v.duration; seeking = false; });
+  v.addEventListener("timeupdate", () => {
+    if (!seeking && v.duration) { $("pSeek").value = String((v.currentTime / v.duration) * 1000); $("pCur").textContent = fmt(v.currentTime); }
+  });
+  v.addEventListener("loadedmetadata", () => { $("pDur").textContent = fmt(v.duration); });
+  $("pMute").onclick = () => { v.muted = !v.muted; $("pMute").textContent = v.muted ? "🔇" : "🔊"; };
+  $("pVol").addEventListener("input", () => { v.volume = +$("pVol").value; v.muted = false; $("pMute").textContent = v.volume ? "🔊" : "🔇"; });
+  $("pFs").onclick = toggleFullscreen;
+  $("video").addEventListener("dblclick", toggleFullscreen);
+})();
+function toggleFullscreen() {
+  const el = $("player");
+  if (!document.fullscreenElement) el.requestFullscreen && el.requestFullscreen();
+  else document.exitFullscreen && document.exitFullscreen();
+}

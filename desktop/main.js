@@ -41,6 +41,7 @@ function createWindow() {
       webSecurity: false
     }
   });
+  win.maximize();
   win.loadFile(path.join(__dirname, "renderer", "index.html"));
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: "deny" }; });
 }
