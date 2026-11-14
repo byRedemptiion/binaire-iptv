@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     paths: ["web/**", ".github/workflows/pages.yml"]
-  # Après chaque build de main (donc après chaque nouvelle version publiée).
+  # Après chaque build (Android OU Windows), pour republier les téléchargements.
   workflow_run:
-    workflows: ["Binaire IPTV"]
+    workflows: ["Binaire IPTV", "Binaire Windows (maquette)"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -36,7 +36,10 @@ jobs:
         run: |
           gh release download --repo "${{ github.repository }}" --pattern "Binaire-IPTV.apk" --dir /tmp/apk \
             && cp /tmp/apk/Binaire-IPTV.apk web/binaire.apk \
-            || echo "Pas encore de version publiée"
+            || echo "Pas encore d'APK publié"
+          gh release download windows-latest --repo "${{ github.repository }}" --pattern "*.exe" --dir /tmp/win \
+            && cp /tmp/win/*.exe web/binaire-windows.exe \
+            || echo "Pas encore d'exe Windows publié"
           ls -l web
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
