@@ -56,6 +56,12 @@ function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add(
 function setAccent(i) { document.documentElement.style.setProperty("--accent", ACCENTS[(+i) || 0] || ACCENTS[0]); }
 const esc = (s) => String(s ?? "");
 
+// Fond d'écran (comme l'appli) + horloge
+function applyBackground() { document.body.className = "bg-" + (localStorage.getItem("bg") || "binaire"); }
+function tickClock() { const el = $("clock"); if (el) { const d = new Date(); el.textContent = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); } }
+applyBackground();
+tickClock(); setInterval(tickClock, 15000);
+
 // ---------- Connexion ----------
 const DM3U = "m3u:", DSTALKER = "stalker:";
 function lmsg(t, ok) { $("l-msg").textContent = t || ""; $("l-msg").className = "msg" + (t ? (ok ? " ok" : " err") : ""); }
@@ -240,6 +246,8 @@ function openSettings() {
     d.onclick = () => { document.documentElement.style.setProperty("--accent", c); localStorage.setItem("accent:" + (profile?.id || "p1"), c); sw.querySelectorAll(".swatch").forEach((x) => x.classList.remove("on")); d.classList.add("on"); };
     sw.appendChild(d);
   });
+  $("setBg").value = localStorage.getItem("bg") || "binaire";
+  $("setBg").onchange = () => { localStorage.setItem("bg", $("setBg").value); applyBackground(); };
   const cfg = getCfg();
   $("cfgClean").checked = cfg.clean; $("cfgMerge").checked = cfg.merge; $("cfgAdult").checked = cfg.adult;
   const saveCfg = () => setCfg({ clean: $("cfgClean").checked, merge: $("cfgMerge").checked, adult: $("cfgAdult").checked });

@@ -5,12 +5,28 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{
-  background:radial-gradient(55% 45% at 0 0,rgba(30,107,255,.26),transparent 70%),
-    radial-gradient(55% 45% at 100% 100%,rgba(255,31,61,.20),transparent 70%),var(--bg);
   color:var(--text);font:15px/1.45 "Segoe UI",system-ui,sans-serif;height:100%;overflow:hidden;user-select:none;
+  background:#070912;
 }
+/* Fonds (comme l'appli) */
+body.bg-binaire{
+  background:
+    radial-gradient(60% 55% at 0 0,rgba(30,107,255,.70),transparent 62%),
+    radial-gradient(60% 55% at 100% 100%,rgba(255,31,61,.65),transparent 62%),
+    radial-gradient(45% 45% at 80% 15%,rgba(91,42,158,.40),transparent 60%),
+    radial-gradient(45% 45% at 15% 85%,rgba(58,31,122,.35),transparent 60%),
+    #070912;
+}
+body.bg-aurore{
+  background:
+    radial-gradient(60% 55% at 8% 5%,color-mix(in srgb,var(--accent) 70%,transparent),transparent 60%),
+    radial-gradient(60% 55% at 95% 95%,color-mix(in srgb,var(--accent) 50%,transparent),transparent 60%),
+    radial-gradient(45% 45% at 72% 18%,rgba(139,92,246,.40),transparent 60%),
+    #0a0b12;
+}
+body.bg-noir{background:#08090c}
 .hidden{display:none!important}
-img.logo{height:30px;display:block}
+img.logo{height:34px;display:block}
 button{min-height:40px;border:none;border-radius:20px;padding:0 18px;font:600 15px "Segoe UI",sans-serif;color:var(--ink);background:var(--accent);cursor:pointer}
 button.sec{background:rgba(255,255,255,.12);color:var(--text)}
 button.ghost{background:transparent;color:var(--muted)}
@@ -34,20 +50,23 @@ section{height:100%}
 
 /* Accueil */
 #home{display:flex;flex-direction:column}
-.topbar{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--line)}
+.topbar{display:flex;align-items:center;gap:16px;padding:18px 34px}
+.topbar .divider{width:1px;height:22px;background:rgba(255,255,255,.25)}
 .topbar .sp{flex:1}
-.chip{display:flex;align-items:center;gap:8px;background:var(--field);border:1px solid var(--line);border-radius:18px;padding:5px 12px;font-size:13px;color:var(--muted);cursor:pointer}
+.topbar select{height:36px}
+.clock{font-size:22px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.chip{display:flex;align-items:center;gap:9px;background:rgba(18,20,28,.72);border:2px solid var(--line);border-radius:18px;padding:5px 14px 5px 10px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer}
+.chip:hover{border-color:var(--accent)}
 .chip .dot{width:16px;height:16px;border-radius:5px;background:var(--accent)}
-.tiles{flex:1;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:20px;padding:26px}
-.tile{border-radius:20px;border:1px solid var(--line);background:linear-gradient(135deg,var(--panel),var(--panel2));display:flex;flex-direction:column;justify-content:flex-end;padding:26px;cursor:pointer;position:relative;overflow:hidden;transition:transform .08s}
-.tile:hover{transform:translateY(-3px);border-color:var(--accent)}
-.tile .ic{font-size:44px}
-.tile .t{font-size:30px;font-weight:800;margin-top:6px}
-.tile .d{color:var(--muted)}
-.tile.tv{background:linear-gradient(135deg,#17233b,#0f1626)}
-.tile.films{background:linear-gradient(135deg,#2a1730,#160f1e)}
-.tile.series{background:linear-gradient(135deg,#102a24,#0b1a16)}
-.tile.reg{background:linear-gradient(135deg,#231a0f,#15100a)}
+.tiles{flex:1;display:flex;align-items:center;justify-content:center;gap:24px;padding:20px 34px 40px;clip:auto}
+.tile{width:210px;height:290px;border-radius:22px;background:rgba(18,20,28,.72);border:2px solid transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;
+  transition:transform .14s,border-color .14s,box-shadow .14s;color:var(--accent)}
+.tile:hover,.tile:focus{transform:scale(1.07);border-color:var(--accent);box-shadow:0 0 0 1px #fff inset,0 12px 40px rgba(0,0,0,.45);outline:none}
+.tile .ic{width:58px;height:58px;display:flex;align-items:center;justify-content:center}
+.tile .ic svg{width:58px;height:58px}
+.tile .t{font-size:23px;font-weight:800;letter-spacing:.08em;color:var(--text);margin-top:16px}
+.tile .d{color:#dde3ea;font-size:12px;margin-top:4px}
 
 /* Navigation (TV/Films/Séries) */
 #browse{display:grid;grid-template-columns:240px 1fr;grid-template-rows:60px 1fr;height:100%}

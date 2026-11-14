@@ -66,16 +66,30 @@
 <section id="home" class="hidden">
   <div class="topbar">
     <img class="logo" src="./logo.png" alt="Binaire">
+    <div class="divider"></div>
     <div class="sp"></div>
     <select id="subPick" title="Abonnement"></select>
     <div class="chip" id="profChip"><span class="dot"></span><span id="profName">Moi</span></div>
+    <div class="clock" id="clock"></div>
     <button class="ghost" id="logout" style="min-height:34px;font-size:13px">Quitter</button>
   </div>
   <div class="tiles">
-    <div class="tile tv" data-kind="live"><div class="ic">📺</div><div class="t">TV</div><div class="d">Chaînes en direct</div></div>
-    <div class="tile films" data-kind="movie"><div class="ic">🎬</div><div class="t">FILMS</div><div class="d">Films à la demande</div></div>
-    <div class="tile series" data-kind="series"><div class="ic">📚</div><div class="t">SÉRIES</div><div class="d">Séries et épisodes</div></div>
-    <div class="tile reg" id="tileSettings"><div class="ic">⚙️</div><div class="t">RÉGLAGES</div><div class="d">Abonnement, profil, favoris</div></div>
+    <div class="tile" data-kind="live">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="13" rx="2"/><path d="M8 21h8M12 18v3M7 2l5 3 5-3"/></svg></div>
+      <div class="t">TV</div><div class="d">Chaînes en direct</div>
+    </div>
+    <div class="tile" data-kind="movie">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="14" rx="2"/><path d="M2.5 10h19M7 6l-1.5 4M12 6l-1.5 4M17 6l-1.5 4"/></svg></div>
+      <div class="t">FILMS</div><div class="d">Films à la demande</div>
+    </div>
+    <div class="tile" data-kind="series">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="15" height="12" rx="2"/><path d="M7 4h11M5.5 19V9"/><path d="M10 11.5l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg></div>
+      <div class="t">SÉRIES</div><div class="d">Séries et épisodes</div>
+    </div>
+    <div class="tile" id="tileSettings">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5 5l2.1 2.1M16.9 16.9L19 19M19 5l-2.1 2.1M7.1 16.9L5 19"/></svg></div>
+      <div class="t">RÉGLAGES</div><div class="d">Apparence, profil, favoris</div>
+    </div>
   </div>
 </section>
 
@@ -102,6 +116,12 @@
       <select id="setProf"></select>
       <label class="lead">Couleur</label>
       <div class="swatches" id="swatches"></div>
+      <label class="lead">Fond d'écran</label>
+      <select id="setBg">
+        <option value="binaire">Thème Binaire</option>
+        <option value="aurore">Aurore (suit ta couleur)</option>
+        <option value="noir">Noir profond</option>
+      </select>
       <label class="lead">Nettoyage des listes</label>
       <label class="chk"><input type="checkbox" id="cfgClean"> Nettoyer les noms (retirer FR, HD, 4K…)</label>
       <label class="chk"><input type="checkbox" id="cfgMerge"> Fusionner les chaînes en double</label>
