@@ -107,3 +107,9 @@ section{height:100%}
 .swatch.on{border-color:#fff}
 .chk{display:flex;align-items:center;gap:9px;color:var(--muted);cursor:pointer}
 .chk input{width:18px;height:18px;accent-color:var(--accent)}
+
+/* Onglets (connexion) */
+.tabs{display:flex;gap:6px;background:var(--field);border-radius:12px;padding:4px}
+.tabs button{flex:1;min-height:36px;border-radius:9px;background:transparent;color:var(--muted);font-weight:600;font-size:14px}
+.tabs button[aria-selected="true"]{background:#fff;color:#070912}
+.stack{display:flex;flex-direction:column;gap:12px}

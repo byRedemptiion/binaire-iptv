@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
+  createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { KIND, makeProvider, subTypeLabel } from "./providers.js";
@@ -56,20 +57,115 @@ function setAccent(i) { document.documentElement.style.setProperty("--accent", A
 const esc = (s) => String(s ?? "");
 
 // ---------- Connexion ----------
+const DM3U = "m3u:", DSTALKER = "stalker:";
+function lmsg(t, ok) { $("l-msg").textContent = t || ""; $("l-msg").className = "msg" + (t ? (ok ? " ok" : " err") : ""); }
+function dmsg(t, ok) { $("d-msg").textContent = t || ""; $("d-msg").className = "msg" + (t ? (ok ? " ok" : " err") : ""); }
+
+// Bascule compte / abonnement direct
+$("mAccount").onclick = () => setLoginMode("account");
+$("mDirect").onclick = () => setLoginMode("direct");
+function setLoginMode(m) {
+  $("mAccount").setAttribute("aria-selected", m === "account");
+  $("mDirect").setAttribute("aria-selected", m === "direct");
+  $("f-login").classList.toggle("hidden", m !== "account");
+  $("f-direct").classList.toggle("hidden", m !== "direct");
+}
+
+// Compte : connexion / création / mot de passe oublié
+let accMode = "login";
+$("accToggle").onclick = () => {
+  accMode = accMode === "login" ? "signup" : "login";
+  $("l-go").textContent = accMode === "signup" ? "Créer mon compte" : "Se connecter";
+  $("accToggle").textContent = accMode === "signup" ? "Déjà un compte ? Se connecter" : "Pas de compte ? En créer un";
+  $("accForgot").classList.toggle("hidden", accMode === "signup");
+  $("accLead").textContent = accMode === "signup"
+    ? "Crée ton compte : un e-mail de confirmation te sera envoyé."
+    : "Connecte-toi pour retrouver tes abonnements et profils sur tous tes appareils.";
+  lmsg("");
+};
 $("f-login").onsubmit = async (e) => {
   e.preventDefault();
-  $("l-go").disabled = true; $("l-msg").className = "msg";
-  try { await signInWithEmailAndPassword(auth, $("email").value.trim(), $("pass").value); }
-  catch (err) { $("l-msg").textContent = "E-mail ou mot de passe incorrect."; $("l-msg").className = "msg err"; }
-  finally { $("l-go").disabled = false; }
+  $("l-go").disabled = true; lmsg("");
+  try {
+    if (accMode === "signup") {
+      const cred = await createUserWithEmailAndPassword(auth, $("email").value.trim(), $("pass").value);
+      try { await sendEmailVerification(cred.user); } catch (x) {}
+      lmsg("Compte créé ! Clique sur le lien reçu par mail, puis connecte-toi.", true);
+    } else {
+      await signInWithEmailAndPassword(auth, $("email").value.trim(), $("pass").value);
+    }
+  } catch (err) {
+    const c = (err && err.code) || "";
+    lmsg(c.includes("email-already-in-use") ? "Un compte existe déjà avec cet e-mail."
+      : c.includes("weak-password") ? "Mot de passe trop court (6 caractères min)."
+      : c.includes("invalid-email") ? "Adresse e-mail invalide."
+      : "E-mail ou mot de passe incorrect.");
+  } finally { $("l-go").disabled = false; }
 };
-$("logout").onclick = () => { stopPlayback(); signOut(auth); };
+$("accForgot").onclick = async () => {
+  const em = $("email").value.trim();
+  if (!em) return lmsg("Écris d'abord ton e-mail.");
+  try { await sendPasswordResetEmail(auth, em); lmsg("E-mail envoyé : suis le lien pour changer ton mot de passe.", true); }
+  catch (err) { lmsg("Envoi impossible. Vérifie l'adresse."); }
+};
+
+// Abonnement direct (sans compte)
+let dType = "x";
+for (const [b, t] of [["dX", "x"], ["dM", "m"], ["dS", "s"]]) {
+  $(b).onclick = () => {
+    dType = t;
+    $("dX").setAttribute("aria-selected", t === "x"); $("dM").setAttribute("aria-selected", t === "m"); $("dS").setAttribute("aria-selected", t === "s");
+    $("dXfields").classList.toggle("hidden", t !== "x");
+    $("dMfields").classList.toggle("hidden", t !== "m");
+    $("dSfields").classList.toggle("hidden", t !== "s");
+    dmsg("");
+  };
+}
+$("f-direct").onsubmit = (e) => {
+  e.preventDefault();
+  let server, user, pass, name = $("dName").value.trim() || "Mon abonnement";
+  if (dType === "x") {
+    server = $("dServer").value.trim(); user = $("dUser").value.trim(); pass = $("dPass").value.trim();
+    if (!server || !user || !pass) return dmsg("Remplis le serveur, l'identifiant et le mot de passe.");
+    if (!/^https?:\/\//i.test(server)) server = "http://" + server;
+    server = server.replace(/\/(player_api\.php|get\.php|c)\/?$/i, "").replace(/\/+$/, "");
+  } else if (dType === "m") {
+    let link = $("dM3u").value.trim();
+    if (!link) return dmsg("Colle le lien de ta liste M3U.");
+    if (!/^https?:\/\//i.test(link)) link = "http://" + link;
+    server = DM3U + link; user = "m3u"; pass = "m3u";
+  } else {
+    let portal = $("dPortal").value.trim();
+    const mac = $("dMac").value.replace(/[^0-9a-fA-F]/g, "").toUpperCase();
+    if (!portal) return dmsg("Entre l'adresse du portail.");
+    if (!/^https?:\/\//i.test(portal)) portal = "http://" + portal;
+    if (mac.length !== 12) return dmsg("La MAC doit faire 12 caractères (ex. 00:1A:79:AA:BB:CC).");
+    server = DSTALKER + portal.replace(/\/+$/, ""); user = mac.match(/.{2}/g).join(":"); pass = "";
+  }
+  const ls = { id: "local", name, server, user, pass };
+  localStorage.setItem("localSub", JSON.stringify(ls));
+  localStorage.setItem("useLocal", "1");
+  startLocal();
+};
+
+function startLocal() {
+  let ls; try { ls = JSON.parse(localStorage.getItem("localSub") || "null"); } catch (e) { ls = null; }
+  if (!ls) return show("login");
+  uid = null; subs = [ls]; profiles = [{ id: "p1", name: "Moi", color: 0 }];
+  setProfile(profiles[0]); afterProfile();
+}
+
+$("logout").onclick = () => { stopPlayback(); localStorage.removeItem("useLocal"); if (auth.currentUser) signOut(auth); else show("login"); };
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) return show("login");
-  if (!user.emailVerified) { $("l-msg").textContent = "Confirme d'abord ton e-mail, puis reconnecte-toi."; $("l-msg").className = "msg err"; return show("login"); }
-  uid = user.uid;
-  await loadAccount();
+  if (user) {
+    if (!user.emailVerified) { setLoginMode("account"); lmsg("Confirme d'abord ton e-mail (lien reçu par mail), puis reconnecte-toi."); return show("login"); }
+    localStorage.removeItem("useLocal");
+    uid = user.uid;
+    return loadAccount();
+  }
+  if (localStorage.getItem("useLocal") === "1" && localStorage.getItem("localSub")) return startLocal();
+  show("login");
 });
 
 async function loadAccount() {

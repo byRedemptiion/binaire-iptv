@@ -10,14 +10,47 @@
 <!-- Connexion -->
 <section id="login">
   <div class="center">
-    <form class="card" id="f-login">
+    <div class="card" style="width:440px">
       <div class="brand">Binaire<b>IPTV</b></div>
-      <p class="lead">Connecte-toi à ton compte pour retrouver tes abonnements et profils.</p>
-      <input type="email" id="email" placeholder="E-mail du compte" autocomplete="username">
-      <input type="password" id="pass" placeholder="Mot de passe" autocomplete="current-password">
-      <div class="msg" id="l-msg"></div>
-      <button id="l-go" type="submit">Se connecter</button>
-    </form>
+      <div class="tabs" role="tablist">
+        <button type="button" id="mAccount" aria-selected="true">Mon compte</button>
+        <button type="button" id="mDirect" aria-selected="false">Mon abonnement</button>
+      </div>
+
+      <form class="stack" id="f-login">
+        <p class="lead" id="accLead">Connecte-toi pour retrouver tes abonnements et profils sur tous tes appareils.</p>
+        <input type="email" id="email" placeholder="E-mail" autocomplete="username">
+        <input type="password" id="pass" placeholder="Mot de passe" autocomplete="current-password">
+        <div class="msg" id="l-msg"></div>
+        <button id="l-go" type="submit">Se connecter</button>
+        <button type="button" class="ghost" id="accToggle">Pas de compte ? En créer un</button>
+        <button type="button" class="ghost hidden" id="accForgot">Mot de passe oublié ?</button>
+      </form>
+
+      <form class="stack hidden" id="f-direct">
+        <p class="lead">Entre directement les identifiants de ton abonnement. Aucun compte nécessaire.</p>
+        <div class="tabs">
+          <button type="button" id="dX" aria-selected="true">Xtream</button>
+          <button type="button" id="dM" aria-selected="false">Lien M3U</button>
+          <button type="button" id="dS" aria-selected="false">Portail MAC</button>
+        </div>
+        <input id="dName" placeholder="Nom (ex. Mon IPTV)">
+        <div class="stack" id="dXfields">
+          <input id="dServer" placeholder="http://serveur:8080" autocapitalize="off" spellcheck="false">
+          <input id="dUser" placeholder="Identifiant" autocapitalize="off" spellcheck="false">
+          <input id="dPass" placeholder="Mot de passe" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="stack hidden" id="dMfields">
+          <input id="dM3u" placeholder="http://exemple.com/liste.m3u" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="stack hidden" id="dSfields">
+          <input id="dPortal" placeholder="http://portail:8080/c/" autocapitalize="off" spellcheck="false">
+          <input id="dMac" placeholder="00:1A:79:XX:XX:XX" autocapitalize="characters" spellcheck="false" maxlength="17">
+        </div>
+        <div class="msg" id="d-msg"></div>
+        <button id="d-go" type="submit">Lancer</button>
+      </form>
+    </div>
   </div>
 </section>
 
