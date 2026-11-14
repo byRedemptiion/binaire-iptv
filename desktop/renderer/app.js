@@ -17,6 +17,34 @@ const db = getFirestore(fb);
 const $ = (id) => document.getElementById(id);
 const ACCENTS = ["#E5203A", "#3B7BF6", "#16A34A", "#EA7A0C", "#8B5CF6", "#DB2777", "#0E9F9A", "#C9A227"];
 
+// Réglages de nettoyage/affichage (locaux au PC)
+function getCfg() { try { return Object.assign({ clean: true, merge: true, adult: false }, JSON.parse(localStorage.getItem("cfg") || "{}")); } catch (e) { return { clean: true, merge: true, adult: false }; } }
+function setCfg(c) { localStorage.setItem("cfg", JSON.stringify(c)); }
+function cleanName(s) {
+  let n = (s || "").trim();
+  n = n.replace(/^[[(|]*\s*[A-Z]{2,4}\s*[\])|:\-–>]+\s*/, "");
+  n = n.replace(/\b(FHD|UHD|HD|SD|4K|8K|1080p?|720p?|H\.?265|H\.?264|HEVC|MULTI)\b/gi, " ");
+  n = n.replace(/\s{2,}/g, " ").replace(/[\s\-|:]+$/, "").replace(/^[\s\-|:]+/, "").trim();
+  return n || s;
+}
+function isAdultName(s) { return /(adult|xxx|porn|\bsex\b|\+?18\+?|hot\b)/i.test(s || ""); }
+function applyCleanup(kind, items) {
+  const cfg = getCfg();
+  let out = items;
+  if (cfg.clean) out = out.map((it) => Object.assign({}, it, { name: cleanName(it.name) }));
+  if (cfg.merge && kind === KIND.LIVE) {
+    const seen = new Set();
+    out = out.filter((it) => { const k = (it.name || "").toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+  }
+  return out;
+}
+const ASPECTS = [["contain", "Ajusté"], ["cover", "Plein écran"], ["fill", "Étiré"], ["z15", "Zoom +15%"], ["z33", "Zoom cinéma"]];
+function applyAspect() {
+  const v = $("video"); const m = localStorage.getItem("aspect") || "contain";
+  v.style.objectFit = (m === "z15" || m === "z33") ? "contain" : m;
+  v.style.transform = "scale(" + (m === "z15" ? 1.15 : m === "z33" ? 1.34 : 1) + ")";
+}
+
 let uid = null, subs = [], profiles = [], profile = null;
 let sub = null, prov = null;
 let curKind = null, curItems = [], player = null;
@@ -69,7 +97,7 @@ function renderWho() {
     box.appendChild(el);
   }
 }
-function setProfile(p) { profile = p; setAccent(p.color); $("profName").textContent = p.name || "Moi"; }
+function setProfile(p) { profile = p; const saved = localStorage.getItem("accent:" + p.id); if (saved) document.documentElement.style.setProperty("--accent", saved); else setAccent(p.color); $("profName").textContent = p.name || "Moi"; }
 
 function afterProfile() {
   // Abonnement : dernier utilisé ou le premier
@@ -107,7 +135,20 @@ $("tileSettings");
 // ---------- Réglages ----------
 function openSettings() {
   fillSubPickers();
-  $("setInfo").textContent = sub ? `${subTypeLabel(sub)} · profil ${profile?.name || ""}. Maquette : favoris et reprises enregistrés sur ce PC.` : "Aucun abonnement.";
+  const sw = $("swatches"); sw.innerHTML = "";
+  const curAccent = localStorage.getItem("accent:" + (profile?.id || "p1"));
+  ACCENTS.forEach((c, i) => {
+    const d = document.createElement("div");
+    d.className = "swatch" + ((curAccent ? curAccent === c : (+(profile?.color) || 0) === i) ? " on" : "");
+    d.style.background = c;
+    d.onclick = () => { document.documentElement.style.setProperty("--accent", c); localStorage.setItem("accent:" + (profile?.id || "p1"), c); sw.querySelectorAll(".swatch").forEach((x) => x.classList.remove("on")); d.classList.add("on"); };
+    sw.appendChild(d);
+  });
+  const cfg = getCfg();
+  $("cfgClean").checked = cfg.clean; $("cfgMerge").checked = cfg.merge; $("cfgAdult").checked = cfg.adult;
+  const saveCfg = () => setCfg({ clean: $("cfgClean").checked, merge: $("cfgMerge").checked, adult: $("cfgAdult").checked });
+  $("cfgClean").onchange = saveCfg; $("cfgMerge").onchange = saveCfg; $("cfgAdult").onchange = saveCfg;
+  $("setInfo").textContent = sub ? `${subTypeLabel(sub)} · profil ${profile?.name || ""}. Favoris et reprises sur ce PC (synchro à venir).` : "Aucun abonnement.";
   show("settings");
 }
 $("setFavs").onclick = () => { curKind = "fav"; openBrowse("fav"); };
@@ -123,7 +164,8 @@ async function openBrowse(kind) {
   show("browse");
   if (kind === "fav") return renderFavorites();
   try {
-    const cats = await prov.categories(kind);
+    let cats = await prov.categories(kind);
+    if (getCfg().adult) cats = cats.filter((c) => !isAdultName(c.name));
     const rows = [{ id: "__fav", name: "★ Favoris" }, ...cats];
     $("cats").innerHTML = "";
     rows.forEach((c, i) => {
@@ -141,7 +183,7 @@ async function openBrowse(kind) {
 async function loadCategory(kind, catId) {
   $("content").innerHTML = '<div class="spin">Chargement…</div>';
   try {
-    curItems = await prov.streams(kind, catId);
+    curItems = applyCleanup(kind, await prov.streams(kind, catId));
     renderItems(kind, curItems);
   } catch (err) { $("content").innerHTML = `<div class="empty">Erreur : ${esc(err.message)}</div>`; }
 }
@@ -197,7 +239,7 @@ function renderFavorites(kind) {
 }
 
 // ---------- Lecteur ----------
-function openPlayer(title) { $("playTitle").textContent = title; $("playHint").classList.add("hidden"); $("player").classList.remove("hidden"); }
+function openPlayer(title) { $("playTitle").textContent = title; $("playHint").classList.add("hidden"); $("player").classList.remove("hidden"); applyAspect(); }
 $("playClose").onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); saveResume(); stopPlayback(); $("player").classList.add("hidden"); };
 function stopPlayback() { try { if (player) { player.destroy(); player = null; } } catch (e) {} const v = $("video"); try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {} resumeCtx = null; }
 
@@ -308,6 +350,7 @@ function setPlayerMode(live) {
   v.addEventListener("loadedmetadata", () => { $("pDur").textContent = fmt(v.duration); });
   $("pMute").onclick = () => { v.muted = !v.muted; $("pMute").textContent = v.muted ? "🔇" : "🔊"; };
   $("pVol").addEventListener("input", () => { v.volume = +$("pVol").value; v.muted = false; $("pMute").textContent = v.volume ? "🔊" : "🔇"; });
+  $("pAspect").onclick = () => { const cur = localStorage.getItem("aspect") || "contain"; const i = ASPECTS.findIndex((a) => a[0] === cur); const nx = ASPECTS[(i + 1) % ASPECTS.length]; localStorage.setItem("aspect", nx[0]); applyAspect(); toast("Format : " + nx[1]); };
   $("pFs").onclick = toggleFullscreen;
   $("video").addEventListener("dblclick", toggleFullscreen);
 })();

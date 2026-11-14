@@ -67,7 +67,13 @@
       <select id="setSub"></select>
       <label class="lead">Profil</label>
       <select id="setProf"></select>
-      <div style="display:flex;gap:10px;margin-top:8px">
+      <label class="lead">Couleur</label>
+      <div class="swatches" id="swatches"></div>
+      <label class="lead">Nettoyage des listes</label>
+      <label class="chk"><input type="checkbox" id="cfgClean"> Nettoyer les noms (retirer FR, HD, 4K…)</label>
+      <label class="chk"><input type="checkbox" id="cfgMerge"> Fusionner les chaînes en double</label>
+      <label class="chk"><input type="checkbox" id="cfgAdult"> Masquer les catégories adultes</label>
+      <div style="display:flex;gap:10px;margin-top:10px">
         <button class="sec" id="setFavs">Mes favoris</button>
         <button class="sec" id="setBack">Retour</button>
       </div>
@@ -96,6 +102,7 @@
     <span class="live hidden" id="pLive">● DIRECT</span>
     <button class="pbtn" id="pMute" title="Son">🔊</button>
     <input type="range" id="pVol" min="0" max="1" step="0.05" value="1">
+    <button class="pbtn" id="pAspect" title="Format d'image">🖥️</button>
     <button class="pbtn" id="pFs" title="Plein écran">⛶</button>
   </div>
 </div>

@@ -100,3 +100,10 @@ section{height:100%}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#fff;color:#070912;font-weight:600;padding:9px 16px;border-radius:18px;opacity:0;transition:opacity .2s;z-index:20}
 .toast.show{opacity:1}
 .spin{color:var(--faint);padding:30px;text-align:center}
+
+/* Réglages : couleurs + cases */
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatch{width:32px;height:32px;border-radius:9px;cursor:pointer;border:2px solid transparent}
+.swatch.on{border-color:#fff}
+.chk{display:flex;align-items:center;gap:9px;color:var(--muted);cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
