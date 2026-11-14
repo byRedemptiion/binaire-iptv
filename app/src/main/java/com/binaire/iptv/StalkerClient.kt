@@ -151,9 +151,10 @@ class StalkerClient(rawServer: String, mac: String) : XtreamClient(rawServer, ma
         val out = ArrayList<Category>()
         for (i in 0 until arr.length()) {
             val o = arr.optJSONObject(i) ?: continue
-            val id = o.optString("id").ifBlank { continue }
-            if (id == "*" || id == "0") continue // « toutes » : on garde les vraies catégories
-            out.add(Category(id, o.optString("title").ifBlank { o.optString("name", "Catégorie") }))
+            val id = o.optString("id")
+            if (id.isBlank() || id == "*" || id == "0") continue // « toutes » : on garde les vraies catégories
+            val title = o.optString("title").ifBlank { o.optString("name", "Catégorie") }
+            out.add(Category(id, title))
         }
         return out
     }
@@ -171,7 +172,8 @@ class StalkerClient(rawServer: String, mac: String) : XtreamClient(rawServer, ma
                 if (arr.length() == 0) break
                 for (i in 0 until arr.length()) {
                     val o = arr.optJSONObject(i) ?: continue
-                    val id = o.optString("id").ifBlank { continue }
+                    val id = o.optString("id")
+                    if (id.isBlank()) continue
                     val cmd = o.optString("cmd").ifBlank { null }
                     if (cmd != null) cmds[idKey(kind, id)] = cmd
                     out.add(
@@ -208,7 +210,8 @@ class StalkerClient(rawServer: String, mac: String) : XtreamClient(rawServer, ma
                 if (arr.length() == 0) break
                 for (i in 0 until arr.length()) {
                     val o = arr.optJSONObject(i) ?: continue
-                    val id = o.optString("id").ifBlank { continue }
+                    val id = o.optString("id")
+                    if (id.isBlank()) continue
                     o.optString("cmd").ifBlank { null }?.let { cmds[idKey(Kind.SERIES, id)] = it }
                     out.add(
                         Item(
@@ -248,7 +251,8 @@ class StalkerClient(rawServer: String, mac: String) : XtreamClient(rawServer, ma
             if (arr.length() == 0) break
             for (i in 0 until arr.length()) {
                 val o = arr.optJSONObject(i) ?: continue
-                val id = o.optString("id").ifBlank { continue }
+                val id = o.optString("id")
+                if (id.isBlank()) continue
                 o.optString("cmd").ifBlank { null }?.let { cmds[idKey(Kind.SERIES, id)] = it }
                 val season = o.str("season_number") ?: o.optJSONObject("series")?.optString("season") ?: "1"
                 val epNum = o.str("episode_number") ?: o.str("number") ?: (i + 1).toString()
