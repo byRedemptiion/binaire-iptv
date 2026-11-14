@@ -66,11 +66,11 @@ jobs:
           # puis on se rabat sur le Gradle déjà installé sur la machine de build.
           ok=""
           for i in 1 2 3 4; do
-            if ./gradlew assembleRelease --stacktrace; then ok=1; break; fi
+            if ./gradlew testReleaseUnitTest assembleRelease --stacktrace; then ok=1; break; fi
             echo "Nouvel essai dans 45 s…"; sleep 45
           done
           if [ -z "$ok" ]; then
-            gradle --version && gradle assembleRelease --stacktrace
+            gradle --version && gradle testReleaseUnitTest assembleRelease --stacktrace
           fi
           cp app/build/outputs/apk/release/app-release.apk Binaire-IPTV.apk
 
