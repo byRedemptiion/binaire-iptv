@@ -3,6 +3,11 @@ name: Binaire IPTV
 on:
   push:
     branches: ["**"]
+    paths-ignore:
+      - "desktop/**"
+      - "tools/**"
+      - "web/**"
+      - "**.md"
   release:
     types: [published]
   workflow_dispatch:

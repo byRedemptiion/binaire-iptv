@@ -1,0 +1,23 @@
+{
+  "name": "binaire-desktop",
+  "version": "0.1.0",
+  "description": "Binaire IPTV — maquette bureau (Windows)",
+  "main": "main.js",
+  "author": "byRedemptiion",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win portable --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.binaire.desktop",
+    "productName": "Binaire IPTV",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "renderer/**/*"],
+    "win": { "target": "portable", "artifactName": "Binaire-IPTV-Windows.exe" }
+  }
+}
