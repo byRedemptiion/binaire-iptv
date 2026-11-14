@@ -184,8 +184,9 @@
         <input type="text" id="s-name" placeholder="Mon abonnement" maxlength="40">
       </label>
       <div class="tabs" role="tablist" style="margin:0">
-        <button type="button" role="tab" id="tab-xtream" aria-selected="true">Identifiants Xtream</button>
+        <button type="button" role="tab" id="tab-xtream" aria-selected="true">Xtream</button>
         <button type="button" role="tab" id="tab-m3u" aria-selected="false">Lien M3U</button>
+        <button type="button" role="tab" id="tab-stalker" aria-selected="false">Portail MAC</button>
       </div>
       <div class="stack" id="xtream-fields">
         <label>Serveur
@@ -205,6 +206,16 @@
           <input type="url" id="s-m3u" placeholder="http://exemple.com/liste.m3u" autocapitalize="off" autocorrect="off" spellcheck="false">
         </label>
         <p class="hint">Le lien que t'a donné ton fournisseur. Chaînes, films et séries sont rangés automatiquement.</p>
+      </div>
+      <div class="stack hidden" id="stalker-fields">
+        <label>Adresse du portail
+          <input type="url" id="s-portal" placeholder="http://exemple.com:8080/c/" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </label>
+        <label>Adresse MAC
+          <input type="text" id="s-mac" placeholder="00:1A:79:XX:XX:XX" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="17">
+        </label>
+        <button type="button" class="secondary" id="gen-mac">Générer une MAC</button>
+        <p class="hint">Pour un abonnement « portail Stalker/MAG ». Donne cette MAC à ton fournisseur pour qu'il y rattache ta ligne, puis entre l'adresse du portail qu'il t'indique.</p>
       </div>
       <div class="msg" id="s-msg" role="alert"></div>
       <button type="submit" id="s-submit">Enregistrer l'abonnement</button>
@@ -469,17 +480,27 @@
   }
 
   const M3U = "m3u:";
+  const STALKER = "stalker:";
   let subMode = "xtream";
   function setSubMode(m) {
     subMode = m;
     $("tab-xtream").setAttribute("aria-selected", m === "xtream");
     $("tab-m3u").setAttribute("aria-selected", m === "m3u");
+    $("tab-stalker").setAttribute("aria-selected", m === "stalker");
     $("xtream-fields").classList.toggle("hidden", m !== "xtream");
     $("m3u-fields").classList.toggle("hidden", m !== "m3u");
+    $("stalker-fields").classList.toggle("hidden", m !== "stalker");
     msg("s-msg", "");
   }
   $("tab-xtream").onclick = () => setSubMode("xtream");
   $("tab-m3u").onclick = () => setSubMode("m3u");
+  $("tab-stalker").onclick = () => setSubMode("stalker");
+
+  function randomMac() {
+    const b = () => Math.floor(Math.random() * 256).toString(16).padStart(2, "0").toUpperCase();
+    return `00:1A:79:${b()}:${b()}:${b()}`;
+  }
+  $("gen-mac").onclick = () => { $("s-mac").value = randomMac(); };
 
   function openSubForm(sub, then) {
     editingSub = sub ? sub.id : null;
@@ -487,11 +508,14 @@
     $("sub-title").textContent = sub ? "Modifier l'abonnement" : "Ajoute ton abonnement";
     $("s-name").value = sub ? sub.name || "" : "";
     const isM3u = !!(sub && (sub.server || "").startsWith(M3U));
-    setSubMode(isM3u ? "m3u" : "xtream");
+    const isStalker = !!(sub && (sub.server || "").startsWith(STALKER));
+    setSubMode(isStalker ? "stalker" : isM3u ? "m3u" : "xtream");
     $("s-m3u").value = isM3u ? sub.server.slice(M3U.length) : "";
-    $("s-server").value = sub && !isM3u ? sub.server || "" : "";
-    $("s-user").value = sub && !isM3u ? sub.user || "" : "";
-    $("s-pass").value = sub && !isM3u ? sub.pass || "" : "";
+    $("s-portal").value = isStalker ? sub.server.slice(STALKER.length) : "";
+    $("s-mac").value = isStalker ? sub.user || "" : "";
+    $("s-server").value = sub && !isM3u && !isStalker ? sub.server || "" : "";
+    $("s-user").value = sub && !isM3u && !isStalker ? sub.user || "" : "";
+    $("s-pass").value = sub && !isM3u && !isStalker ? sub.pass || "" : "";
     $("s-cancel").classList.toggle("hidden", !then || then === "approve-required");
     msg("s-msg", "");
     show("v-sub");
@@ -532,6 +556,14 @@
       if (!/^https?:\/\//i.test(link)) link = "http://" + link;
       try { new URL(link); } catch (err) { return msg("s-msg", "Ce lien n'est pas valide."); }
       server = M3U + link; user = "m3u"; pass = "m3u";
+    } else if (subMode === "stalker") {
+      let portal = $("s-portal").value.trim();
+      const macRaw = $("s-mac").value.replace(/[^0-9a-fA-F]/g, "").toUpperCase();
+      if (!portal) return msg("s-msg", "Entre l'adresse du portail.");
+      if (!/^https?:\/\//i.test(portal)) portal = "http://" + portal;
+      try { new URL(portal); } catch (err) { return msg("s-msg", "L'adresse du portail n'est pas valide."); }
+      if (macRaw.length !== 12) return msg("s-msg", "La MAC doit avoir 12 caractères (ex. 00:1A:79:AA:BB:CC).");
+      server = STALKER + portal.replace(/\/+$/, ""); user = macRaw.match(/.{2}/g).join(":"); pass = "";
     } else {
       server = $("s-server").value.trim();
       user = $("s-user").value.trim();
@@ -649,15 +681,19 @@
     try {
       const subs = await loadSubs();
       // Résumé pour l'administrateur : nombre et types d'abonnements, jamais les codes.
-      const types = [...new Set(subs.map((x) => (x.server || "").startsWith(M3U) ? "M3U" : "Xtream"))];
+      const typeOf = (x) => (x.server || "").startsWith(M3U) ? "M3U" : (x.server || "").startsWith(STALKER) ? "Portail MAC" : "Xtream";
+      const types = [...new Set(subs.map(typeOf))];
       setDoc(doc(db, "users", uid), { subCount: subs.length, subTypes: types }, { merge: true }).catch(() => {});
       subsBox.innerHTML = subs.length ? "" : '<p class="empty">Aucun abonnement pour l\'instant.</p>';
       for (const s of subs) {
         const isM3u = (s.server || "").startsWith(M3U);
-        const host = (() => { try { return new URL(isM3u ? s.server.slice(M3U.length) : s.server).host; } catch (e) { return s.server; } })();
+        const isStalker = (s.server || "").startsWith(STALKER);
+        const raw = isM3u ? s.server.slice(M3U.length) : isStalker ? s.server.slice(STALKER.length) : s.server;
+        const host = (() => { try { return new URL(raw).host; } catch (e) { return raw; } })();
+        const detail = isM3u ? "Lien M3U" : isStalker ? "Portail · " + esc(s.user) : esc(s.user);
         const row = document.createElement("div");
         row.className = "item";
-        row.innerHTML = `<div class="grow"><div class="t">${esc(s.name || "Abonnement")}</div><div class="s">${esc(host)} · ${isM3u ? "Lien M3U" : esc(s.user)}</div></div>`;
+        row.innerHTML = `<div class="grow"><div class="t">${esc(s.name || "Abonnement")}</div><div class="s">${esc(host)} · ${detail}</div></div>`;
         const edit = document.createElement("button");
         edit.className = "secondary small"; edit.textContent = "Modifier";
         edit.onclick = () => openSubForm(s, "account");

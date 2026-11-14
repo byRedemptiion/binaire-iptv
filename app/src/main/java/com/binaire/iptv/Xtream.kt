@@ -166,13 +166,16 @@ open class XtreamClient(rawServer: String, val user: String, val pass: String) {
         const val M3U_PREFIX = "m3u:"
 
         /** Le bon lecteur de liste selon le type d'abonnement. */
-        fun create(server: String, user: String, pass: String): XtreamClient =
-            if (server.startsWith(M3U_PREFIX)) M3uClient(server) else XtreamClient(server, user, pass)
+        fun create(server: String, user: String, pass: String): XtreamClient = when {
+            server.startsWith(M3U_PREFIX) -> M3uClient(server)
+            server.startsWith(StalkerClient.STALKER_PREFIX) -> StalkerClient(server, user)
+            else -> XtreamClient(server, user, pass)
+        }
 
         fun isM3u(server: String?) = server?.startsWith(M3U_PREFIX) == true
 
         fun normalize(input: String): String {
-            if (input.startsWith(M3U_PREFIX)) return input.trim()
+            if (input.startsWith(M3U_PREFIX) || input.startsWith(StalkerClient.STALKER_PREFIX)) return input.trim()
             var u = input.trim()
             if (!u.startsWith("http://", true) && !u.startsWith("https://", true)) u = "http://$u"
             u = u.trimEnd('/')

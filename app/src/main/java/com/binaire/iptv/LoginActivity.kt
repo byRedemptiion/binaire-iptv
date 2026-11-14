@@ -102,14 +102,21 @@ class LoginActivity : BaseActivity() {
         var server = etServer.text.toString().trim()
         var user = etUser.text.toString().trim()
         var pass = etPass.text.toString().trim()
-        // Lien M3U simple (sans identifiant dedans) : collé seul dans « Serveur ».
-        if (user.isEmpty() && pass.isEmpty() && server.contains("://") && server.length > 12) {
+        // Portail Stalker/MAG : « Utilisateur » contient une MAC (00:1A:79:…).
+        val mac = StalkerClient.cleanMac(user)
+        if (mac != null && pass.isEmpty() && server.contains("://")) {
+            server = StalkerClient.normalizePortal(server)
+            user = mac
+            pass = ""
+        } else if (user.isEmpty() && pass.isEmpty() && server.contains("://") && server.length > 12) {
+            // Lien M3U simple (sans identifiant dedans) : collé seul dans « Serveur ».
             server = XtreamClient.M3U_PREFIX + server
             user = "m3u"
             pass = "m3u"
         }
-        if (server.isEmpty() || user.isEmpty() || pass.isEmpty()) {
-            tvError.text = "Remplis les trois champs, ou colle seulement ton lien M3U dans « Serveur »."
+        val isSpecial = server.startsWith(XtreamClient.M3U_PREFIX) || server.startsWith(StalkerClient.STALKER_PREFIX)
+        if (server.isEmpty() || (!isSpecial && (user.isEmpty() || pass.isEmpty()))) {
+            tvError.text = "Remplis les trois champs, colle ton lien M3U dans « Serveur », ou mets une MAC dans « Utilisateur » pour un portail."
             return
         }
         setBusy(true)
