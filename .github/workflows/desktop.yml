@@ -6,6 +6,9 @@ on:
     paths: ["desktop/**", ".github/workflows/desktop.yml"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -24,3 +27,10 @@ jobs:
           name: Binaire-IPTV-Windows
           path: desktop/dist/*.exe
           if-no-files-found: error
+      - name: Publie l'exe en release (téléchargeable directement)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: windows-latest
+          name: Binaire IPTV — Windows (maquette)
+          files: desktop/dist/*.exe
+          make_latest: false
