@@ -48,7 +48,8 @@ function applyAspect() {
 
 let uid = null, subs = [], profiles = [], profile = null;
 let sub = null, prov = null;
-let curKind = null, curItems = [], player = null;
+let curKind = null, curItems = [], player = null, curCatId = null;
+const allCache = {}; // "subId:kind" -> tous les éléments (pour la recherche globale)
 
 // Lecteur mpv (moteur VLC) : détecté au démarrage, repli sur le lecteur intégré sinon.
 const STB_UA_PLAYER = "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3";
@@ -239,7 +240,7 @@ $("setSub").onchange = (e) => { switchSub(e.target.value); $("subPick").value = 
 function switchSub(id) { sub = subs.find((s) => s.id === id); if (sub) localStorage.setItem("lastSub", sub.id); openProvider(); toast("Abonnement : " + (sub?.name || "")); }
 $("setProf").onchange = (e) => { const p = profiles.find((x) => x.id === e.target.value); if (p) { setProfile(p); } };
 
-function openProvider() { prov = sub ? makeProvider(sub) : null; }
+function openProvider() { prov = sub ? makeProvider(sub) : null; for (const k in allCache) delete allCache[k]; }
 
 // ---------- Accueil ----------
 document.querySelectorAll(".tile[data-kind]").forEach((t) => t.onclick = () => openBrowse(t.dataset.kind));
@@ -305,6 +306,7 @@ async function openBrowse(kind) {
 }
 
 async function loadCategory(kind, catId) {
+  curCatId = catId;
   $("content").innerHTML = '<div class="spin">Chargement…</div>';
   try {
     curItems = applyCleanup(kind, await prov.streams(kind, catId));
@@ -312,9 +314,37 @@ async function loadCategory(kind, catId) {
   } catch (err) { $("content").innerHTML = `<div class="empty">Erreur : ${esc(err.message)}</div>`; }
 }
 
+// Tout le contenu de la section (mis en cache) pour chercher dans toutes les catégories.
+async function ensureAll(kind) {
+  const k = (sub?.id || "") + ":" + kind;
+  if (allCache[k]) return allCache[k];
+  const items = applyCleanup(kind, await prov.allStreams(kind));
+  allCache[k] = items;
+  return items;
+}
+
+// Recherche globale, en direct (prédictions au fur et à mesure)
+let searchTimer = null, searchSeq = 0;
 $("search").oninput = () => {
   const q = $("search").value.trim().toLowerCase();
-  renderItems(curKind === "fav" ? "live" : curKind, q ? curItems.filter((i) => (i.name || "").toLowerCase().includes(q)) : curItems);
+  clearTimeout(searchTimer);
+  if (!q) { // champ vidé → on revient à la catégorie sélectionnée
+    if (curKind === "fav") renderFavorites(); else if (curCatId != null) loadCategory(curKind, curCatId);
+    return;
+  }
+  if (curKind === "fav") { renderItems(KIND.LIVE, curItems.filter((i) => (i.name || "").toLowerCase().includes(q))); return; }
+  const seq = ++searchSeq;
+  searchTimer = setTimeout(async () => {
+    $("content").innerHTML = '<div class="spin">Recherche…</div>';
+    let all;
+    try { all = await ensureAll(curKind); } catch (e) { all = curItems; }
+    if (seq !== searchSeq) return; // une frappe plus récente a pris le relais
+    const res = all.filter((i) => (i.name || "").toLowerCase().includes(q))
+      .sort((a, b) => (a.name || "").toLowerCase().startsWith(q) === (b.name || "").toLowerCase().startsWith(q) ? 0 : ((a.name || "").toLowerCase().startsWith(q) ? -1 : 1));
+    if (!res.length) { $("content").className = "content"; $("content").innerHTML = `<div class="empty">Rien trouvé pour « ${esc($("search").value.trim())} ».</div>`; return; }
+    renderItems(curKind, res.slice(0, 300));
+    if (res.length > 300) { const n = document.createElement("div"); n.className = "empty"; n.textContent = `${res.length} résultats — affine ta recherche pour en voir plus.`; $("content").appendChild(n); }
+  }, 180);
 };
 
 function renderItems(kind, items) {

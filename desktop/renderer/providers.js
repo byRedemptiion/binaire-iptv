@@ -45,6 +45,12 @@ class XtreamProvider {
     const a = await this.api("action=get_series&category_id=" + encodeURIComponent(catId));
     return a.map((s) => ({ kind, id: String(s.series_id), name: s.name, icon: s.cover, rating: s.rating }));
   }
+  // Tout le contenu de la section (sans filtrer par catégorie) pour la recherche globale.
+  async allStreams(kind) {
+    if (kind === KIND.LIVE) { const a = await this.api("action=get_live_streams"); return a.map((s) => ({ kind, id: String(s.stream_id), name: s.name, icon: s.stream_icon })); }
+    if (kind === KIND.MOVIE) { const a = await this.api("action=get_vod_streams"); return a.map((s) => ({ kind, id: String(s.stream_id), name: s.name, icon: s.stream_icon, ext: s.container_extension || "mp4" })); }
+    const a = await this.api("action=get_series"); return a.map((s) => ({ kind, id: String(s.series_id), name: s.name, icon: s.cover }));
+  }
   async seriesInfo(id) {
     const info = await this.api("action=get_series_info&series_id=" + encodeURIComponent(id));
     const eps = info.episodes || {};
@@ -122,6 +128,7 @@ class M3uProvider {
   }
   async categories(kind) { await this.load(); return this._cats[kind]; }
   async streams(kind, catId) { await this.load(); return this._items[kind].filter((i) => i.catId === catId); }
+  async allStreams(kind) { await this.load(); return this._items[kind].slice(); }
   async seriesInfo(id) {
     await this.load();
     let eps = [];
@@ -247,6 +254,25 @@ class StalkerProvider {
     const type = kind === KIND.LIVE ? "itv" : "vod";
     const out = [], seen = new Set();
     await this.paginate(`type=${type}&action=get_ordered_list&genre=${catId}&category=${catId}`, (o) => {
+      const id = String(o.id || ""); if (!id || seen.has(id)) return; seen.add(id);
+      if (o.cmd) this.cmds.set(kind + ":" + id, o.cmd);
+      out.push({ kind, id, name: o.name || o.o_name || "Sans nom", icon: this.abs(o.logo || o.screenshot_uri), ext: kind === KIND.MOVIE ? "mp4" : null });
+    });
+    return out;
+  }
+  async allStreams(kind) {
+    if (kind === KIND.SERIES) {
+      const out = [], seen = new Set();
+      await this.paginate("type=series&action=get_ordered_list&category=*", (o) => {
+        const id = String(o.id || ""); if (!id || seen.has(id)) return; seen.add(id);
+        if (o.cmd) this.cmds.set("series:" + id, o.cmd);
+        out.push({ kind, id, name: o.name || "Série", icon: this.abs(o.screenshot_uri || o.logo) });
+      });
+      return out;
+    }
+    const type = kind === KIND.LIVE ? "itv" : "vod";
+    const out = [], seen = new Set();
+    await this.paginate(`type=${type}&action=get_ordered_list&genre=*&category=*`, (o) => {
       const id = String(o.id || ""); if (!id || seen.has(id)) return; seen.add(id);
       if (o.cmd) this.cmds.set(kind + ":" + id, o.cmd);
       out.push({ kind, id, name: o.name || o.o_name || "Sans nom", icon: this.abs(o.logo || o.screenshot_uri), ext: kind === KIND.MOVIE ? "mp4" : null });
