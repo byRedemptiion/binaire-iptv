@@ -1,6 +1,6 @@
 {
   "name": "binaire-desktop",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Binaire IPTV — maquette bureau (Windows)",
   "main": "main.js",
   "author": "byRedemptiion",
@@ -16,8 +16,26 @@
   "build": {
     "appId": "com.binaire.desktop",
     "productName": "Binaire IPTV",
-    "directories": { "output": "dist" },
-    "files": ["main.js", "preload.js", "renderer/**/*"],
-    "win": { "target": "portable", "artifactName": "Binaire-IPTV-Windows.exe" }
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "artifactName": "Binaire-IPTV-Windows.exe"
+    },
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": ".",
+        "filter": [
+          "mpv.exe"
+        ]
+      }
+    ]
   }
 }

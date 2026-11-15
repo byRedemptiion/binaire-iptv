@@ -137,3 +137,9 @@ section{height:100%}
 .pbar .pbtn{color:#fff;display:flex;align-items:center;justify-content:center;padding:0 12px}
 .pbar .pbtn svg{width:20px;height:20px;fill:currentColor}
 .pbar .pbtn:hover{background:var(--accent)}
+
+/* Accueil : bandeau logo au-dessus des tuiles */
+.hero{display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 0 2px}
+.hero .heroLogo{height:66px;width:auto;display:block;filter:drop-shadow(0 6px 24px rgba(0,0,0,.5))}
+.hero .slogan{color:var(--muted);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+#home .tiles{padding-top:10px}

@@ -65,13 +65,15 @@
 <!-- Accueil -->
 <section id="home" class="hidden">
   <div class="topbar">
-    <img class="logo" src="./logo.png" alt="Binaire">
-    <div class="divider"></div>
     <div class="sp"></div>
     <select id="subPick" title="Abonnement"></select>
     <div class="chip" id="profChip"><span class="dot"></span><span id="profName">Moi</span></div>
     <div class="clock" id="clock"></div>
     <button class="ghost" id="logout" style="min-height:34px;font-size:13px">Quitter</button>
+  </div>
+  <div class="hero">
+    <img class="heroLogo" src="./logo.png" alt="Binaire IPTV">
+    <div class="slogan">Simple. Numérique. Intuitif.</div>
   </div>
   <div class="tiles">
     <div class="tile" data-kind="live">
@@ -126,6 +128,8 @@
       <label class="chk"><input type="checkbox" id="cfgClean"> Nettoyer les noms (retirer FR, HD, 4K…)</label>
       <label class="chk"><input type="checkbox" id="cfgMerge"> Fusionner les chaînes en double</label>
       <label class="chk"><input type="checkbox" id="cfgAdult"> Masquer les catégories adultes</label>
+      <label class="lead" id="mpvRow">Lecture</label>
+      <label class="chk" id="mpvChk"><input type="checkbox" id="cfgMpv"> Lecteur avancé mpv (son AC3/DTS, pistes audio & sous-titres)</label>
       <div style="display:flex;gap:10px;margin-top:10px">
         <button class="sec" id="setFavs">Mes favoris</button>
         <button class="sec" id="setBack">Retour</button>

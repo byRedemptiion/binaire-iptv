@@ -50,6 +50,21 @@ let uid = null, subs = [], profiles = [], profile = null;
 let sub = null, prov = null;
 let curKind = null, curItems = [], player = null;
 
+// Lecteur mpv (moteur VLC) : détecté au démarrage, repli sur le lecteur intégré sinon.
+const STB_UA_PLAYER = "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3";
+let mpvOk = false;
+if (window.binaire && window.binaire.mpvAvailable) window.binaire.mpvAvailable().then((v) => { mpvOk = v; });
+if (window.binaire && window.binaire.onMpvClosed) window.binaire.onMpvClosed(() => { /* mpv fermé : l'interface réapparaît */ });
+function useMpv() { return mpvOk && localStorage.getItem("mpv") !== "0"; }
+function stalkerExtras() {
+  if (!sub || !(sub.server || "").startsWith("stalker:")) return {};
+  return { userAgent: STB_UA_PLAYER, headers: ["Cookie: mac=" + encodeURIComponent(sub.user)] };
+}
+async function tryMpv(opts) {
+  try { const r = await window.binaire.mpvPlay(opts); if (r && r.ok) { toast("Lecture mpv — Échap pour revenir"); return true; } } catch (e) {}
+  return false;
+}
+
 const views = ["login", "who", "home", "browse", "settings"];
 const show = (v) => views.forEach((x) => $(x).classList.toggle("hidden", x !== v));
 function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2400); }
@@ -248,6 +263,11 @@ function openSettings() {
   });
   $("setBg").value = localStorage.getItem("bg") || "binaire";
   $("setBg").onchange = () => { localStorage.setItem("bg", $("setBg").value); applyBackground(); };
+  // Lecteur mpv (affiché seulement s'il est disponible)
+  $("mpvRow").style.display = mpvOk ? "" : "none";
+  $("mpvChk").style.display = mpvOk ? "" : "none";
+  $("cfgMpv").checked = localStorage.getItem("mpv") !== "0";
+  $("cfgMpv").onchange = () => localStorage.setItem("mpv", $("cfgMpv").checked ? "1" : "0");
   const cfg = getCfg();
   $("cfgClean").checked = cfg.clean; $("cfgMerge").checked = cfg.merge; $("cfgAdult").checked = cfg.adult;
   const saveCfg = () => setCfg({ clean: $("cfgClean").checked, merge: $("cfgMerge").checked, adult: $("cfgAdult").checked });
@@ -348,19 +368,27 @@ $("playClose").onclick = () => { if (document.fullscreenElement) document.exitFu
 function stopPlayback() { try { if (player) { player.destroy(); player = null; } } catch (e) {} const v = $("video"); try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {} resumeCtx = null; }
 
 async function playLive(it) {
-  openPlayer(it.name);
-  try { const r = await prov.resolve(KIND.LIVE, it); playMpegtsOrHls(r.ts, r.hls); }
-  catch (err) { hint("Lecture impossible : " + err.message); }
+  try {
+    const r = await prov.resolve(KIND.LIVE, it);
+    if (useMpv() && await tryMpv(Object.assign({ url: r.ts || r.hls, live: true }, stalkerExtras()))) return;
+    openPlayer(it.name); setPlayerMode(true); playMpegtsOrHls(r.ts, r.hls);
+  } catch (err) { openPlayer(it.name); hint("Lecture impossible : " + err.message); }
 }
 async function playMovie(it) {
-  openPlayer(it.name);
-  try { const r = await prov.resolve(KIND.MOVIE, it); playVod(r.url, resumeKey(KIND.MOVIE, it.id)); }
-  catch (err) { hint("Lecture impossible : " + err.message); }
+  try {
+    const r = await prov.resolve(KIND.MOVIE, it);
+    const start = parseFloat(localStorage.getItem(resumeKey(KIND.MOVIE, it.id)) || "0");
+    if (useMpv() && await tryMpv(Object.assign({ url: r.url, start }, stalkerExtras()))) return;
+    openPlayer(it.name); playVod(r.url, resumeKey(KIND.MOVIE, it.id));
+  } catch (err) { openPlayer(it.name); hint("Lecture impossible : " + err.message); }
 }
 async function playEpisode(ep, seriesName) {
-  openPlayer(`${seriesName} · ${ep.name}`);
-  try { const r = await prov.resolve(KIND.SERIES, ep); playVod(r.url, resumeKey(KIND.SERIES, ep.id)); }
-  catch (err) { hint("Lecture impossible : " + err.message); }
+  try {
+    const r = await prov.resolve(KIND.SERIES, ep);
+    const start = parseFloat(localStorage.getItem(resumeKey(KIND.SERIES, ep.id)) || "0");
+    if (useMpv() && await tryMpv(Object.assign({ url: r.url, start }, stalkerExtras()))) return;
+    openPlayer(`${seriesName} · ${ep.name}`); playVod(r.url, resumeKey(KIND.SERIES, ep.id));
+  } catch (err) { openPlayer(`${seriesName} · ${ep.name}`); hint("Lecture impossible : " + err.message); }
 }
 
 function hint(t) { $("playHint").textContent = t; $("playHint").classList.remove("hidden"); }

@@ -21,6 +21,23 @@ jobs:
         with:
           node-version: "20"
       - run: npm install
+      - name: Télécharge mpv (moteur VLC) et l'embarque
+        continue-on-error: true
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path resources | Out-Null
+          $rel = gh api repos/zhongfly/mpv-winbuild/releases/latest | ConvertFrom-Json
+          $asset = $rel.assets | Where-Object { $_.name -match '^mpv-x86_64-\d{8}' -and $_.name -notmatch 'v3' -and $_.name -notmatch 'dev' } | Select-Object -First 1
+          if (-not $asset) { throw "mpv introuvable dans la release" }
+          Write-Host "mpv : $($asset.name)"
+          curl.exe -L -o mpv.7z $asset.browser_download_url
+          7z x mpv.7z -ompvtmp -y | Out-Null
+          $exe = Get-ChildItem -Recurse mpvtmp -Filter mpv.exe | Select-Object -First 1
+          Copy-Item $exe.FullName resources/mpv.exe -Force
+          Write-Host ("mpv.exe : {0:N1} Mo" -f ((Get-Item resources/mpv.exe).Length/1MB))
       - run: npm run dist:win
       - uses: actions/upload-artifact@v4
         with:
