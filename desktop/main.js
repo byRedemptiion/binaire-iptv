@@ -62,13 +62,18 @@ ipcMain.handle("mpv-play", (_e, opts) => {
     "--hwdec=auto-safe",
     "--cache=yes",
     "--title=Binaire IPTV — ${media-title}",
-    "--geometry=92%x92%+50%+50%"
+    "--geometry=92%x92%+50%+50%",
+    // Reconnexion auto quand le serveur IPTV a un raté réseau (réduit les coupures).
+    "--stream-lavf-o-append=reconnect=1",
+    "--stream-lavf-o-append=reconnect_streamed=1",
+    "--stream-lavf-o-append=reconnect_on_network_error=1",
+    "--stream-lavf-o-append=reconnect_delay_max=5"
   ];
   if (cfg) args.push("--config-dir=" + cfg);        // barre uosc (audio/sous-titres) + ESC pour quitter
   else args.push("--no-config", "--osc=yes");
   if (opts && opts.live) {
-    // Direct : tampon modéré pour rester synchro sans micro-coupures.
-    args.push("--profile=low-latency", "--cache-secs=12", "--demuxer-max-bytes=128MiB", "--demuxer-readahead-secs=12");
+    // Direct : cache sain (surtout PAS low-latency, qui désactive le tampon).
+    args.push("--cache-secs=20", "--demuxer-max-bytes=192MiB", "--demuxer-readahead-secs=20");
   } else {
     // Films / séries (gros fichiers 4K) : gros tampon pour absorber les à-coups réseau.
     args.push("--cache-secs=120", "--demuxer-max-bytes=512MiB", "--demuxer-max-back-bytes=128MiB", "--demuxer-readahead-secs=60");
