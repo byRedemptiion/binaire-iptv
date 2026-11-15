@@ -439,11 +439,15 @@ function setPlayerMode(live) {
   $("pBack").classList.toggle("hidden", live);
   $("pFwd").classList.toggle("hidden", live);
 }
+const SVG_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>';
+const SVG_PAUSE = '<svg viewBox="0 0 24 24"><rect x="7" y="5" width="3.3" height="14" rx="1"/><rect x="13.7" y="5" width="3.3" height="14" rx="1"/></svg>';
+const SVG_SND = '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9.2a4 4 0 0 1 0 5.6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
+const SVG_MUTE = '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>';
 (function initPlayerBar() {
   const v = $("video");
   $("pPlay").onclick = () => { v.paused ? v.play() : v.pause(); };
-  v.addEventListener("play", () => { $("pPlay").textContent = "⏸"; });
-  v.addEventListener("pause", () => { $("pPlay").textContent = "▶"; });
+  v.addEventListener("play", () => { $("pPlay").innerHTML = SVG_PAUSE; });
+  v.addEventListener("pause", () => { $("pPlay").innerHTML = SVG_PLAY; });
   $("pBack").onclick = () => { v.currentTime = Math.max(0, v.currentTime - 10); };
   $("pFwd").onclick = () => { v.currentTime = Math.min((v.duration || 1e9), v.currentTime + 30); };
   $("pSeek").addEventListener("input", () => { seeking = true; $("pCur").textContent = fmt((+$("pSeek").value / 1000) * (v.duration || 0)); });
@@ -452,8 +456,8 @@ function setPlayerMode(live) {
     if (!seeking && v.duration) { $("pSeek").value = String((v.currentTime / v.duration) * 1000); $("pCur").textContent = fmt(v.currentTime); }
   });
   v.addEventListener("loadedmetadata", () => { $("pDur").textContent = fmt(v.duration); });
-  $("pMute").onclick = () => { v.muted = !v.muted; $("pMute").textContent = v.muted ? "🔇" : "🔊"; };
-  $("pVol").addEventListener("input", () => { v.volume = +$("pVol").value; v.muted = false; $("pMute").textContent = v.volume ? "🔊" : "🔇"; });
+  $("pMute").onclick = () => { v.muted = !v.muted; $("pMute").innerHTML = v.muted ? SVG_MUTE : SVG_SND; };
+  $("pVol").addEventListener("input", () => { v.volume = +$("pVol").value; v.muted = false; $("pMute").innerHTML = v.volume ? SVG_SND : SVG_MUTE; });
   $("pAspect").onclick = () => { const cur = localStorage.getItem("aspect") || "contain"; const i = ASPECTS.findIndex((a) => a[0] === cur); const nx = ASPECTS[(i + 1) % ASPECTS.length]; localStorage.setItem("aspect", nx[0]); applyAspect(); toast("Format : " + nx[1]); };
   $("pFs").onclick = toggleFullscreen;
   $("video").addEventListener("dblclick", toggleFullscreen);

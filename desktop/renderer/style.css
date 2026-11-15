@@ -132,3 +132,8 @@ section{height:100%}
 .tabs button{flex:1;min-height:36px;border-radius:9px;background:transparent;color:var(--muted);font-weight:600;font-size:14px}
 .tabs button[aria-selected="true"]{background:#fff;color:#070912}
 .stack{display:flex;flex-direction:column;gap:12px}
+
+/* Icônes des boutons du lecteur : blanches et nettes */
+.pbar .pbtn{color:#fff;display:flex;align-items:center;justify-content:center;padding:0 12px}
+.pbar .pbtn svg{width:20px;height:20px;fill:currentColor}
+.pbar .pbtn:hover{background:var(--accent)}
