@@ -38,6 +38,28 @@ jobs:
           $exe = Get-ChildItem -Recurse mpvtmp -Filter mpv.exe | Select-Object -First 1
           Copy-Item $exe.FullName resources/mpv.exe -Force
           Write-Host ("mpv.exe : {0:N1} Mo" -f ((Get-Item resources/mpv.exe).Length/1MB))
+      - name: Config mpv + barre uosc (audio/sous-titres)
+        continue-on-error: true
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path resources/mpvconf | Out-Null
+          # ESC ou q ferme mpv et revient a Binaire
+          Set-Content -Encoding UTF8 resources/mpvconf/input.conf "ESC quit`r`nq quit"
+          # Par defaut : barre mpv standard (si uosc echoue, on garde au moins ca)
+          Set-Content -Encoding UTF8 resources/mpvconf/mpv.conf "osc=yes`r`nkeep-open=no"
+          # uosc : jolie barre en bas avec boutons audio & sous-titres
+          $u = gh api repos/tomasklaen/uosc/releases/latest | ConvertFrom-Json
+          $ua = $u.assets | Where-Object { $_.name -eq 'uosc.zip' } | Select-Object -First 1
+          if ($ua) {
+            curl.exe -L -o uosc.zip $ua.browser_download_url
+            Expand-Archive uosc.zip -DestinationPath uosctmp -Force
+            Copy-Item uosctmp/* resources/mpvconf/ -Recurse -Force
+            Set-Content -Encoding UTF8 resources/mpvconf/mpv.conf "osc=no`r`nborder=yes`r`nkeep-open=no"
+            Write-Host "uosc installe"
+          }
       - run: npm run dist:win
       - uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,6 @@
 {
   "name": "binaire-desktop",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Binaire IPTV — maquette bureau (Windows)",
   "main": "main.js",
   "author": "byRedemptiion",
@@ -33,7 +33,7 @@
         "from": "resources",
         "to": ".",
         "filter": [
-          "mpv.exe"
+          "**/*"
         ]
       }
     ]

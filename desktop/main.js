@@ -43,25 +43,30 @@ function stopMpv() { if (mpv) { try { mpv.removeAllListeners("exit"); mpv.kill()
 
 ipcMain.handle("mpv-stop", () => stopMpv());
 
+function mpvConfigDir() {
+  const packaged = path.join(process.resourcesPath || "", "mpvconf");
+  if (fs.existsSync(packaged)) return packaged;
+  const dev = path.join(__dirname, "resources", "mpvconf");
+  return fs.existsSync(dev) ? dev : null;
+}
+
 ipcMain.handle("mpv-play", (_e, opts) => {
   const bin = mpvPath();
   if (!bin || !mainWin) return { ok: false, error: "mpv indisponible" };
   stopMpv();
-  // HWND de la fenêtre Electron : mpv dessine dedans (--wid).
-  let hwnd;
-  try { hwnd = mainWin.getNativeWindowHandle().readInt32LE(0); } catch (e) { return { ok: false, error: "fenêtre introuvable" }; }
+  // mpv en fenêtre propre (l'intégration --wid rend un écran noir sous Windows).
+  const cfg = mpvConfigDir();
   const args = [
-    "--wid=" + hwnd,
-    "--no-config",
-    "--osc=yes",                 // barre de contrôle mpv
     "--force-window=immediate",
     "--keep-open=no",
     "--hwdec=auto-safe",
     "--cache=yes",
     "--demuxer-max-bytes=64MiB",
-    "--title=Binaire IPTV",
-    "--input-default-bindings=yes"
+    "--title=Binaire IPTV — ${media-title}",
+    "--geometry=92%x92%+50%+50%"
   ];
+  if (cfg) args.push("--config-dir=" + cfg);        // barre uosc (audio/sous-titres) + ESC pour quitter
+  else args.push("--no-config", "--osc=yes");
   if (opts && opts.live) args.push("--profile=low-latency");
   if (opts && opts.userAgent) args.push("--user-agent=" + opts.userAgent);
   if (opts && opts.referer) args.push("--referrer=" + opts.referer);
@@ -69,7 +74,7 @@ ipcMain.handle("mpv-play", (_e, opts) => {
   if (opts && opts.start > 0) args.push("--start=+" + Math.floor(opts.start));
   args.push("--", opts.url);
   try {
-    mpv = spawn(bin, args, { windowsHide: true });
+    mpv = spawn(bin, args, { windowsHide: false });
   } catch (e) { mpv = null; return { ok: false, error: e.message }; }
   mpv.on("exit", () => { mpv = null; if (mainWin && !mainWin.isDestroyed()) mainWin.webContents.send("mpv-closed"); });
   mpv.on("error", () => { mpv = null; if (mainWin && !mainWin.isDestroyed()) mainWin.webContents.send("mpv-closed"); });
