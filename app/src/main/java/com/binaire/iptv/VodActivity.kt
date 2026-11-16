@@ -300,6 +300,21 @@ class VodActivity : BaseActivity() {
     }
 
     private fun toggleList(card: Card) {
+        // Appui long sur une carte « Reprendre » / « Épisodes à suivre » : la retirer de la liste en cours.
+        if (card.key.startsWith("resume:")) {
+            val metaKey = card.key.removePrefix("resume:")
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Retirer de la reprise")
+                .setMessage("Enlever « ${card.title} » de ta liste en cours ?")
+                .setPositiveButton("Retirer") { _, _ ->
+                    watch.remove(metaKey)
+                    toast("Retiré de la reprise")
+                    refresh(keepFocus = true)
+                }
+                .setNegativeButton("Annuler", null)
+                .show()
+            return
+        }
         val item = card.item ?: return
         val added = watch.toggleMyList(kind, item.id)
         toast(if (added) "${item.name} ajouté à ta liste" else "${item.name} retiré de ta liste")
