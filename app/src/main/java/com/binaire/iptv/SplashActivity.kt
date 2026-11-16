@@ -36,6 +36,13 @@ class SplashActivity : BaseActivity() {
             return
         }
         setContentView(R.layout.activity_splash)
+        // Notifications de nouveaux épisodes : planifie la vérification + demande l'autorisation (Android 13+).
+        SeriesNotifier.schedule(this)
+        if (android.os.Build.VERSION.SDK_INT >= 33 && SeriesNotifier.enabled(this) &&
+            checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            runCatching { requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 7) }
+        }
         progress = findViewById(R.id.progress)
         status = findViewById(R.id.status)
         errorButtons = findViewById(R.id.errorButtons)

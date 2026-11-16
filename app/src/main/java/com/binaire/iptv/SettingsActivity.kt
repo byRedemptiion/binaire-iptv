@@ -160,7 +160,11 @@ class SettingsActivity : BaseActivity() {
                     Profiles.setAskOnStart(this, !Profiles.askOnStart(this)); refreshRows()
                 },
                 SettingRow("Code parental", "Protège les Réglages des profils Enfant",
-                    if (Profiles.parentalPin(this) != null) "Défini" else "Aucun") { parentalCode() }
+                    if (Profiles.parentalPin(this) != null) "Défini" else "Aucun") { parentalCode() },
+                SettingRow("Notifier les nouveaux épisodes", "Une alerte quand une série suivie (Ma liste) sort un épisode",
+                    switchOn = SeriesNotifier.enabled(this)) {
+                    SeriesNotifier.setEnabled(this, !SeriesNotifier.enabled(this)); refreshRows()
+                }
             )
         }
         "Chaînes & catégories" -> {
