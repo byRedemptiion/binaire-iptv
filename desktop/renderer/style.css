@@ -143,3 +143,8 @@ section{height:100%}
 .hero .heroLogo{height:66px;width:auto;display:block;filter:drop-shadow(0 6px 24px rgba(0,0,0,.5))}
 .hero .slogan{color:var(--muted);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
 #home .tiles{padding-top:10px}
+
+/* Bouton retirer (reprise) sur une affiche */
+.poster .rm{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);border-radius:50%;width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;cursor:pointer}
+.poster .rm:hover{background:var(--accent)}

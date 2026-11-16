@@ -291,15 +291,21 @@ async function openBrowse(kind) {
   try {
     let cats = await prov.categories(kind);
     if (getCfg().adult) cats = cats.filter((c) => !isAdultName(c.name));
-    const rows = [{ id: "__fav", name: "★ Favoris" }, ...cats];
+    const head = [{ id: "__fav", name: "★ Favoris" }];
+    if (kind === KIND.MOVIE || kind === KIND.SERIES) head.unshift({ id: "__resume", name: "▶ En cours" });
+    const rows = [...head, ...cats];
     $("cats").innerHTML = "";
+    const firstCatIndex = head.length; // 1re vraie catégorie
     rows.forEach((c, i) => {
       const r = document.createElement("div"); r.className = "row"; r.textContent = c.name;
-      r.onclick = () => { $("cats").querySelectorAll(".row.active").forEach((x) => x.classList.remove("active")); r.classList.add("active"); c.id === "__fav" ? renderFavorites(kind) : loadCategory(kind, c.id); };
+      r.onclick = () => {
+        $("cats").querySelectorAll(".row.active").forEach((x) => x.classList.remove("active")); r.classList.add("active");
+        if (c.id === "__resume") renderResume(kind); else if (c.id === "__fav") renderFavorites(kind); else loadCategory(kind, c.id);
+      };
       $("cats").appendChild(r);
-      if (i === 1) { r.classList.add("active"); loadCategory(kind, c.id); }
+      if (i === firstCatIndex) { r.classList.add("active"); loadCategory(kind, c.id); }
     });
-    if (rows.length === 1) { rows[0] && $("cats").firstChild.classList.add("active"); renderFavorites(kind); }
+    if (rows.length === head.length) { $("cats").firstChild.classList.add("active"); if (kind === KIND.LIVE) renderFavorites(kind); else renderResume(kind); }
   } catch (err) {
     $("content").innerHTML = `<div class="empty">Impossible de charger : ${esc(err.message)}</div>`;
   }
@@ -392,6 +398,44 @@ function renderFavorites(kind) {
   renderItems(all.every((x) => x.kind === KIND.LIVE) ? KIND.LIVE : KIND.MOVIE, all);
 }
 
+// ---------- Reprise « En cours » (locale par profil) ----------
+function resKey() { return "res:" + (profile?.id || "p1"); }
+function resList() { try { return JSON.parse(localStorage.getItem(resKey()) || "[]"); } catch (e) { return []; } }
+function resId(kind, id) { return `${sub?.id}|${kind}|${id}`; }
+function resUpsert(e) {
+  const l = resList().filter((x) => x._k !== resId(e.kind, e.id));
+  l.unshift({ _k: resId(e.kind, e.id), subId: sub?.id, kind: e.kind, id: e.id, name: e.name, icon: e.icon, ext: e.ext, seriesName: e.seriesName || "", ts: Date.now() });
+  localStorage.setItem(resKey(), JSON.stringify(l.slice(0, 60)));
+}
+function resRemove(kind, id) {
+  localStorage.setItem(resKey(), JSON.stringify(resList().filter((x) => x._k !== resId(kind, id))));
+  localStorage.removeItem(resumeKey(kind, id)); // position enregistrée
+}
+function renderResume(kind) {
+  const all = resList().filter((r) => r.subId === sub?.id && r.kind === kind);
+  curItems = all;
+  const box = $("content");
+  if (!all.length) { box.className = "content"; box.innerHTML = '<div class="empty">Aucun film en cours. Lance un film : il apparaîtra ici pour le reprendre.</div>'; return; }
+  box.className = "content"; const g = document.createElement("div"); g.className = "grid"; box.innerHTML = ""; box.appendChild(g);
+  for (const it of all) {
+    const c = document.createElement("div"); c.className = "poster";
+    const bg = it.icon ? `style="background-image:url('${esc(it.icon)}')"` : "";
+    c.innerHTML = `<div class="ph" ${bg}>${it.icon ? "" : esc(it.name)}</div><div class="rm" title="Retirer de la reprise">✕</div><div class="cap">${esc(it.name)}</div>`;
+    c.querySelector(".ph").onclick = () => resumePlay(it);
+    c.querySelector(".cap").onclick = () => resumePlay(it);
+    c.querySelector(".rm").onclick = (e) => {
+      e.stopPropagation();
+      if (!confirm(`Enlever « ${it.name} » de ta liste en cours ?`)) return;
+      resRemove(it.kind, it.id); renderResume(kind);
+    };
+    g.appendChild(c);
+  }
+}
+function resumePlay(it) {
+  if (it.kind === KIND.MOVIE) playMovie({ id: it.id, name: it.name, icon: it.icon, ext: it.ext });
+  else playEpisode({ id: it.id, name: it.name, image: it.icon, ext: it.ext }, it.seriesName || "");
+}
+
 // ---------- Lecteur ----------
 function openPlayer(title) { $("playTitle").textContent = title; $("playHint").classList.add("hidden"); $("player").classList.remove("hidden"); applyAspect(); }
 $("playClose").onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); saveResume(); stopPlayback(); $("player").classList.add("hidden"); };
@@ -405,6 +449,7 @@ async function playLive(it) {
   } catch (err) { openPlayer(it.name); hint("Lecture impossible : " + err.message); }
 }
 async function playMovie(it) {
+  resUpsert({ kind: KIND.MOVIE, id: it.id, name: it.name, icon: it.icon, ext: it.ext });
   try {
     const r = await prov.resolve(KIND.MOVIE, it);
     const start = parseFloat(localStorage.getItem(resumeKey(KIND.MOVIE, it.id)) || "0");
@@ -413,6 +458,7 @@ async function playMovie(it) {
   } catch (err) { openPlayer(it.name); hint("Lecture impossible : " + err.message); }
 }
 async function playEpisode(ep, seriesName) {
+  resUpsert({ kind: KIND.SERIES, id: ep.id, name: (seriesName ? seriesName + " · " : "") + ep.name, icon: ep.image, ext: ep.ext, seriesName });
   try {
     const r = await prov.resolve(KIND.SERIES, ep);
     const start = parseFloat(localStorage.getItem(resumeKey(KIND.SERIES, ep.id)) || "0");
