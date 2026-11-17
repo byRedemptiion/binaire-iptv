@@ -31,8 +31,8 @@ jobs:
       - name: Versions jellyfin media3-ffmpeg (diagnostic)
         continue-on-error: true
         run: |
-          curl -sSL https://repo1.maven.org/maven2/org/jellyfin/media3/media3-ffmpeg-decoder/maven-metadata.xml | grep -oE "<version>[^<]+</version>" | tr '\n' ' '
-          echo ""
+          echo "NEXTLIB:"; curl -sSL https://repo1.maven.org/maven2/io/github/anilbeesetti/nextlib-media3ext/maven-metadata.xml | grep -oE "<version>[^<]+</version>" | tr '\n' ' '; echo ""
+          echo "POM-CHECK:"; curl -sS -o /dev/null -w "%{http_code}" "https://repo1.maven.org/maven2/org/jellyfin/media3/media3-ffmpeg-decoder/1.4.1%2B1/media3-ffmpeg-decoder-1.4.1%2B1.pom"; echo ""
 
       - name: Version
         env:

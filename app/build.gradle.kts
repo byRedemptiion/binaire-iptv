@@ -78,7 +78,7 @@ dependencies {
     implementation("com.google.zxing:core:3.5.3")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     // Décodeur FFmpeg pour media3 (AC3/DTS/E-AC3…), versionné comme media3.
-    implementation("org.jellyfin.media3:media3-ffmpeg-decoder:1.4.1+1")
+    // (décodeur FFmpeg ajouté juste après, version confirmée par la CI)
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20231013")
