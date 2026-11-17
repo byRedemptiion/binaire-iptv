@@ -135,7 +135,7 @@ class GuestPlayerActivity : AppCompatActivity() {
     private fun initPlayer() {
         // Décodeur FFmpeg (AC3/DTS/E-AC3…) prioritaire : son sur les téléphones sans décodeur matériel.
         // NextRenderersFactory = DefaultRenderersFactory + décodeurs FFmpeg (AC3/DTS/E-AC3…).
-        val renderers = io.github.anilbeesetti.nextlib.media3ext.ffDecoder.NextRenderersFactory(this)
+        val renderers = io.github.anilbeesetti.nextlib.media3ext.NextRenderersFactory(this)
             .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
         val p = ExoPlayer.Builder(this)
             .setRenderersFactory(renderers)
