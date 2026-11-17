@@ -28,6 +28,12 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Versions jellyfin media3-ffmpeg (diagnostic)
+        continue-on-error: true
+        run: |
+          curl -sSL https://repo1.maven.org/maven2/org/jellyfin/media3/media3-ffmpeg-decoder/maven-metadata.xml | grep -oE "<version>[^<]+</version>" | tr '\n' ' '
+          echo ""
+
       - name: Version
         env:
           GH_TOKEN: ${{ github.token }}
