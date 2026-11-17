@@ -28,16 +28,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Classes nextlib (diagnostic)
-        continue-on-error: true
-        run: |
-          curl -sSL -o nl.aar "https://repo1.maven.org/maven2/io/github/anilbeesetti/nextlib-media3ext/1.7.1-0.9.0/nextlib-media3ext-1.7.1-0.9.0.aar"
-          unzip -o nl.aar classes.jar -d nlaar >/dev/null 2>&1 || true
-          echo "=== classes Renderer/Factory ==="
-          unzip -l nlaar/classes.jar 2>/dev/null | grep -iE "Renderer|Factory" | head -40
-          echo "=== packages ==="
-          unzip -l nlaar/classes.jar 2>/dev/null | grep -oE "io/github/[^ ]+\.class" | sed 's#/[^/]*\.class##' | sort -u | head -20
-
       - name: Version
         env:
           GH_TOKEN: ${{ github.token }}
