@@ -63,7 +63,7 @@ android {
 }
 
 dependencies {
-    val media3 = "1.4.1"
+    val media3 = "1.7.1"
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
@@ -77,8 +77,9 @@ dependencies {
     implementation("io.coil-kt:coil:2.7.0")
     implementation("com.google.zxing:core:3.5.3")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
-    // Décodeur FFmpeg pour media3 (AC3/DTS/E-AC3…), versionné comme media3.
-    // (décodeur FFmpeg ajouté juste après, version confirmée par la CI)
+    // Décodeur FFmpeg pour media3 (AC3/DTS/E-AC3…) : son des films que certains
+    // téléphones ne décodent pas en matériel. Versionné <media3>-<nextlib>.
+    implementation("io.github.anilbeesetti:nextlib-media3ext:1.7.1-0.9.0")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20231013")
