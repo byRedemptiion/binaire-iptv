@@ -199,7 +199,11 @@ class PlayerActivity : AppCompatActivity() {
         } else {
             DefaultLoadControl.Builder().build()
         }
+        // Décodeur FFmpeg (AC3/DTS/E-AC3…) prioritaire : son sur les téléphones sans décodeur matériel.
+        val renderers = androidx.media3.exoplayer.DefaultRenderersFactory(this)
+            .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
         val p = ExoPlayer.Builder(this)
+            .setRenderersFactory(renderers)
             .setLoadControl(loadControl)
             .setMediaSourceFactory(DefaultMediaSourceFactory(this).setDataSourceFactory(OkHttpDataSource.Factory(XtreamClient.http)))
             .build()

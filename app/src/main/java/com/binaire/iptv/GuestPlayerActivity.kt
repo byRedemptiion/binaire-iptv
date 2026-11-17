@@ -133,7 +133,11 @@ class GuestPlayerActivity : AppCompatActivity() {
 
     // ---------- Lecteur ----------
     private fun initPlayer() {
+        // Décodeur FFmpeg (AC3/DTS/E-AC3…) prioritaire : son sur les téléphones sans décodeur matériel.
+        val renderers = androidx.media3.exoplayer.DefaultRenderersFactory(this)
+            .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
         val p = ExoPlayer.Builder(this)
+            .setRenderersFactory(renderers)
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(this).setDataSourceFactory(
                     DefaultHttpDataSource.Factory().setConnectTimeoutMs(8000).setReadTimeoutMs(60_000)
