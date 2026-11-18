@@ -71,6 +71,12 @@ ipcMain.handle("mpv-play", (_e, opts) => {
   ];
   if (cfg) args.push("--config-dir=" + cfg);        // barre uosc (audio/sous-titres) + ESC pour quitter
   else args.push("--no-config", "--osc=yes");
+  // Journal de diagnostic : mpv écrit tout ici (fonctionne même pour la version fenêtrée).
+  let logPath = null;
+  try {
+    logPath = path.join(app.getPath("userData"), "mpv-last.log");
+    args.push("--log-file=" + logPath);
+  } catch (e) {}
   if (opts && opts.live) {
     // Direct : cache sain (surtout PAS low-latency, qui désactive le tampon).
     args.push("--cache-secs=20", "--demuxer-max-bytes=192MiB", "--demuxer-readahead-secs=20");
@@ -86,7 +92,18 @@ ipcMain.handle("mpv-play", (_e, opts) => {
   try {
     mpv = spawn(bin, args, { windowsHide: false });
   } catch (e) { mpv = null; return { ok: false, error: e.message }; }
-  mpv.on("exit", () => { mpv = null; if (mainWin && !mainWin.isDestroyed()) mainWin.webContents.send("mpv-closed"); });
+  // Trace côté app : commande + code de sortie (utile si mpv quitte tout de suite).
+  try {
+    if (logPath) fs.writeFileSync(logPath.replace(/mpv-last\.log$/, "mpv-cmd.log"),
+      new Date().toISOString() + "\n" + bin + "\n" + args.join("\n") + "\n");
+  } catch (e) {}
+  mpv.on("exit", (code, sig) => {
+    try {
+      if (logPath) fs.appendFileSync(logPath.replace(/mpv-last\.log$/, "mpv-cmd.log"),
+        "EXIT code=" + code + " sig=" + sig + " at " + new Date().toISOString() + "\n");
+    } catch (e) {}
+    mpv = null; if (mainWin && !mainWin.isDestroyed()) mainWin.webContents.send("mpv-closed");
+  });
   mpv.on("error", () => { mpv = null; if (mainWin && !mainWin.isDestroyed()) mainWin.webContents.send("mpv-closed"); });
   return { ok: true };
 });
