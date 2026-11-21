@@ -201,8 +201,10 @@ class PlayerActivity : AppCompatActivity() {
         }
         // Décodeur FFmpeg (AC3/DTS/E-AC3…) prioritaire : son sur les téléphones sans décodeur matériel.
         // NextRenderersFactory = DefaultRenderersFactory + décodeurs FFmpeg (AC3/DTS/E-AC3…).
+        // Mode ON (et NON "prefer") : le décodage matériel de la TV reste prioritaire pour la
+        // vidéo (fluide, pas de lag) ; FFmpeg ne sert qu'en secours, surtout pour l'audio AC3/DTS.
         val renderers = io.github.anilbeesetti.nextlib.media3ext.ffdecoder.NextRenderersFactory(this)
-            .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            .setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
         val p = ExoPlayer.Builder(this)
             .setRenderersFactory(renderers)
             .setLoadControl(loadControl)
