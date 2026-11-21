@@ -15,7 +15,8 @@ object Profiles {
         val name: String,
         val color: Int,          // index dans BTheme.accents
         val kid: Boolean,
-        val pin: String?         // code à 4 chiffres, ou null
+        val pin: String?,        // code à 4 chiffres, ou null
+        val avatar: String? = null // chemin de l'avatar embarqué (ex. « Anime/anime_001.webp »), ou null = initiale
     )
 
     const val MAX = 6
@@ -37,7 +38,8 @@ object Profiles {
                             name = o.optString("name", "Profil"),
                             color = o.optInt("color", 0),
                             kid = o.optBoolean("kid", false),
-                            pin = o.optString("pin", "").ifBlank { null }
+                            pin = o.optString("pin", "").ifBlank { null },
+                            avatar = o.optString("avatar", "").ifBlank { null }
                         )
                     )
                 }
@@ -58,7 +60,7 @@ object Profiles {
         for (p in list) {
             a.put(JSONObject().apply {
                 put("id", p.id); put("name", p.name); put("color", p.color); put("kid", p.kid)
-                put("pin", p.pin ?: "")
+                put("pin", p.pin ?: ""); put("avatar", p.avatar ?: "")
             })
         }
         sp(ctx).edit().putString("list", a.toString()).apply()

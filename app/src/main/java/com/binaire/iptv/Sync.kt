@@ -72,6 +72,7 @@ object Sync {
         "color" to p.color,
         "kid" to p.kid,
         "pin" to (p.pin ?: ""),
+        "avatar" to (p.avatar ?: ""),
         "prefs" to dump(prefsFile(ctx, p.id), deviceKeys).toString(),
         "watch" to dump(watchFile(ctx, p.id)).toString()
     )
@@ -148,7 +149,8 @@ object Sync {
                 name = (m["name"] as? String) ?: "Profil",
                 color = ((m["color"] as? Long) ?: 0L).toInt(),
                 kid = (m["kid"] as? Boolean) == true,
-                pin = (m["pin"] as? String)?.ifBlank { null }
+                pin = (m["pin"] as? String)?.ifBlank { null },
+                avatar = (m["avatar"] as? String)?.ifBlank { null }
             )
             Profiles.upsertFromSync(ctx, prof)
             (m["prefs"] as? String)?.let { runCatching { restore(prefsFile(ctx, pid), JSONObject(it), deviceKeys) } }

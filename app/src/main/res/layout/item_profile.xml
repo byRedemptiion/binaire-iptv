@@ -25,6 +25,14 @@
             android:textSize="44sp" />
 
         <ImageView
+            android:id="@+id/photo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <ImageView
             android:id="@+id/lock"
             android:layout_width="18dp"
             android:layout_height="18dp"

@@ -13,6 +13,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import coil.load
+import coil.transform.CircleCropTransformation
 import java.util.Locale
 
 /** « Qui regarde ? » : choisir, créer et modifier les profils famille. */
@@ -29,6 +31,7 @@ class ProfilesActivity : BaseActivity() {
 
     private var start = false
     private var manage = false
+    private var needRerender = false
     private lateinit var tiles: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +54,15 @@ class ProfilesActivity : BaseActivity() {
         render()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Retour du sélecteur d'avatar : on rafraîchit les tuiles.
+        if (needRerender && ::tiles.isInitialized) {
+            needRerender = false
+            render()
+        }
+    }
+
     private fun render() {
         tiles.removeAllViews()
         val list = Profiles.all(this)
@@ -60,9 +72,19 @@ class ProfilesActivity : BaseActivity() {
             val v = LayoutInflater.from(this).inflate(R.layout.item_profile, tiles, false)
             val avatar: FrameLayout = v.findViewById(R.id.avatar)
             val color = BTheme.accents.getOrElse(p.color) { BTheme.accents[0] }.second
-            avatar.background = BTheme.rounded(this, 26f, color)
+            avatar.background = BTheme.rounded(this, 55f, color)
             avatar.foreground = focusRingAvatar()
-            v.findViewById<TextView>(R.id.initial).text = p.name.trim().take(1).uppercase(Locale.FRANCE).ifEmpty { "?" }
+            val initial = v.findViewById<TextView>(R.id.initial)
+            val photo = v.findViewById<ImageView>(R.id.photo)
+            initial.text = p.name.trim().take(1).uppercase(Locale.FRANCE).ifEmpty { "?" }
+            if (Avatars.exists(this, p.avatar)) {
+                initial.visibility = View.GONE
+                photo.visibility = View.VISIBLE
+                photo.load(Avatars.uri(p.avatar!!)) { transformations(CircleCropTransformation()) }
+            } else {
+                photo.visibility = View.GONE
+                initial.visibility = View.VISIBLE
+            }
             v.findViewById<ImageView>(R.id.lock).visibility = if (p.pin != null) View.VISIBLE else View.GONE
             v.findViewById<TextView>(R.id.name).text = p.name
             v.findViewById<TextView>(R.id.info).text = when {
@@ -79,7 +101,7 @@ class ProfilesActivity : BaseActivity() {
         if (list.size < Profiles.MAX) {
             val v = LayoutInflater.from(this).inflate(R.layout.item_profile, tiles, false)
             val avatar: FrameLayout = v.findViewById(R.id.avatar)
-            avatar.background = BTheme.rounded(this, 26f, 0, 0x55FFFFFF, 3f)
+            avatar.background = BTheme.rounded(this, 55f, 0, 0x55FFFFFF, 3f)
             avatar.foreground = focusRingAvatar()
             v.findViewById<TextView>(R.id.initial).apply { text = "+"; textSize = 50f; alpha = 0.8f }
             v.findViewById<TextView>(R.id.name).text = "Ajouter"
@@ -91,8 +113,8 @@ class ProfilesActivity : BaseActivity() {
     }
 
     private fun focusRingAvatar() = android.graphics.drawable.StateListDrawable().apply {
-        addState(intArrayOf(android.R.attr.state_focused), BTheme.rounded(this@ProfilesActivity, 26f, 0, BTheme.WHITE, 4f))
-        addState(intArrayOf(), BTheme.rounded(this@ProfilesActivity, 26f, 0))
+        addState(intArrayOf(android.R.attr.state_focused), BTheme.rounded(this@ProfilesActivity, 55f, 0, BTheme.WHITE, 4f))
+        addState(intArrayOf(), BTheme.rounded(this@ProfilesActivity, 55f, 0))
     }
 
     // ---------- Choisir ----------
@@ -146,6 +168,10 @@ class ProfilesActivity : BaseActivity() {
 
     private fun actions(p: Profiles.Profile) {
         val items = mutableListOf<Pair<String, () -> Unit>>()
+        items.add("Changer l'avatar" to {
+            needRerender = true
+            startActivity(Intent(this, AvatarPickerActivity::class.java).putExtra(AvatarPickerActivity.EXTRA_PROFILE_ID, p.id))
+        })
         items.add("Modifier le nom, la couleur…" to {
             editDialog(p, p.name, p.color, p.kid) { name, c, kid ->
                 Profiles.update(this, p.copy(name = name.trim().ifBlank { p.name }, color = c, kid = kid))
