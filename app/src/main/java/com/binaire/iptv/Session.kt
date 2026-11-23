@@ -8,6 +8,8 @@ object Session {
     @Volatile var account: AccountInfo? = null
     @Volatile var ready = false
     @Volatile var updateChecked = false
+    /** Mode découverte : on entre dans l'appli sans abonnement, pour voir les menus. Listes vides. */
+    @Volatile var demo = false
 
     /** Listes telles que le fournisseur les donne. */
     val rawCategories = ConcurrentHashMap<Kind, List<Category>>()
@@ -30,6 +32,7 @@ object Session {
         client = null
         account = null
         ready = false
+        demo = false
         rawCategories.clear()
         rawStreams.clear()
         categories.clear()

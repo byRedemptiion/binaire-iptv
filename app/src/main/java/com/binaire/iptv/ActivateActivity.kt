@@ -62,9 +62,15 @@ class ActivateActivity : BaseActivity() {
             startActivity(Intent(this, LoginActivity::class.java))
             if (!prefs.hasLogin()) finish()
         }
+        // Toujours un moyen d'entrer : « Plus tard » si on a déjà un abonnement,
+        // sinon « Découvrir l'appli » (mode découverte sans abonnement, pour voir les menus).
+        btnLater.visibility = View.VISIBLE
         if (prefs.hasLogin()) {
-            btnLater.visibility = View.VISIBLE
+            btnLater.text = "Plus tard"
             btnLater.setOnClickListener { finish() }
+        } else {
+            btnLater.text = "Découvrir l'appli sans abonnement"
+            btnLater.setOnClickListener { enterDemo() }
         }
         btnEmail.requestFocus()
     }
@@ -241,6 +247,15 @@ class ActivateActivity : BaseActivity() {
                 .setCancelable(false)
                 .show()
         }
+    }
+
+    /** Entre dans l'appli sans abonnement, pour découvrir les menus (listes vides). */
+    private fun enterDemo() {
+        pollJob?.cancel()
+        Session.demo = true
+        Session.ready = true
+        // On ne termine pas cet écran : « Retour » depuis l'accueil y ramène pour se connecter.
+        startActivity(Intent(this, HomeActivity::class.java))
     }
 
     private fun useSub(s: Cloud.Sub) {

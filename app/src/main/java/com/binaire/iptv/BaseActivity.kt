@@ -52,7 +52,7 @@ abstract class BaseActivity : AppCompatActivity() {
 
     /** À appeler en tête d'onCreate : renvoie true si l'écran a été fermé. */
     protected fun redirectIfNotReady(): Boolean {
-        if (needsData && (!Session.ready || Session.client == null)) {
+        if (needsData && !Session.demo && (!Session.ready || Session.client == null)) {
             startActivity(
                 Intent(this, SplashActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)

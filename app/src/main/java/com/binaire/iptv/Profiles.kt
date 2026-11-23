@@ -84,6 +84,17 @@ object Profiles {
         save(ctx, all(ctx).map { if (it.id == p.id) p else it })
     }
 
+    /** Déplace un profil d'un cran (delta -1 = avant, +1 = après) et enregistre le nouvel ordre. */
+    fun move(ctx: Context, id: String, delta: Int) {
+        val list = all(ctx).toMutableList()
+        val i = list.indexOfFirst { it.id == id }
+        if (i < 0) return
+        val j = (i + delta).coerceIn(0, list.size - 1)
+        if (i == j) return
+        list.add(j, list.removeAt(i))
+        save(ctx, list)
+    }
+
     /** Crée un profil ; il reprend le choix des pays du profil actuel. */
     fun add(ctx: Context, name: String, color: Int, kid: Boolean): Profile {
         val list = all(ctx)

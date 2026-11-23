@@ -46,6 +46,7 @@ class HomeActivity : BaseActivity() {
         val acc = Session.account
         val tvAccount: TextView = findViewById(R.id.tvAccount)
         tvAccount.text = when {
+            Session.demo -> "Mode découverte — connecte ton compte Binaire pour regarder (Retour)"
             acc == null -> ""
             acc.expDate != null && acc.expDate > 0 ->
                 "Abonnement ${statusFr(acc.status)} · expire le " +

@@ -172,6 +172,15 @@ class ProfilesActivity : BaseActivity() {
             needRerender = true
             startActivity(Intent(this, AvatarPickerActivity::class.java).putExtra(AvatarPickerActivity.EXTRA_PROFILE_ID, p.id))
         })
+        // Réordonner les profils (ordre affiché dans « Qui regarde ? »).
+        val ordered = Profiles.all(this)
+        val idx = ordered.indexOfFirst { it.id == p.id }
+        if (idx > 0) items.add("Déplacer à gauche" to {
+            Profiles.move(this, p.id, -1); Sync.pushLater(this); render()
+        })
+        if (idx in 0 until ordered.size - 1) items.add("Déplacer à droite" to {
+            Profiles.move(this, p.id, +1); Sync.pushLater(this); render()
+        })
         items.add("Modifier le nom, la couleur…" to {
             editDialog(p, p.name, p.color, p.kid) { name, c, kid ->
                 Profiles.update(this, p.copy(name = name.trim().ifBlank { p.name }, color = c, kid = kid))
