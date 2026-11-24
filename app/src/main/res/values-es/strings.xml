@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_delete">Eliminar</string>
+    <string name="common_add">Añadir</string>
+
+    <string name="word_channels">canales</string>
+    <string name="word_movies">películas</string>
+    <string name="word_series">series</string>
+
+    <string name="lang_setting_title">Idioma</string>
+    <string name="lang_setting_sub">Elegir el idioma de la aplicación</string>
+    <string name="lang_dialog_title">Idioma</string>
+    <string name="lang_system">Idioma del dispositivo</string>
+
+    <string name="home_tv">TV</string>
+    <string name="home_films">PELÍCULAS</string>
+    <string name="home_series">SERIES</string>
+    <string name="home_settings">AJUSTES</string>
+    <string name="home_tv_sub">%1$d canales en directo</string>
+    <string name="home_films_sub">%1$d películas</string>
+    <string name="home_series_sub">%1$d series</string>
+    <string name="home_settings_sub">Colores, reproducción, perfiles</string>
+    <string name="home_demo_banner">Modo descubrimiento — conecta tu cuenta Binaire para ver (Atrás)</string>
+    <string name="home_sub_expires">Suscripción %1$s · caduca el %2$s</string>
+    <string name="home_sub_status">Suscripción %1$s</string>
+</resources>

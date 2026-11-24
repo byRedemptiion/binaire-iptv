@@ -16,6 +16,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -137,6 +139,7 @@ class SettingsActivity : BaseActivity() {
             )
         }
         "Apparence" -> listOf(
+            SettingRow(getString(R.string.lang_setting_title), getString(R.string.lang_setting_sub), currentLanguageName()) { pickLanguage() },
             SettingRow("Couleur principale", "Sélection, boutons et logo texte", BTheme.accentName(this), swatch = accent) { pickAccent() },
             SettingRow("Fond d'écran", "Thème Binaire, Aurore, Noir ou image floutée", BTheme.backgroundName(this)) { pickBackground() },
             SettingRow("Afficher l'heure", "En haut de chaque écran", switchOn = prefs.showClock) {
@@ -265,6 +268,33 @@ class SettingsActivity : BaseActivity() {
 
     // ---------- Compte Binaire ----------
     private var cachedSubs: List<Cloud.Sub>? = null
+
+    // Langues proposées : code BCP-47 ("" = langue de l'appareil) et nom affiché (non traduit).
+    private val langTags = listOf("", "fr", "de", "es", "it")
+    private fun langNames() = listOf(getString(R.string.lang_system), "Français", "Deutsch", "Español", "Italiano")
+
+    private fun currentLanguageName(): String {
+        val tag = AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore('-').lowercase()
+        val i = langTags.indexOf(tag).let { if (it >= 0) it else 0 }
+        return langNames()[i]
+    }
+
+    private fun pickLanguage() {
+        val cur = AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore('-').lowercase()
+        val checked = langTags.indexOf(cur).let { if (it >= 0) it else 0 }
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.lang_dialog_title))
+            .setSingleChoiceItems(langNames().toTypedArray(), checked) { d, w ->
+                val tag = langTags[w]
+                AppCompatDelegate.setApplicationLocales(
+                    if (tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
+                    else LocaleListCompat.forLanguageTags(tag)
+                )
+                d.dismiss()
+            }
+            .setNegativeButton(getString(R.string.common_cancel), null)
+            .show()
+    }
 
     private fun loadSubs() {
         if (!Cloud.isLinked(this)) return

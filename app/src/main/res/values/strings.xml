@@ -1,4 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Binaire IPTV</string>
+
+    <!-- Communs -->
+    <string name="common_cancel">Annuler</string>
+    <string name="common_save">Enregistrer</string>
+    <string name="common_close">Fermer</string>
+    <string name="common_delete">Supprimer</string>
+    <string name="common_add">Ajouter</string>
+
+    <!-- Mots (contenu) -->
+    <string name="word_channels">chaînes</string>
+    <string name="word_movies">films</string>
+    <string name="word_series">séries</string>
+
+    <!-- Langue -->
+    <string name="lang_setting_title">Langue</string>
+    <string name="lang_setting_sub">Choisir la langue de l\'application</string>
+    <string name="lang_dialog_title">Langue</string>
+    <string name="lang_system">Langue de l\'appareil</string>
+
+    <!-- Accueil -->
+    <string name="home_tv">TV</string>
+    <string name="home_films">FILMS</string>
+    <string name="home_series">SÉRIES</string>
+    <string name="home_settings">RÉGLAGES</string>
+    <string name="home_tv_sub">%1$d chaînes en direct</string>
+    <string name="home_films_sub">%1$d films</string>
+    <string name="home_series_sub">%1$d séries</string>
+    <string name="home_settings_sub">Couleurs, lecture, profils</string>
+    <string name="home_demo_banner">Mode découverte — connecte ton compte Binaire pour regarder (Retour)</string>
+    <string name="home_sub_expires">Abonnement %1$s · expire le %2$s</string>
+    <string name="home_sub_status">Abonnement %1$s</string>
 </resources>

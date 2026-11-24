@@ -26,16 +26,16 @@ class HomeActivity : BaseActivity() {
         val nLive = Session.items(Kind.LIVE).size
         val nMovies = Session.items(Kind.MOVIE).size
         val nSeries = Session.items(Kind.SERIES).size
-        setupTile(R.id.tileTv, R.drawable.ic_tile_tv, "TV", "$nLive chaînes en direct") {
+        setupTile(R.id.tileTv, R.drawable.ic_tile_tv, getString(R.string.home_tv), getString(R.string.home_tv_sub, nLive)) {
             startActivity(Intent(this, LiveActivity::class.java))
         }
-        setupTile(R.id.tileFilms, R.drawable.ic_tile_film, "FILMS", "$nMovies films") {
+        setupTile(R.id.tileFilms, R.drawable.ic_tile_film, getString(R.string.home_films), getString(R.string.home_films_sub, nMovies)) {
             startActivity(Intent(this, VodActivity::class.java).putExtra(VodActivity.EXTRA_KIND, Kind.MOVIE.name))
         }
-        setupTile(R.id.tileSeries, R.drawable.ic_tile_series, "SÉRIES", "$nSeries séries") {
+        setupTile(R.id.tileSeries, R.drawable.ic_tile_series, getString(R.string.home_series), getString(R.string.home_series_sub, nSeries)) {
             startActivity(Intent(this, VodActivity::class.java).putExtra(VodActivity.EXTRA_KIND, Kind.SERIES.name))
         }
-        setupTile(R.id.tileSettings, R.drawable.ic_tile_settings, "RÉGLAGES", "Couleurs, lecture, profils") {
+        setupTile(R.id.tileSettings, R.drawable.ic_tile_settings, getString(R.string.home_settings), getString(R.string.home_settings_sub)) {
             val parental = Profiles.parentalPin(this)
             val open = { startActivity(Intent(this, SettingsActivity::class.java)) }
             if (Profiles.current(this).kid && parental != null) askPin("Code parental", parental, open) else open()
@@ -46,12 +46,14 @@ class HomeActivity : BaseActivity() {
         val acc = Session.account
         val tvAccount: TextView = findViewById(R.id.tvAccount)
         tvAccount.text = when {
-            Session.demo -> "Mode découverte — connecte ton compte Binaire pour regarder (Retour)"
+            Session.demo -> getString(R.string.home_demo_banner)
             acc == null -> ""
             acc.expDate != null && acc.expDate > 0 ->
-                "Abonnement ${statusFr(acc.status)} · expire le " +
+                getString(
+                    R.string.home_sub_expires, statusFr(acc.status),
                     SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(acc.expDate * 1000))
-            else -> "Abonnement ${statusFr(acc.status)}"
+                )
+            else -> getString(R.string.home_sub_status, statusFr(acc.status))
         }
 
         findViewById<View>(R.id.tileTv).requestFocus()
