@@ -38,7 +38,7 @@ class HomeActivity : BaseActivity() {
         setupTile(R.id.tileSettings, R.drawable.ic_tile_settings, getString(R.string.home_settings), getString(R.string.home_settings_sub)) {
             val parental = Profiles.parentalPin(this)
             val open = { startActivity(Intent(this, SettingsActivity::class.java)) }
-            if (Profiles.current(this).kid && parental != null) askPin("Code parental", parental, open) else open()
+            if (Profiles.current(this).kid && parental != null) askPin(getString(R.string.profiles_parental_code), parental, open) else open()
         }
         setupProfileChip()
         setupMultiTvChip()

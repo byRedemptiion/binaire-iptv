@@ -32,4 +32,103 @@
     <string name="home_demo_banner">Mode découverte — connecte ton compte Binaire pour regarder (Retour)</string>
     <string name="home_sub_expires">Abonnement %1$s · expire le %2$s</string>
     <string name="home_sub_status">Abonnement %1$s</string>
+
+    <!-- En-tête / commun -->
+    <string name="header_back">Retour</string>
+    <string name="header_search">Rechercher…</string>
+    <string name="header_multitv">Multi-TV</string>
+
+    <!-- Démarrage (Splash) -->
+    <string name="splash_start">Démarrage…</string>
+    <string name="splash_retry">Réessayer</string>
+    <string name="splash_change_sub">Changer d\'abonnement</string>
+    <string name="splash_connecting">Connexion à ton abonnement…</string>
+    <string name="splash_sync">Synchronisation de ton compte Binaire…</string>
+    <string name="splash_device_removed">Cet appareil a été retiré de ton compte Binaire</string>
+    <string name="splash_bad_credentials">Tes identifiants ont été refusés par le serveur. Vérifie-les.</string>
+    <string name="splash_connect_failed">Connexion impossible</string>
+    <string name="splash_connect_failed_detail">Connexion impossible : %1$s</string>
+    <string name="splash_loading_prefix">Chargement de ta liste : </string>
+    <string name="splash_load_failed_all">Impossible de charger le contenu de ton abonnement.</string>
+    <string name="splash_load_incomplete">Chargement incomplet : %1$s</string>
+    <string name="splash_organizing">Rangement de ta liste… %1$d %%</string>
+    <string name="splash_organize_slow">Le rangement prend trop de temps sur cet appareil : ta liste d\'origine est affichée. Tu peux couper « Nettoyer les noms » dans les Réglages.</string>
+
+    <!-- Compte Binaire (Activate) -->
+    <string name="activate_scan">Scanne ce code avec ton téléphone</string>
+    <string name="activate_preparing">Préparation…</string>
+    <string name="activate_btn_email">Se connecter avec e-mail</string>
+    <string name="activate_btn_manual">Saisir mon abonnement à la main</string>
+    <string name="activate_btn_later">Plus tard</string>
+    <string name="activate_discover">Découvrir l\'appli sans abonnement</string>
+    <string name="activate_preparing_code">Préparation du code…</string>
+    <string name="activate_server_unreachable">Impossible de joindre le serveur Binaire. Vérifie la connexion Internet. (%1$s)</string>
+    <string name="activate_waiting_phone">En attente de ton téléphone…</string>
+    <string name="activate_phone_validated">Téléphone validé ! Connexion…</string>
+    <string name="activate_almost">Presque : %1$s</string>
+    <string name="activate_manual_url">Pas de QR ? Va sur %1$s et saisis :</string>
+    <string name="activate_login_title">Se connecter</string>
+    <string name="activate_login_msg">Pas encore de compte ? Crée-le en scannant le QR code avec ton téléphone.</string>
+    <string name="activate_email_hint">E-mail du compte Binaire</string>
+    <string name="activate_password_hint">Mot de passe</string>
+    <string name="activate_login_action">Connexion</string>
+    <string name="activate_fill_both">Remplis l\'e-mail et le mot de passe</string>
+    <string name="activate_connecting">Connexion…</string>
+    <string name="activate_forgot">Mot de passe oublié ?</string>
+    <string name="activate_write_email_first">Écris d\'abord ton e-mail</string>
+    <string name="activate_email_sent_title">E-mail envoyé</string>
+    <string name="activate_email_failed_title">Envoi impossible</string>
+    <string name="activate_email_sent_msg">Si un compte existe pour %1$s, tu vas recevoir un lien pour choisir un nouveau mot de passe (regarde aussi dans les spams). Ensuite, reconnecte-toi ici.</string>
+    <string name="activate_email_failed_msg">Vérifie l\'adresse e-mail et ta connexion Internet, puis réessaie.</string>
+    <string name="activate_fetching_account">Récupération de ton compte…</string>
+    <string name="activate_no_sub_waiting">Ton compte n\'a pas encore d\'abonnement : ajoute-le depuis ton téléphone (page Mon compte). J\'attends…</string>
+    <string name="activate_which_sub">Quel abonnement utiliser sur cet appareil ?</string>
+    <string name="activate_device_linked">Appareil connecté à %1$s</string>
+    <string name="activate_your_account">ton compte</string>
+
+    <!-- Connexion manuelle (Login) -->
+    <string name="login_intro">Connecte ton abonnement (Xtream Codes ou lien M3U)</string>
+    <string name="login_server_hint">Serveur (ex : http://exemple.com:8080)</string>
+    <string name="login_user_hint">Nom d\'utilisateur</string>
+    <string name="login_password_hint">Mot de passe</string>
+    <string name="login_show_password">Afficher le mot de passe</string>
+    <string name="login_action">Se connecter</string>
+    <string name="login_use_account">Utiliser mon compte Binaire (QR code)</string>
+    <string name="login_m3u_help">Lien M3U : colle-le dans « Serveur ». S\'il contient ton identifiant, les champs se remplissent tout seuls ; sinon laisse-les vides.</string>
+    <string name="login_m3u_detected">Lien M3U détecté : identifiants remplis</string>
+    <string name="login_fill_three">Remplis les trois champs, colle ton lien M3U dans « Serveur », ou mets une MAC dans « Utilisateur » pour un portail.</string>
+    <string name="login_failed">Connexion impossible</string>
+
+    <!-- Profils -->
+    <string name="profiles_manage_title">Gérer les profils</string>
+    <string name="profiles_who">Qui regarde ?</string>
+    <string name="profiles_hint_manage_short">OK sur un profil pour le modifier : nom, couleur, profil Enfant, code.</string>
+    <string name="profiles_hint_manage">Maintiens OK sur un profil pour le modifier (nom, couleur, code).</string>
+    <string name="profiles_kid">Profil Enfant</string>
+    <string name="profiles_current">Profil actuel</string>
+    <string name="profiles_set_parental_hint">Pense à définir un code parental pour protéger les Réglages du profil Enfant</string>
+    <string name="profiles_parental_code">Code parental</string>
+    <string name="profiles_change_avatar">Changer l\'avatar</string>
+    <string name="profiles_move_left">Déplacer à gauche</string>
+    <string name="profiles_move_right">Déplacer à droite</string>
+    <string name="profiles_edit_name_color">Modifier le nom, la couleur…</string>
+    <string name="profiles_add_code">Ajouter un code</string>
+    <string name="profiles_remove_code">Retirer le code</string>
+    <string name="profiles_code_saved">Code enregistré</string>
+    <string name="profiles_code_removed">Code retiré</string>
+    <string name="profiles_delete">Supprimer ce profil</string>
+    <string name="profiles_delete_confirm">Ses favoris, sa liste rangée et ses reprises de lecture seront effacés.</string>
+    <string name="profiles_delete_title">Supprimer « %1$s » ?</string>
+    <string name="profiles_name_hint">Prénom ou surnom</string>
+    <string name="profiles_color">Couleur : %1$s  ●</string>
+    <string name="profiles_color_title">Couleur du profil</string>
+    <string name="profiles_kid_option">Profil Enfant (catégories adultes toujours masquées)</string>
+    <string name="profiles_new">Nouveau profil</string>
+    <string name="profiles_edit">Modifier le profil</string>
+    <string name="profiles_give_name">Donne un nom au profil</string>
+
+    <!-- Avatars -->
+    <string name="avatar_pick_title">Choisir un avatar</string>
+    <string name="avatar_pick_hint">OK pour choisir · la première vignette garde l\'initiale</string>
+    <string name="avatar_for">Avatar de « %1$s »</string>
 </resources>

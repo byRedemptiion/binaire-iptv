@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:gravity="center"
-            android:text="Démarrage…" />
+            android:text="@string/splash_start" />
 
         <LinearLayout
             android:id="@+id/errorButtons"
@@ -48,12 +48,12 @@
                 android:id="@+id/btnRetry"
                 style="@style/Btn"
                 android:layout_marginEnd="10dp"
-                android:text="Réessayer" />
+                android:text="@string/splash_retry" />
 
             <Button
                 android:id="@+id/btnChange"
                 style="@style/Btn"
-                android:text="Changer d'abonnement" />
+                android:text="@string/splash_change_sub" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

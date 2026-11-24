@@ -95,7 +95,7 @@ class LoginActivity : BaseActivity() {
         if (pass != null) etPass.setText(pass)
         etServer.setText(base)
         etServer.setSelection(base.length)
-        toast("Lien M3U détecté : identifiants remplis")
+        toast(getString(R.string.login_m3u_detected))
     }
 
     private fun attemptLogin() {
@@ -116,7 +116,7 @@ class LoginActivity : BaseActivity() {
         }
         val isSpecial = server.startsWith(XtreamClient.M3U_PREFIX) || server.startsWith(StalkerClient.STALKER_PREFIX)
         if (server.isEmpty() || (!isSpecial && (user.isEmpty() || pass.isEmpty()))) {
-            tvError.text = "Remplis les trois champs, colle ton lien M3U dans « Serveur », ou mets une MAC dans « Utilisateur » pour un portail."
+            tvError.text = getString(R.string.login_fill_three)
             return
         }
         setBusy(true)
@@ -137,7 +137,7 @@ class LoginActivity : BaseActivity() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                tvError.text = e.message ?: "Connexion impossible"
+                tvError.text = e.message ?: getString(R.string.login_failed)
                 setBusy(false)
             }
         }

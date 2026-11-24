@@ -51,7 +51,7 @@ class ActivateActivity : BaseActivity() {
         manualUrl = findViewById(R.id.manualUrl)
         codeView.setTextColor(accent)
         findViewById<View>(R.id.qrBox).background = BTheme.rounded(this, 16f, Color.WHITE)
-        manualUrl.text = "Pas de QR ? Va sur ${Cloud.WEB_URL.removePrefix("https://")} et saisis :"
+        manualUrl.text = getString(R.string.activate_manual_url, Cloud.WEB_URL.removePrefix("https://"))
 
         val btnEmail: Button = findViewById(R.id.btnEmail)
         val btnManual: Button = findViewById(R.id.btnManual)
@@ -91,7 +91,7 @@ class ActivateActivity : BaseActivity() {
     }
 
     private fun startCode() {
-        status.text = "Préparation du code…"
+        status.text = getString(R.string.activate_preparing_code)
         qrLoading.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
@@ -100,13 +100,13 @@ class ActivateActivity : BaseActivity() {
                 codeView.text = c.substring(0, 3) + "-" + c.substring(3)
                 qr.setImageBitmap(withContext(Dispatchers.Default) { qrBitmap(Cloud.WEB_URL + "?code=" + c, 600) })
                 qrLoading.visibility = View.GONE
-                status.text = "En attente de ton téléphone…"
+                status.text = getString(R.string.activate_waiting_phone)
                 startPolling()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 qrLoading.visibility = View.GONE
-                status.text = "Impossible de joindre le serveur Binaire. Vérifie la connexion Internet. (${e.message})"
+                status.text = getString(R.string.activate_server_unreachable, e.message ?: "")
             }
         }
     }
@@ -141,7 +141,7 @@ class ActivateActivity : BaseActivity() {
                 }
                 if (result != null) {
                     linking = true
-                    status.text = "Téléphone validé ! Connexion…"
+                    status.text = getString(R.string.activate_phone_validated)
                     try {
                         withContext(Dispatchers.IO) { Cloud.finishActivation(this@ActivateActivity, c, result.first, result.second) }
                         afterLink()
@@ -149,7 +149,7 @@ class ActivateActivity : BaseActivity() {
                         throw e
                     } catch (e: Exception) {
                         linking = false
-                        status.text = "Presque : ${e.message}"
+                        status.text = getString(R.string.activate_almost, e.message ?: "")
                         continue
                     }
                     return@launch
@@ -161,11 +161,11 @@ class ActivateActivity : BaseActivity() {
     private fun emailDialog() {
         val pad = dp(22f)
         val email = EditText(this).apply {
-            hint = "E-mail du compte Binaire"
+            hint = getString(R.string.activate_email_hint)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         }
         val pass = EditText(this).apply {
-            hint = "Mot de passe"
+            hint = getString(R.string.activate_password_hint)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
         val box = LinearLayout(this).apply {
@@ -175,19 +175,19 @@ class ActivateActivity : BaseActivity() {
             addView(pass)
         }
         AlertDialog.Builder(this)
-            .setTitle("Se connecter")
-            .setMessage("Pas encore de compte ? Crée-le en scannant le QR code avec ton téléphone.")
+            .setTitle(getString(R.string.activate_login_title))
+            .setMessage(getString(R.string.activate_login_msg))
             .setView(box)
-            .setPositiveButton("Connexion") { _, _ ->
+            .setPositiveButton(getString(R.string.activate_login_action)) { _, _ ->
                 val e = email.text.toString().trim()
                 val p = pass.text.toString()
                 if (e.isEmpty() || p.isEmpty()) {
-                    toast("Remplis l'e-mail et le mot de passe")
+                    toast(getString(R.string.activate_fill_both))
                     return@setPositiveButton
                 }
                 linking = true
                 pollJob?.cancel()
-                status.text = "Connexion…"
+                status.text = getString(R.string.activate_connecting)
                 lifecycleScope.launch {
                     try {
                         val current = if (prefs.hasLogin()) Triple(prefs.server!!, prefs.user!!, prefs.pass!!) else null
@@ -203,36 +203,36 @@ class ActivateActivity : BaseActivity() {
                     }
                 }
             }
-            .setNeutralButton("Mot de passe oublié ?") { _, _ ->
+            .setNeutralButton(getString(R.string.activate_forgot)) { _, _ ->
                 val e = email.text.toString().trim()
                 if (e.isEmpty()) {
-                    toast("Écris d'abord ton e-mail")
+                    toast(getString(R.string.activate_write_email_first))
                     emailDialog()
                     return@setNeutralButton
                 }
                 lifecycleScope.launch {
                     val ok = withContext(Dispatchers.IO) { runCatching { Cloud.sendPasswordReset(e) }.isSuccess }
                     AlertDialog.Builder(this@ActivateActivity)
-                        .setTitle(if (ok) "E-mail envoyé" else "Envoi impossible")
+                        .setTitle(if (ok) getString(R.string.activate_email_sent_title) else getString(R.string.activate_email_failed_title))
                         .setMessage(
-                            if (ok) "Si un compte existe pour $e, tu vas recevoir un lien pour choisir un nouveau mot de passe (regarde aussi dans les spams). Ensuite, reconnecte-toi ici."
-                            else "Vérifie l'adresse e-mail et ta connexion Internet, puis réessaie."
+                            if (ok) getString(R.string.activate_email_sent_msg, e)
+                            else getString(R.string.activate_email_failed_msg)
                         )
                         .setPositiveButton("OK") { _, _ -> if (ok) emailDialog() }
                         .show()
                 }
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
     /** Appareil rattaché : on récupère les profils puis l'abonnement. */
     private suspend fun afterLink() {
-        status.text = "Récupération de ton compte…"
+        status.text = getString(R.string.activate_fetching_account)
         withContext(Dispatchers.IO) { runCatching { Sync.pull(this@ActivateActivity) } }
         var subs = withContext(Dispatchers.IO) { runCatching { Cloud.subs(this@ActivateActivity) }.getOrDefault(emptyList()) }
         if (subs.isEmpty() && !prefs.hasLogin()) {
-            status.text = "Ton compte n'a pas encore d'abonnement : ajoute-le depuis ton téléphone (page Mon compte). J'attends…"
+            status.text = getString(R.string.activate_no_sub_waiting)
             while (subs.isEmpty()) {
                 delay(4000)
                 subs = withContext(Dispatchers.IO) { runCatching { Cloud.subs(this@ActivateActivity) }.getOrDefault(emptyList()) }
@@ -242,7 +242,7 @@ class ActivateActivity : BaseActivity() {
             subs.isEmpty() -> done()
             subs.size == 1 -> useSub(subs[0])
             else -> AlertDialog.Builder(this)
-                .setTitle("Quel abonnement utiliser sur cet appareil ?")
+                .setTitle(getString(R.string.activate_which_sub))
                 .setItems(subs.map { it.name }.toTypedArray()) { _, w -> useSub(subs[w]) }
                 .setCancelable(false)
                 .show()
@@ -265,7 +265,7 @@ class ActivateActivity : BaseActivity() {
     }
 
     private fun done() {
-        toast("Appareil connecté à ${Cloud.ownerEmail(this) ?: "ton compte"}")
+        toast(getString(R.string.activate_device_linked, Cloud.ownerEmail(this) ?: getString(R.string.activate_your_account)))
         Session.clear()
         startActivity(Intent(this, SplashActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         finish()

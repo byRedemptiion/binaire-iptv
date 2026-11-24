@@ -53,7 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit_extrabold"
-                android:text="Scanne ce code avec ton téléphone"
+                android:text="@string/activate_scan"
                 android:textColor="@color/text"
                 android:textSize="24sp" />
 
@@ -90,7 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Préparation…"
+                android:text="@string/activate_preparing"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
@@ -104,18 +104,18 @@
             android:id="@+id/btnEmail"
             style="@style/Btn"
             android:layout_marginEnd="10dp"
-            android:text="Se connecter avec e-mail" />
+            android:text="@string/activate_btn_email" />
 
         <Button
             android:id="@+id/btnManual"
             style="@style/Btn"
             android:layout_marginEnd="10dp"
-            android:text="Saisir mon abonnement à la main" />
+            android:text="@string/activate_btn_manual" />
 
         <Button
             android:id="@+id/btnLater"
             style="@style/Btn"
-            android:text="Plus tard"
+            android:text="@string/activate_btn_later"
             android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>

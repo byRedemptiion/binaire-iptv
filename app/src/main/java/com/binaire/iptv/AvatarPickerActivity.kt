@@ -37,7 +37,7 @@ class AvatarPickerActivity : BaseActivity() {
         setContentView(R.layout.activity_avatar_picker)
         applyBackground(findViewById(R.id.root))
         setupHeader("AVATAR", showBack = true)
-        findViewById<TextView>(R.id.title).text = "Avatar de « ${profile.name} »"
+        findViewById<TextView>(R.id.title).text = getString(R.string.avatar_for, profile.name)
 
         // Première entrée = « aucun » (garde l'initiale colorée), puis tous les avatars.
         val items = listOf<String?>(null) + Avatars.all(this)

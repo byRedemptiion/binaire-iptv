@@ -62,22 +62,22 @@ class SplashActivity : BaseActivity() {
     private fun load() {
         errorButtons.visibility = View.GONE
         progress.progress = 0
-        status.text = "Connexion à ton abonnement…"
+        status.text = getString(R.string.splash_connecting)
         lifecycleScope.launch {
             val started = System.currentTimeMillis()
             if (Cloud.isLinked(this@SplashActivity)) {
-                status.text = "Synchronisation de ton compte Binaire…"
+                status.text = getString(R.string.splash_sync)
                 val ok = kotlinx.coroutines.withTimeoutOrNull(12_000) {
                     withContext(Dispatchers.IO) { syncAccount() }
                 }
-                if (ok == false) toast("Cet appareil a été retiré de ton compte Binaire")
+                if (ok == false) toast(getString(R.string.splash_device_removed))
             }
             if (!prefs.hasLogin()) {
                 startActivity(Intent(this@SplashActivity, ActivateActivity::class.java))
                 finish()
                 return@launch
             }
-            status.text = "Connexion à ton abonnement…"
+            status.text = getString(R.string.splash_connecting)
             val c = Session.client ?: XtreamClient.create(prefs.server!!, prefs.user!!, prefs.pass!!).also { Session.client = it }
 
             try {
@@ -86,20 +86,20 @@ class SplashActivity : BaseActivity() {
                 throw e
             } catch (e: XtreamException) {
                 if (e.message?.contains("Identifiants refusés") == true) {
-                    openLogin("Tes identifiants ont été refusés par le serveur. Vérifie-les.")
+                    openLogin(getString(R.string.splash_bad_credentials))
                     return@launch
                 }
-                showError(e.message ?: "Connexion impossible")
+                showError(e.message ?: getString(R.string.splash_connect_failed))
                 return@launch
             } catch (e: Exception) {
-                showError("Connexion impossible : ${e.message}")
+                showError(getString(R.string.splash_connect_failed_detail, e.message ?: ""))
                 return@launch
             }
 
             progress.progress = 10
-            val names = mapOf(Kind.LIVE to "chaînes", Kind.MOVIE to "films", Kind.SERIES to "séries")
+            val names = mapOf(Kind.LIVE to getString(R.string.word_channels), Kind.MOVIE to getString(R.string.word_movies), Kind.SERIES to getString(R.string.word_series))
             val finished = mutableSetOf<Kind>()
-            fun loadingText() = "Chargement de ta liste : " + Kind.values().joinToString("  ·  ") { k ->
+            fun loadingText() = getString(R.string.splash_loading_prefix) + Kind.values().joinToString("  ·  ") { k ->
                 names.getValue(k) + if (k in finished) " ✓" else "…"
             }
             status.text = loadingText()
@@ -120,9 +120,9 @@ class SplashActivity : BaseActivity() {
                         Session.rawStreams[kind] = emptyList()
                         failures.add(
                             when (kind) {
-                                Kind.LIVE -> "chaînes"
-                                Kind.MOVIE -> "films"
-                                Kind.SERIES -> "séries"
+                                Kind.LIVE -> getString(R.string.word_channels)
+                                Kind.MOVIE -> getString(R.string.word_movies)
+                                Kind.SERIES -> getString(R.string.word_series)
                             }
                         )
                     }
@@ -133,10 +133,10 @@ class SplashActivity : BaseActivity() {
             }
 
             if (failures.size == 3) {
-                showError("Impossible de charger le contenu de ton abonnement.")
+                showError(getString(R.string.splash_load_failed_all))
                 return@launch
             }
-            if (failures.isNotEmpty()) toast("Chargement incomplet : ${failures.joinToString(", ")}")
+            if (failures.isNotEmpty()) toast(getString(R.string.splash_load_incomplete, failures.joinToString(", ")))
 
             if (Profiles.all(this@SplashActivity).size > 1 && Profiles.askOnStart(this@SplashActivity)) {
                 Session.ready = true
@@ -144,13 +144,13 @@ class SplashActivity : BaseActivity() {
                 finish()
                 return@launch
             }
-            status.text = "Rangement de ta liste… 0 %"
+            status.text = getString(R.string.splash_organizing, 0)
             val finishedInTime = withTimeoutOrNull(60_000) {
                 withContext(Dispatchers.Default) {
                     Library.rebuild(prefs) { pct ->
                         runOnUiThread {
                             progress.progress = 70 + pct * 30 / 100
-                            status.text = "Rangement de ta liste… $pct %"
+                            status.text = getString(R.string.splash_organizing, pct)
                         }
                     }
                 }
@@ -160,7 +160,7 @@ class SplashActivity : BaseActivity() {
                 Library.useRawLists()
                 android.widget.Toast.makeText(
                     this@SplashActivity,
-                    "Le rangement prend trop de temps sur cet appareil : ta liste d'origine est affichée. Tu peux couper « Nettoyer les noms » dans les Réglages.",
+                    getString(R.string.splash_organize_slow),
                     android.widget.Toast.LENGTH_LONG
                 ).show()
             }

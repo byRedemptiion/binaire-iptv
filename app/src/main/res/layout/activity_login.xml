@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="18dp"
-                android:text="Connecte ton abonnement (Xtream Codes ou lien M3U)"
+                android:text="@string/login_intro"
                 android:textSize="13sp" />
 
             <EditText
@@ -41,7 +41,7 @@
                 style="@style/Input"
                 android:layout_width="match_parent"
                 android:layout_marginBottom="10dp"
-                android:hint="Serveur (ex : http://exemple.com:8080)"
+                android:hint="@string/login_server_hint"
                 android:imeOptions="actionNext"
                 android:importantForAutofill="no"
                 android:inputType="textUri" />
@@ -51,7 +51,7 @@
                 style="@style/Input"
                 android:layout_width="match_parent"
                 android:layout_marginBottom="10dp"
-                android:hint="Nom d'utilisateur"
+                android:hint="@string/login_user_hint"
                 android:imeOptions="actionNext"
                 android:importantForAutofill="no"
                 android:inputType="text" />
@@ -61,7 +61,7 @@
                 style="@style/Input"
                 android:layout_width="match_parent"
                 android:layout_marginBottom="16dp"
-                android:hint="Mot de passe"
+                android:hint="@string/login_password_hint"
                 android:imeOptions="actionDone"
                 android:importantForAutofill="no"
                 android:inputType="textPassword" />
@@ -75,7 +75,7 @@
                 android:layout_marginBottom="10dp"
                 android:paddingStart="6dp"
                 android:paddingEnd="10dp"
-                android:text="Afficher le mot de passe"
+                android:text="@string/login_show_password"
                 android:textColor="@color/muted"
                 android:textSize="12sp" />
 
@@ -84,7 +84,7 @@
                 style="@style/Btn"
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
-                android:text="Se connecter"
+                android:text="@string/login_action"
                 android:textStyle="bold" />
 
             <Button
@@ -93,7 +93,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_marginTop="10dp"
-                android:text="Utiliser mon compte Binaire (QR code)" />
+                android:text="@string/login_use_account" />
 
             <ProgressBar
                 android:id="@+id/progress"
@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:text="Lien M3U : colle-le dans « Serveur ». S'il contient ton identifiant, les champs se remplissent tout seuls ; sinon laisse-les vides." />
+                android:text="@string/login_m3u_help" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>
