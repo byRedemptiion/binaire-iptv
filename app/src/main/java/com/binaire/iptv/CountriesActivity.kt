@@ -40,8 +40,8 @@ class CountriesActivity : BaseActivity() {
         val countries = Session.countries
         val totalCats = countries.sumOf { it.categories }
         findViewById<TextView>(R.id.subtitle).text =
-            "Ton abonnement contient $totalCats catégories de ${countries.count { it.code != Library.UNKNOWN }} pays. " +
-                "Coche ceux qui t'intéressent, le reste sera masqué (modifiable à tout moment dans les Réglages)."
+            getString(R.string.countries_intro, totalCats, countries.count { it.code != Library.UNKNOWN }) +
+                getString(R.string.countries_intro2)
 
         val saved = prefs.allowedCountries
         if (saved.isNotEmpty()) selected.addAll(saved)
@@ -66,7 +66,7 @@ class CountriesActivity : BaseActivity() {
         styleButtons(this, accent, btnContinue, listOf(btnAll))
         btnAll.setOnClickListener { save(emptySet()) }
         btnContinue.setOnClickListener {
-            if (selected.isEmpty()) toast("Choisis au moins un pays") else save(selected)
+            if (selected.isEmpty()) toast(getString(R.string.countries_choose_one)) else save(selected)
         }
         updateSummary()
         rv.post { rv.getChildAt(0)?.requestFocus() }
@@ -74,7 +74,7 @@ class CountriesActivity : BaseActivity() {
 
     private fun updateSummary() {
         val chosen = Session.countries.filter { it.code in selected }
-        summary.text = "Tu garderas ${chosen.sumOf { it.categories }} catégories et ${chosen.sumOf { it.channels }} chaînes"
+        summary.text = getString(R.string.countries_keep, chosen.sumOf { it.categories }, chosen.sumOf { it.channels })
     }
 
     private fun save(set: Set<String>) {
@@ -103,7 +103,7 @@ class CountriesActivity : BaseActivity() {
             val c = list[position]
             val on = c.code in selected
             h.name.text = c.name
-            h.info.text = "${c.categories} catégories" + if (c.channels > 0) " · ${c.channels} chaînes" else ""
+            h.info.text = getString(R.string.countries_cats, c.categories) + if (c.channels > 0) getString(R.string.countries_channels, c.channels) else ""
             h.itemView.background = BTheme.selector(
                 this@CountriesActivity, 14f,
                 if (on) BTheme.withAlpha(accent, 0x47) else BTheme.PANEL,

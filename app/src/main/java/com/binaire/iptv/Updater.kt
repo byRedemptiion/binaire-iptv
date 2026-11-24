@@ -120,9 +120,9 @@ object Updater {
     private fun install(activity: Activity, file: File): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.packageManager.canRequestPackageInstalls()) {
             AlertDialog.Builder(activity)
-                .setTitle("Une autorisation est nécessaire")
-                .setMessage("Pour installer les mises à jour, autorise Binaire IPTV à installer des applications (à faire une seule fois). Reviens ensuite et relance la mise à jour.")
-                .setPositiveButton("Ouvrir les réglages") { _, _ ->
+                .setTitle(activity.getString(R.string.updater_perm_needed))
+                .setMessage(activity.getString(R.string.updater_perm_msg))
+                .setPositiveButton(activity.getString(R.string.updater_open_settings)) { _, _ ->
                     try {
                         activity.startActivity(
                             Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${activity.packageName}"))
@@ -131,7 +131,7 @@ object Updater {
                         activity.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
                     }
                 }
-                .setNegativeButton("Plus tard", null)
+                .setNegativeButton(activity.getString(R.string.activate_btn_later), null)
                 .show()
             return false
         }
@@ -146,29 +146,29 @@ object Updater {
     /** Propose la mise à jour, la télécharge avec une barre de progression puis l'installe. */
     fun offer(activity: Activity, scope: LifecycleCoroutineScope, release: Release) {
         AlertDialog.Builder(activity)
-            .setTitle("Nouvelle version ${release.version}")
-            .setMessage("Une mise à jour de Binaire IPTV est disponible. Tes réglages et favoris sont conservés.")
-            .setPositiveButton("Installer") { _, _ -> runDownload(activity, scope, release) }
-            .setNegativeButton("Plus tard", null)
+            .setTitle(activity.getString(R.string.updater_new_version, release.version))
+            .setMessage(activity.getString(R.string.updater_update_available))
+            .setPositiveButton(activity.getString(R.string.updater_install)) { _, _ -> runDownload(activity, scope, release) }
+            .setNegativeButton(activity.getString(R.string.activate_btn_later), null)
             .show()
     }
 
     private fun runDownload(activity: Activity, scope: LifecycleCoroutineScope, release: Release) {
         val pad = BTheme.dp(activity, 20f)
         val bar = ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100 }
-        val label = TextView(activity).apply { text = "Téléchargement… 0 %"; gravity = Gravity.CENTER }
+        val label = TextView(activity).apply { text = activity.getString(R.string.updater_downloading, 0); gravity = Gravity.CENTER }
         val box = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(pad, pad, pad, pad)
             addView(label)
             addView(bar)
         }
-        val dialog = AlertDialog.Builder(activity).setTitle("Mise à jour").setView(box).setCancelable(false).show()
+        val dialog = AlertDialog.Builder(activity).setTitle(activity.getString(R.string.updater_update)).setView(box).setCancelable(false).show()
         scope.launch {
             try {
                 val file = download(activity, release) { pct ->
                     bar.progress = pct
-                    label.text = "Téléchargement… $pct %"
+                    label.text = activity.getString(R.string.updater_downloading, pct)
                 }
                 dialog.dismiss()
                 install(activity, file)
@@ -178,8 +178,8 @@ object Updater {
             } catch (e: Exception) {
                 dialog.dismiss()
                 AlertDialog.Builder(activity)
-                    .setTitle("Mise à jour impossible")
-                    .setMessage(e.message ?: "Erreur inconnue")
+                    .setTitle(activity.getString(R.string.updater_update_failed))
+                    .setMessage(e.message ?: activity.getString(R.string.updater_unknown_error))
                     .setPositiveButton("OK", null)
                     .show()
             }

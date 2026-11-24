@@ -78,7 +78,7 @@ class VodActivity : BaseActivity() {
         }
 
         search.visibility = View.VISIBLE
-        search.hint = if (kind == Kind.MOVIE) "Rechercher un film" else "Rechercher une série"
+        search.hint = if (kind == Kind.MOVIE) getString(R.string.vod_search_movie) else getString(R.string.vod_search_series)
         search.background = BTheme.selector(this, 19f, BTheme.PANEL, BTheme.PANEL, accent, null, 2f)
         search.doAfterTextChanged {
             searchJob?.cancel()
@@ -117,7 +117,7 @@ class VodActivity : BaseActivity() {
         val counts = Session.items(kind).groupingBy { it.categoryId }.eachCount()
         val usedCats = cats.filter { (counts[it.id] ?: 0) > 0 }
         chipIds = listOf("__home", "__list") + usedCats.map { it.id }
-        chipAdapter.submit(listOf("Accueil", "Ma liste") + usedCats.map { it.name }, 0)
+        chipAdapter.submit(listOf(getString(R.string.vod_home), "Ma liste") + usedCats.map { it.name }, 0)
 
         rvRows.itemAnimator = null
         refresh()
@@ -149,8 +149,8 @@ class VodActivity : BaseActivity() {
             if (list.isEmpty()) {
                 tvEmpty.visibility = View.VISIBLE
                 tvEmpty.text = if (chip == "__list" && q.isEmpty())
-                    "Ta liste est vide.\nMaintiens OK sur une affiche pour l'ajouter."
-                else "Aucun résultat"
+                    getString(R.string.vod_mylist_empty)
+                else getString(R.string.vod_no_result)
             } else tvEmpty.visibility = View.GONE
             list.firstOrNull()?.let { if (!keepFocus) scheduleHero(it, null, 0) }
             return
@@ -196,21 +196,21 @@ class VodActivity : BaseActivity() {
 
         if (kind == Kind.MOVIE) {
             val resumes = watch.movieResumes().filter { it.progress < 0.95f }
-            if (resumes.isNotEmpty()) rows.add(Row("Reprendre", resumes.mapNotNull { r ->
+            if (resumes.isNotEmpty()) rows.add(Row(getString(R.string.vod_resume), resumes.mapNotNull { r ->
                 val item = byId[r.meta.contentId] ?: return@mapNotNull null
                 Card(
                     key = "resume:" + r.meta.key, item = item, title = item.name, image = item.icon,
-                    sub = "Reste ${formatMinutes(r.remainingMin)}", progress = r.progress, payload = r
+                    sub = getString(R.string.vod_remaining, formatMinutes(r.remainingMin)), progress = r.progress, payload = r
                 )
             }, wide = true))
         } else {
             val resumes = watch.episodeResumes()
-            if (resumes.isNotEmpty()) rows.add(Row("Épisodes à suivre", resumes.mapNotNull { r ->
+            if (resumes.isNotEmpty()) rows.add(Row(getString(R.string.vod_episodes_follow), resumes.mapNotNull { r ->
                 val item = byId[r.meta.contentId] ?: return@mapNotNull null
                 val label = "S${r.meta.season ?: "?"} · É${r.meta.episode ?: "?"}"
                 Card(
                     key = "resume:" + r.meta.key, item = item, title = item.name, image = item.icon,
-                    sub = if (r.progress >= 0.95f) "$label vu · épisode suivant" else "$label · reste ${formatMinutes(r.remainingMin)}",
+                    sub = if (r.progress >= 0.95f) getString(R.string.vod_seen_next, label) else getString(R.string.vod_label_remaining, label, formatMinutes(r.remainingMin)),
                     progress = r.progress, payload = r
                 )
             }, wide = true))
@@ -220,10 +220,10 @@ class VodActivity : BaseActivity() {
         if (myList.isNotEmpty()) rows.add(Row("Ma liste", all.filter { it.id in myList }.take(MAX_ROW).map(::cardFor)))
 
         val recent = all.filter { it.added > 0 }.sortedByDescending { it.added }.take(MAX_ROW)
-        if (recent.isNotEmpty()) rows.add(Row("Ajoutés récemment", recent.map(::cardFor)))
+        if (recent.isNotEmpty()) rows.add(Row(getString(R.string.vod_recent), recent.map(::cardFor)))
 
         val top = all.filter { (it.rating ?: 0.0) > 0 }.sortedByDescending { it.rating }.take(MAX_ROW)
-        if (top.size >= 5) rows.add(Row("Les mieux notés", top.map(::cardFor)))
+        if (top.size >= 5) rows.add(Row(getString(R.string.vod_top_rated), top.map(::cardFor)))
 
         val byCat = all.groupBy { it.categoryId }
         for (c in Session.cats(kind).take(MAX_CATEGORY_ROWS)) {
@@ -253,7 +253,7 @@ class VodActivity : BaseActivity() {
         heroTag.text = when {
             card?.payload is WatchStore.Resume -> "REPRENDRE"
             item.added > 0 && System.currentTimeMillis() / 1000 - item.added < 14 * 86400 -> "NOUVEAU"
-            else -> if (kind == Kind.MOVIE) "FILM" else "SÉRIE"
+            else -> if (kind == Kind.MOVIE) "FILM" else getString(R.string.vod_series_badge)
         }
         heroTitle.text = item.name
         if (changed) {
@@ -304,20 +304,20 @@ class VodActivity : BaseActivity() {
         if (card.key.startsWith("resume:")) {
             val metaKey = card.key.removePrefix("resume:")
             androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Retirer de la reprise")
-                .setMessage("Enlever « ${card.title} » de ta liste en cours ?")
-                .setPositiveButton("Retirer") { _, _ ->
+                .setTitle(getString(R.string.vod_remove_resume))
+                .setMessage(getString(R.string.vod_remove_resume_q, card.title))
+                .setPositiveButton(getString(R.string.common_remove)) { _, _ ->
                     watch.remove(metaKey)
-                    toast("Retiré de la reprise")
+                    toast(getString(R.string.vod_removed_resume))
                     refresh(keepFocus = true)
                 }
-                .setNegativeButton("Annuler", null)
+                .setNegativeButton(getString(R.string.common_cancel), null)
                 .show()
             return
         }
         val item = card.item ?: return
         val added = watch.toggleMyList(kind, item.id)
-        toast(if (added) "${item.name} ajouté à ta liste" else "${item.name} retiré de ta liste")
+        toast(if (added) getString(R.string.vod_added_list, item.name) else getString(R.string.vod_removed_list, item.name))
         if (currentChip() == "__list") refresh(keepFocus = true)
     }
 }

@@ -67,12 +67,12 @@ class SeriesDetailActivity : BaseActivity() {
         title.text = item.name
         meta.text = item.rating?.let { "★ " + formatRating(it) }.orEmpty()
         backdrop.load(item.icon) { crossfade(true) }
-        btnPlay.text = "Chargement…"
+        btnPlay.text = getString(R.string.common_loading)
         btnPlay.isEnabled = false
 
         btnList.setOnClickListener {
             val added = watch.toggleMyList(Kind.SERIES, item.id)
-            toast(if (added) "Ajoutée à ta liste" else "Retirée de ta liste")
+            toast(if (added) getString(R.string.series_added) else getString(R.string.series_removed))
             updateListButton()
         }
         updateListButton()
@@ -115,13 +115,13 @@ class SeriesDetailActivity : BaseActivity() {
                 if (img != null) backdrop.load(img) { crossfade(true) }
 
                 if (i.seasons.isEmpty()) {
-                    btnPlay.text = "Aucun épisode"
+                    btnPlay.text = getString(R.string.series_no_episode)
                 } else {
                     rvSeasons.visibility = View.VISIBLE
                     rvEpisodes.visibility = View.VISIBLE
                     val target = nextTarget()
                     val startSeason = target?.first ?: i.seasons.first()
-                    seasonAdapter.submit(i.seasons.map { "Saison $it" }, i.seasons.indexOf(startSeason).coerceAtLeast(0))
+                    seasonAdapter.submit(i.seasons.map { getString(R.string.series_season, it) }, i.seasons.indexOf(startSeason).coerceAtLeast(0))
                     showSeason(startSeason)
                     updatePlayButton()
                     btnPlay.isEnabled = true
@@ -131,8 +131,8 @@ class SeriesDetailActivity : BaseActivity() {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                btnPlay.text = "Indisponible"
-                plot.text = "Impossible de charger la série : ${e.message}"
+                btnPlay.text = getString(R.string.series_unavailable)
+                plot.text = getString(R.string.series_load_failed, e.message ?: "")
             }
             loading.visibility = View.GONE
         }
@@ -174,15 +174,15 @@ class SeriesDetailActivity : BaseActivity() {
         val last = watch.lastEpisodeOf(item.id)
         val label = "S${target.first} · É${ep.number.ifEmpty { (target.second + 1).toString() }}"
         btnPlay.text = when {
-            last == null -> "Lecture $label"
-            last.meta.episodeId == ep.id -> "Reprendre $label"
-            else -> "Épisode suivant $label"
+            last == null -> getString(R.string.series_play, label)
+            last.meta.episodeId == ep.id -> getString(R.string.series_resume, label)
+            else -> getString(R.string.series_next, label)
         }
         btnPlay.setOnClickListener { play(target.first, target.second) }
     }
 
     private fun updateListButton() {
-        btnList.text = if (watch.inMyList(Kind.SERIES, item.id)) "✓ Dans ma liste" else "+ Ma liste"
+        btnList.text = if (watch.inMyList(Kind.SERIES, item.id)) getString(R.string.detail_in_list) else "+ Ma liste"
     }
 
     private fun showSeason(s: String) {
@@ -192,13 +192,13 @@ class SeriesDetailActivity : BaseActivity() {
         val eps = i.episodes[s].orEmpty()
         episodeAdapter.submit(eps.mapIndexed { idx, e ->
             val isCurrent = last?.meta?.episodeId == e.id
-            val minutes = if (e.durationSecs > 0) "${e.durationSecs / 60} min" else null
+            val minutes = if (e.durationSecs > 0) getString(R.string.series_min, e.durationSecs / 60) else null
             Card(
                 key = e.id,
                 item = null,
                 title = "É${e.number.ifEmpty { (idx + 1).toString() }} · ${e.title}",
                 image = e.image ?: i.cover ?: item.icon,
-                sub = if (isCurrent && last != null && last.progress < 0.95f) "Reste ${last.remainingMin} min" else minutes,
+                sub = if (isCurrent && last != null && last.progress < 0.95f) getString(R.string.series_remaining_min, last.remainingMin) else minutes,
                 progress = when {
                     watch.isWatched(e.id) -> 1f
                     isCurrent && last != null -> last.progress

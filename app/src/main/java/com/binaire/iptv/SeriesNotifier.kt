@@ -46,8 +46,8 @@ object SeriesNotifier {
         val nm = ctx.getSystemService(NotificationManager::class.java)
         if (nm.getNotificationChannel(CHANNEL) == null) {
             nm.createNotificationChannel(
-                NotificationChannel(CHANNEL, "Nouveaux épisodes", NotificationManager.IMPORTANCE_DEFAULT)
-                    .apply { description = "Quand un nouvel épisode sort dans une série suivie" }
+                NotificationChannel(CHANNEL, ctx.getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_DEFAULT)
+                    .apply { description = ctx.getString(R.string.notif_channel_desc) }
             )
         }
     }
@@ -109,8 +109,8 @@ object SeriesNotifier {
         )
         val notif = NotificationCompat.Builder(ctx, CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle(sig.name.ifBlank { "Nouvel épisode" })
-            .setContentText("Nouvel épisode disponible : ${sig.label}")
+            .setContentTitle(sig.name.ifBlank { ctx.getString(R.string.notif_new_episode) })
+            .setContentText(ctx.getString(R.string.notif_new_episode_avail, sig.label))
             .setAutoCancel(true)
             .setContentIntent(pi)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

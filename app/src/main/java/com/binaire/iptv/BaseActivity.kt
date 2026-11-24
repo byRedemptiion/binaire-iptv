@@ -127,7 +127,7 @@ abstract class BaseActivity : AppCompatActivity() {
             max = 100
             progressTintList = android.content.res.ColorStateList.valueOf(accent)
         }
-        val label = TextView(this).apply { text = "Rangement de ta liste… 0 %"; setPadding(0, 0, 0, dp(10f)) }
+        val label = TextView(this).apply { text = getString(R.string.splash_organizing, 0); setPadding(0, 0, 0, dp(10f)) }
         val box = android.widget.LinearLayout(this).apply {
             orientation = android.widget.LinearLayout.VERTICAL
             setPadding(pad, pad, pad, pad)
@@ -141,7 +141,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     Library.rebuild(Prefs(this@BaseActivity)) { pct ->
                         runOnUiThread {
                             bar.progress = pct
-                            label.text = "Rangement de ta liste… $pct %"
+                            label.text = getString(R.string.splash_organizing, pct)
                         }
                     }
                 }
@@ -149,7 +149,7 @@ abstract class BaseActivity : AppCompatActivity() {
             }
             if (ok == null) {
                 Library.useRawLists()
-                toast("Rangement trop long : liste d'origine affichée")
+                toast(getString(R.string.base_organize_too_long))
             }
             dialog.dismiss()
             after()
@@ -176,15 +176,15 @@ abstract class BaseActivity : AppCompatActivity() {
         val d = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(title)
             .setView(padded(field))
-            .setPositiveButton("Valider", null)
-            .setNegativeButton("Annuler", null)
+            .setPositiveButton(getString(R.string.base_validate), null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .create()
         d.setOnShowListener {
             val check = {
                 if (field.text.toString() == expected) {
                     d.dismiss(); onOk()
                 } else {
-                    field.text.clear(); field.error = "Code incorrect"
+                    field.text.clear(); field.error = getString(R.string.base_wrong_code)
                 }
             }
             d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener { check() }
@@ -199,10 +199,10 @@ abstract class BaseActivity : AppCompatActivity() {
         val first = pinField()
         val d = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(title)
-            .setMessage("Choisis un code à 4 chiffres.")
+            .setMessage(getString(R.string.base_choose_4))
             .setView(padded(first))
-            .setPositiveButton("Suivant", null)
-            .setNegativeButton("Annuler", null)
+            .setPositiveButton(getString(R.string.base_next), null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .create()
         d.setOnShowListener {
             d.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -212,7 +212,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     return@setOnClickListener
                 }
                 d.dismiss()
-                askPin("Confirme le code", code) { onSet(code) }
+                askPin(getString(R.string.base_confirm_code), code) { onSet(code) }
             }
         }
         d.show()
@@ -260,7 +260,7 @@ abstract class BaseActivity : AppCompatActivity() {
                         val t = input.text.toString().trim()
                         if (t.isNotEmpty()) open("TV principale", t.substringBefore(':'), t.substringAfter(':', "").toIntOrNull() ?: MultiTv.DEFAULT_PORT)
                     }
-                    .setNegativeButton("Annuler", null)
+                    .setNegativeButton(getString(R.string.common_cancel), null)
                     .show()
             }
             .setNegativeButton("Fermer") { _, _ -> finder?.stop() }

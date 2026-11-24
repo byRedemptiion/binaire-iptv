@@ -285,4 +285,159 @@
     <string name="set_change_sub_q">Se déconnecter de cet abonnement sur cet appareil ?</string>
     <string name="set_yes">Oui</string>
     <string name="set_disconnect_btn">Déconnecter</string>
+
+    <!-- Communs contenu -->
+    <string name="common_loading">Chargement…</string>
+    <string name="common_remove">Retirer</string>
+    <string name="kind_tv">TV</string>
+    <string name="kind_movies">Films</string>
+    <string name="kind_series">Séries</string>
+
+    <!-- TV en direct -->
+    <string name="live_preview_cut">Aperçu coupé : « %1$s » regarde avec ton abonnement</string>
+    <string name="live_search">Rechercher une chaîne</string>
+    <string name="live_fav">★ Favoris</string>
+    <string name="live_all">Toutes</string>
+    <string name="live_no_fav">Aucun favori pour l\'instant.\nMaintiens OK sur une chaîne pour l\'ajouter.</string>
+    <string name="live_no_channel">Aucune chaîne</string>
+    <string name="live_no_epg">Pas de guide des programmes</string>
+    <string name="live_preview_unavailable">Aperçu indisponible pour cette chaîne</string>
+    <string name="live_fav_added">★ %1$s ajoutée aux favoris</string>
+    <string name="live_fav_removed">%1$s retirée des favoris</string>
+
+    <!-- Films / Séries (VOD) -->
+    <string name="vod_search_movie">Rechercher un film</string>
+    <string name="vod_search_series">Rechercher une série</string>
+    <string name="vod_home">Accueil</string>
+    <string name="vod_mylist_empty">Ta liste est vide.\nMaintiens OK sur une affiche pour l\'ajouter.</string>
+    <string name="vod_no_result">Aucun résultat</string>
+    <string name="vod_resume">Reprendre</string>
+    <string name="vod_remaining">Reste %1$s</string>
+    <string name="vod_episodes_follow">Épisodes à suivre</string>
+    <string name="vod_seen_next">%1$s vu · épisode suivant</string>
+    <string name="vod_label_remaining">%1$s · reste %2$s</string>
+    <string name="vod_recent">Ajoutés récemment</string>
+    <string name="vod_top_rated">Les mieux notés</string>
+    <string name="vod_series_badge">SÉRIE</string>
+    <string name="vod_remove_resume">Retirer de la reprise</string>
+    <string name="vod_remove_resume_q">Enlever « %1$s » de ta liste en cours ?</string>
+    <string name="vod_removed_resume">Retiré de la reprise</string>
+    <string name="vod_added_list">%1$s ajouté à ta liste</string>
+    <string name="vod_removed_list">%1$s retiré de ta liste</string>
+
+    <!-- Fiche film -->
+    <string name="detail_added_list">Ajouté à ta liste</string>
+    <string name="detail_removed_list">Retiré de ta liste</string>
+    <string name="detail_resume_remaining">Reprendre · reste %1$d min</string>
+    <string name="detail_play">Lecture</string>
+    <string name="detail_in_list">✓ Dans ma liste</string>
+
+    <!-- Fiche série -->
+    <string name="series_added">Ajoutée à ta liste</string>
+    <string name="series_removed">Retirée de ta liste</string>
+    <string name="series_no_episode">Aucun épisode</string>
+    <string name="series_season">Saison %1$s</string>
+    <string name="series_unavailable">Indisponible</string>
+    <string name="series_load_failed">Impossible de charger la série : %1$s</string>
+    <string name="series_play">Lecture %1$s</string>
+    <string name="series_resume">Reprendre %1$s</string>
+    <string name="series_next">Épisode suivant %1$s</string>
+    <string name="series_min">%1$d min</string>
+    <string name="series_remaining_min">Reste %1$d min</string>
+
+    <!-- Lecteur -->
+    <string name="player_takeover">L\'autre appareil libère ton abonnement (essai %1$d).</string>
+    <string name="player_play_failed">Lecture impossible</string>
+    <string name="player_shared_stopped">Le flux partagé s\'est arrêté. (%1$s)</string>
+    <string name="player_offline">La chaîne ou la vidéo est peut-être hors ligne, ou ton nombre de connexions est atteint. (%1$s)</string>
+    <string name="player_resume_at">Reprise à %1$d min</string>
+    <string name="player_track">Piste %1$d</string>
+    <string name="player_image_format_toast">Format d\'image : %1$s</string>
+    <string name="player_audio">Langue audio</string>
+    <string name="player_subtitles">Sous-titres</string>
+    <string name="player_play_options">Options de lecture</string>
+    <string name="player_disabled">Désactivés</string>
+    <string name="player_stopped">Lecture arrêtée</string>
+    <string name="player_now_watching">« %1$s » regarde maintenant avec ton abonnement (1 écran à la fois).</string>
+    <string name="player_resume_here">Reprendre ici</string>
+    <string name="player_quit">Quitter</string>
+    <string name="player_multitv_waiting">en attente de l\'autre TV (accueil → Multi-TV)</string>
+    <string name="player_multitv_1">1 autre TV connectée</string>
+    <string name="player_multitv_n">%1$d autres TV connectées</string>
+    <string name="player_multitv_active">Multi-TV · actif</string>
+
+    <!-- Lecteur invité (Multi-TV) -->
+    <string name="guest_multitv_with">Multi-TV · avec %1$s</string>
+    <string name="guest_connecting">Connexion à %1$s…</string>
+    <string name="guest_small_cut">Petite coupure, on se recale…</string>
+    <string name="guest_live_with">En direct avec %1$s</string>
+    <string name="guest_host_not_responding">La TV principale ne répond plus.</string>
+    <string name="guest_cant_reach">Impossible de joindre %1$s (%2$s). Vérifie qu\'elle partage toujours et que les deux TV sont sur le même Wi-Fi.</string>
+    <string name="guest_host_stopped">%1$s a arrêté le partage.</string>
+    <string name="guest_multitv_ended">Multi-TV terminé</string>
+
+    <!-- Organiser les catégories -->
+    <string name="org_reset_q">Tout réinitialiser ?</string>
+    <string name="org_reset_msg">Les catégories %1$s retrouvent leur nom, leur ordre et sont toutes affichées.</string>
+    <string name="org_reset">Réinitialiser</string>
+    <string name="org_show">Afficher</string>
+    <string name="org_hide">Masquer</string>
+    <string name="org_adult_cat">Catégorie adulte : désactive « Masquer les catégories adultes » pour la voir</string>
+    <string name="org_rename">Renommer…</string>
+    <string name="org_up">Monter</string>
+    <string name="org_first">Mettre en premier</string>
+    <string name="org_down">Descendre</string>
+    <string name="org_rename_title">Renommer la catégorie</string>
+    <string name="org_original_name">Nom d\'origine</string>
+    <string name="org_hidden">Masquée</string>
+    <string name="org_adult_hidden">Adulte · masquée</string>
+    <string name="org_renamed">Renommée</string>
+
+    <!-- Pays -->
+    <string name="countries_intro">Ton abonnement contient %1$d catégories de %2$d pays. </string>
+    <string name="countries_intro2">Coche ceux qui t\'intéressent, le reste sera masqué (modifiable à tout moment dans les Réglages).</string>
+    <string name="countries_choose_one">Choisis au moins un pays</string>
+    <string name="countries_keep">Tu garderas %1$d catégories et %2$d chaînes</string>
+    <string name="countries_cats">%1$d catégories</string>
+    <string name="countries_channels"> · %1$d chaînes</string>
+
+    <!-- Recherche -->
+    <string name="search_channel_word">chaîne</string>
+    <string name="search_series_word">série</string>
+    <string name="search_no_movie">Aucun film</string>
+    <string name="search_no_noun">Aucune %1$s</string>
+    <string name="search_none_in">%1$s « %2$s » dans ton abonnement</string>
+    <string name="search_suggestions">Suggestions</string>
+    <string name="search_channel">Chaîne</string>
+    <string name="search_movie">Film</string>
+    <string name="search_series">Série</string>
+
+    <!-- Mises à jour -->
+    <string name="updater_download_failed">Téléchargement impossible</string>
+    <string name="updater_download_failed_code">Téléchargement impossible (%1$d)</string>
+    <string name="updater_empty_file">Fichier vide</string>
+    <string name="updater_perm_needed">Une autorisation est nécessaire</string>
+    <string name="updater_perm_msg">Pour installer les mises à jour, autorise Binaire IPTV à installer des applications (à faire une seule fois). Reviens ensuite et relance la mise à jour.</string>
+    <string name="updater_open_settings">Ouvrir les réglages</string>
+    <string name="updater_new_version">Nouvelle version %1$s</string>
+    <string name="updater_update_available">Une mise à jour de Binaire IPTV est disponible. Tes réglages et favoris sont conservés.</string>
+    <string name="updater_install">Installer</string>
+    <string name="updater_downloading">Téléchargement… %1$d %%</string>
+    <string name="updater_update">Mise à jour</string>
+    <string name="updater_update_failed">Mise à jour impossible</string>
+    <string name="updater_unknown_error">Erreur inconnue</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Nouveaux épisodes</string>
+    <string name="notif_channel_desc">Quand un nouvel épisode sort dans une série suivie</string>
+    <string name="notif_new_episode">Nouvel épisode</string>
+    <string name="notif_new_episode_avail">Nouvel épisode disponible : %1$s</string>
+
+    <!-- Divers (BaseActivity) -->
+    <string name="base_organize_too_long">Rangement trop long : liste d\'origine affichée</string>
+    <string name="base_validate">Valider</string>
+    <string name="base_wrong_code">Code incorrect</string>
+    <string name="base_choose_4">Choisis un code à 4 chiffres.</string>
+    <string name="base_next">Suivant</string>
+    <string name="base_confirm_code">Confirme le code</string>
 </resources>

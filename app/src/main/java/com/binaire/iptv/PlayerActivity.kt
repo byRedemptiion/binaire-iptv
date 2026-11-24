@@ -85,13 +85,13 @@ class PlayerActivity : AppCompatActivity() {
                 error.errorCode == PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE
             if (refused && guard.mayBeBusy && System.currentTimeMillis() - guard.claimedAt < 45_000 && takeoverRetries < 12) {
                 takeoverRetries++
-                showMessage("Un instant…", "L'autre appareil libère ton abonnement (essai $takeoverRetries).")
+                showMessage("Un instant…", getString(R.string.player_takeover, takeoverRetries))
                 handler.postDelayed({ if (player != null) play(index, attempt, keepClaim = true) }, 3500)
                 return
             }
             if (MultiTvHost.running) {
                 if (item.isLive && shareErrors++ < 6) handler.postDelayed({ newLiveEpoch() }, 1000)
-                else showMessage("Lecture impossible", "Le flux partagé s'est arrêté. (${error.errorCodeName})")
+                else showMessage(getString(R.string.player_play_failed), getString(R.string.player_shared_stopped, error.errorCodeName))
                 return
             }
             if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
@@ -104,8 +104,8 @@ class PlayerActivity : AppCompatActivity() {
                 return
             }
             showMessage(
-                "Lecture impossible",
-                "La chaîne ou la vidéo est peut-être hors ligne, ou ton nombre de connexions est atteint. (${error.errorCodeName})"
+                getString(R.string.player_play_failed),
+                getString(R.string.player_offline, error.errorCodeName)
             )
         }
 
@@ -259,7 +259,7 @@ class PlayerActivity : AppCompatActivity() {
         overlayTitle.text = prefix + item.title
         overlaySub.visibility = View.GONE
         if (resumeAt > 0) {
-            overlaySub.text = "Reprise à ${resumeAt / 60000} min"
+            overlaySub.text = getString(R.string.player_resume_at, (resumeAt / 60000).toInt())
             overlaySub.visibility = View.VISIBLE
         }
         overlay.visibility = View.VISIBLE
@@ -307,7 +307,7 @@ class PlayerActivity : AppCompatActivity() {
                 if (!group.isTrackSupported(i)) continue
                 val f = group.getTrackFormat(i)
                 val name = listOfNotNull(f.label, languageName(f.language)).distinct().joinToString(" · ")
-                    .ifBlank { "Piste ${out.size + 1}" }
+                    .ifBlank { getString(R.string.player_track, out.size + 1) }
                 val selected = group.isTrackSelected(i)
                 out.add(TrackChoice((if (selected) "✓  " else "     ") + name) {
                     p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
@@ -325,19 +325,19 @@ class PlayerActivity : AppCompatActivity() {
         val subs = trackChoices(C.TRACK_TYPE_TEXT)
         val entries = mutableListOf<Pair<String, () -> Unit>>()
         val current = BTheme.imageFormatName(prefs.resizeMode)
-        entries.add("Format d'image : $current" to { pickResize() })
-        if (audio.size > 1) entries.add("Langue audio" to { pickTrack("Langue audio", audio, null) })
-        if (subs.isNotEmpty()) entries.add("Sous-titres" to {
-            pickTrack("Sous-titres", subs) {
+        entries.add(getString(R.string.player_image_format_toast, current) to { pickResize() })
+        if (audio.size > 1) entries.add(getString(R.string.player_audio) to { pickTrack(getString(R.string.player_audio), audio, null) })
+        if (subs.isNotEmpty()) entries.add(getString(R.string.player_subtitles) to {
+            pickTrack(getString(R.string.player_subtitles), subs) {
                 val p = player
                 if (p != null) p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
                     .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true).build()
             }
         })
         AlertDialog.Builder(this)
-            .setTitle("Options de lecture")
+            .setTitle(getString(R.string.player_play_options))
             .setItems(entries.map { it.first }.toTypedArray()) { _, w -> entries[w].second() }
-            .setNegativeButton("Fermer", null)
+            .setNegativeButton(getString(R.string.common_close), null)
             .show()
     }
 
@@ -345,24 +345,24 @@ class PlayerActivity : AppCompatActivity() {
         val resizeModes = BTheme.imageFormats
         val idx = resizeModes.indexOfFirst { it.first == prefs.resizeMode }.coerceAtLeast(0)
         AlertDialog.Builder(this)
-            .setTitle("Format d'image")
+            .setTitle(getString(R.string.set_image_format))
             .setSingleChoiceItems(resizeModes.map { it.second }.toTypedArray(), idx) { d, w ->
                 prefs.resizeMode = resizeModes[w].first
                 applyResizeMode()
                 d.dismiss()
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
     private fun pickTrack(title: String, choices: List<TrackChoice>, disable: (() -> Unit)?) {
-        val labels = (if (disable != null) listOf("     Désactivés") else emptyList()) + choices.map { it.label }
+        val labels = (if (disable != null) listOf(getString(R.string.player_disabled)) else emptyList()) + choices.map { it.label }
         AlertDialog.Builder(this)
             .setTitle(title)
             .setItems(labels.toTypedArray()) { _, w ->
                 if (disable != null && w == 0) disable() else choices[if (disable != null) w - 1 else w].apply()
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
@@ -416,14 +416,14 @@ class PlayerActivity : AppCompatActivity() {
         if (MultiTvHost.running) stopSharing(false)
         player?.stop()
         AlertDialog.Builder(this)
-            .setTitle("Lecture arrêtée")
-            .setMessage("« $name » regarde maintenant avec ton abonnement (1 écran à la fois).")
+            .setTitle(getString(R.string.player_stopped))
+            .setMessage(getString(R.string.player_now_watching, name))
             .setCancelable(false)
-            .setPositiveButton("Reprendre ici") { _, _ ->
+            .setPositiveButton(getString(R.string.player_resume_here)) { _, _ ->
                 val item = current
                 play(index, 0, if (item?.isLive == true) 0L else null)
             }
-            .setNegativeButton("Quitter") { _, _ -> finish() }
+            .setNegativeButton(getString(R.string.player_quit)) { _, _ -> finish() }
             .show()
     }
 
@@ -477,18 +477,18 @@ class PlayerActivity : AppCompatActivity() {
         if (!::multiTvBadge.isInitialized) return
         if (!MultiTvHost.running) {
             multiTvBadge.visibility = View.GONE
-            btnMultiTv.text = "Multi-TV"
+            btnMultiTv.text = getString(R.string.header_multitv)
             return
         }
         val n = MultiTvHost.guestCount
         val who = when (n) {
-            0 -> "en attente de l'autre TV (accueil → Multi-TV)"
-            1 -> "1 autre TV connectée"
-            else -> "$n autres TV connectées"
+            0 -> getString(R.string.player_multitv_waiting)
+            1 -> getString(R.string.player_multitv_1)
+            else -> getString(R.string.player_multitv_n, n)
         }
         multiTvBadge.text = "Multi-TV · $who · adresse ${MultiTv.localIp() ?: "?"}"
         multiTvBadge.visibility = View.VISIBLE
-        btnMultiTv.text = if (n > 0) "Multi-TV · $n" else "Multi-TV · actif"
+        btnMultiTv.text = if (n > 0) "Multi-TV · $n" else getString(R.string.player_multitv_active)
     }
 
     private fun multiTvClicked() {
@@ -567,7 +567,7 @@ class PlayerActivity : AppCompatActivity() {
         updateBadge()
         if (resume && p != null && current != null) {
             play(index, 0, if (current?.isLive == true) 0L else pos)
-            showMessage("Multi-TV", "Partage arrêté.")
+            showMessage(getString(R.string.header_multitv), "Partage arrêté.")
         }
     }
 

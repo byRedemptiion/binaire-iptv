@@ -50,7 +50,7 @@ class OrganizeActivity : BaseActivity() {
         rvKinds.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         rvKinds.adapter = kindAdapter
         rvKinds.itemAnimator = null
-        kindAdapter.submit(listOf("TV", "Films", "Séries"), kinds.indexOf(kind))
+        kindAdapter.submit(listOf("TV", getString(R.string.kind_movies), getString(R.string.kind_series)), kinds.indexOf(kind))
 
         rvCats = findViewById(R.id.rvCats)
         catAdapter = OrgAdapter()
@@ -63,13 +63,13 @@ class OrganizeActivity : BaseActivity() {
         btnReset.setTextColor(BTheme.WHITE)
         btnReset.setOnClickListener {
             AlertDialog.Builder(this)
-                .setTitle("Tout réinitialiser ?")
-                .setMessage("Les catégories ${label(kind)} retrouvent leur nom, leur ordre et sont toutes affichées.")
-                .setPositiveButton("Réinitialiser") { _, _ ->
+                .setTitle(getString(R.string.org_reset_q))
+                .setMessage(getString(R.string.org_reset_msg, label(kind)))
+                .setPositiveButton(getString(R.string.org_reset)) { _, _ ->
                     prefs.resetOrganize(kind)
                     apply(null)
                 }
-                .setNegativeButton("Annuler", null)
+                .setNegativeButton(getString(R.string.common_cancel), null)
                 .show()
         }
         load()
@@ -78,8 +78,8 @@ class OrganizeActivity : BaseActivity() {
 
     private fun label(k: Kind) = when (k) {
         Kind.LIVE -> "TV"
-        Kind.MOVIE -> "Films"
-        Kind.SERIES -> "Séries"
+        Kind.MOVIE -> getString(R.string.kind_movies)
+        Kind.SERIES -> getString(R.string.kind_series)
     }
 
     /** Catégories des pays choisis (les autres pays sont gérés dans « Pays affichés »). */
@@ -105,21 +105,21 @@ class OrganizeActivity : BaseActivity() {
     private fun actions(c: Library.CatInfo, position: Int) {
         val hiddenByAdult = c.adult && prefs.hideAdult
         val items = mutableListOf<Pair<String, () -> Unit>>()
-        items.add((if (c.hiddenByUser) "Afficher" else "Masquer") to {
+        items.add((if (c.hiddenByUser) getString(R.string.org_show) else getString(R.string.org_hide)) to {
             prefs.setCatHidden(kind, c.key, !c.hiddenByUser)
-            if (hiddenByAdult && c.hiddenByUser) toast("Catégorie adulte : désactive « Masquer les catégories adultes » pour la voir")
+            if (hiddenByAdult && c.hiddenByUser) toast(getString(R.string.org_adult_cat))
             apply(c.key)
         })
-        items.add("Renommer…" to { rename(c) })
+        items.add(getString(R.string.org_rename) to { rename(c) })
         if (position > 0) {
-            items.add("Monter" to { move(c, position - 1) })
-            items.add("Mettre en premier" to { move(c, 0) })
+            items.add(getString(R.string.org_up) to { move(c, position - 1) })
+            items.add(getString(R.string.org_first) to { move(c, 0) })
         }
-        if (position < rows.size - 1) items.add("Descendre" to { move(c, position + 1) })
+        if (position < rows.size - 1) items.add(getString(R.string.org_down) to { move(c, position + 1) })
         AlertDialog.Builder(this)
             .setTitle(c.name)
             .setItems(items.map { it.first }.toTypedArray()) { _, which -> items[which].second() }
-            .setNegativeButton("Fermer", null)
+            .setNegativeButton(getString(R.string.common_close), null)
             .show()
     }
 
@@ -135,17 +135,17 @@ class OrganizeActivity : BaseActivity() {
             addView(input)
         }
         AlertDialog.Builder(this)
-            .setTitle("Renommer la catégorie")
+            .setTitle(getString(R.string.org_rename_title))
             .setView(box)
-            .setPositiveButton("Enregistrer") { _, _ ->
+            .setPositiveButton(getString(R.string.common_save)) { _, _ ->
                 prefs.setCatRename(kind, c.key, input.text.toString())
                 apply(c.key)
             }
-            .setNeutralButton("Nom d'origine") { _, _ ->
+            .setNeutralButton(getString(R.string.org_original_name)) { _, _ ->
                 prefs.setCatRename(kind, c.key, null)
                 apply(c.key)
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
@@ -186,9 +186,9 @@ class OrganizeActivity : BaseActivity() {
             val shown = c.visible
             h.name.alpha = if (shown) 1f else 0.45f
             h.state.text = when {
-                c.hiddenByUser -> "Masquée"
-                c.adult && prefs.hideAdult -> "Adulte · masquée"
-                c.name != c.cleanName -> "Renommée"
+                c.hiddenByUser -> getString(R.string.org_hidden)
+                c.adult && prefs.hideAdult -> getString(R.string.org_adult_hidden)
+                c.name != c.cleanName -> getString(R.string.org_renamed)
                 else -> ""
             }
             h.itemView.setOnClickListener { actions(c, h.bindingAdapterPosition) }

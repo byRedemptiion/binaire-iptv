@@ -62,7 +62,7 @@ class LiveActivity : BaseActivity() {
         PlaybackGuard(this) { name ->
             stopPreview()
             previewHint.visibility = View.VISIBLE
-            previewHint.text = "Aperçu coupé : « $name » regarde avec ton abonnement"
+            previewHint.text = getString(R.string.live_preview_cut, name)
             liveBadge.visibility = View.GONE
         }
     }
@@ -97,7 +97,7 @@ class LiveActivity : BaseActivity() {
         findViewById<FrameLayout>(R.id.previewBox).foreground = BTheme.rounded(this, 14f, 0, accent, 2.5f)
 
         search.visibility = View.VISIBLE
-        search.hint = "Rechercher une chaîne"
+        search.hint = getString(R.string.live_search)
         search.background = BTheme.selector(this, 19f, BTheme.PANEL, BTheme.PANEL, accent, null, 2f)
         search.doAfterTextChanged {
             searchJob?.cancel()
@@ -163,8 +163,8 @@ class LiveActivity : BaseActivity() {
             else for (c in i.cats) counts[c] = (counts[c] ?: 0) + 1
         }
         val rows = mutableListOf(
-            CatRow(FAV, "★ Favoris", all.count(::isFav)),
-            CatRow(ALL, "Toutes", all.size)
+            CatRow(FAV, getString(R.string.live_fav), all.count(::isFav)),
+            CatRow(ALL, getString(R.string.live_all), all.size)
         )
         for (c in Session.cats(Kind.LIVE)) {
             val n = counts[c.id] ?: 0
@@ -194,8 +194,8 @@ class LiveActivity : BaseActivity() {
         if (list.isEmpty()) {
             tvEmpty.visibility = View.VISIBLE
             tvEmpty.text = if (currentCat == FAV && q.isEmpty())
-                "Aucun favori pour l'instant.\nMaintiens OK sur une chaîne pour l'ajouter."
-            else "Aucune chaîne"
+                getString(R.string.live_no_fav)
+            else getString(R.string.live_no_channel)
         } else {
             tvEmpty.visibility = View.GONE
         }
@@ -221,7 +221,7 @@ class LiveActivity : BaseActivity() {
         val now = epg.firstOrNull()
         if (now == null) {
             epgTime.text = item.name.uppercase()
-            epgTitle.text = "Pas de guide des programmes"
+            epgTitle.text = getString(R.string.live_no_epg)
             epgDesc.text = ""
             epgBar.visibility = View.INVISIBLE
             epgNext.text = ""
@@ -252,7 +252,7 @@ class LiveActivity : BaseActivity() {
                     p.prepare()
                 } else {
                     previewHint.visibility = View.VISIBLE
-                    previewHint.text = "Aperçu indisponible pour cette chaîne"
+                    previewHint.text = getString(R.string.live_preview_unavailable)
                     liveBadge.visibility = View.GONE
                 }
             }
@@ -281,7 +281,7 @@ class LiveActivity : BaseActivity() {
         previewId = item.id
         previewFallbackTried = false
         previewHint.visibility = View.VISIBLE
-        previewHint.text = "Chargement…"
+        previewHint.text = getString(R.string.common_loading)
         liveBadge.visibility = View.GONE
         p.setMediaItem(mediaItem(Session.livePlayItem(client, item, false).url))
         p.prepare()
@@ -315,7 +315,7 @@ class LiveActivity : BaseActivity() {
             prefs.removeFavorites(item.allIds); false
         } else prefs.toggleFavorite(item.id)
         favorites = prefs.favorites()
-        toast(if (added) "★ ${item.name} ajoutée aux favoris" else "${item.name} retirée des favoris")
+        toast(if (added) getString(R.string.live_fav_added, item.name) else getString(R.string.live_fav_removed, item.name))
         buildCategories()
         if (currentCat == FAV) showChannels()
         else channelAdapter.indexOf(item.id).takeIf { it >= 0 }?.let { channelAdapter.notifyItemChanged(it) }

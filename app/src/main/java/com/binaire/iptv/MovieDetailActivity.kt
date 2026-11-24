@@ -63,7 +63,7 @@ class MovieDetailActivity : BaseActivity() {
         btnRestart.setOnClickListener { play(fromStart = true) }
         btnList.setOnClickListener {
             val added = watch.toggleMyList(Kind.MOVIE, item.id)
-            toast(if (added) "Ajouté à ta liste" else "Retiré de ta liste")
+            toast(if (added) getString(R.string.detail_added_list) else getString(R.string.detail_removed_list))
             updateButtons()
         }
         updateButtons()
@@ -99,13 +99,13 @@ class MovieDetailActivity : BaseActivity() {
     private fun updateButtons() {
         val r = watch.resume(key)
         if (r != null && r.progress in 0.01f..0.95f) {
-            btnPlay.text = "Reprendre · reste ${r.remainingMin} min"
+            btnPlay.text = getString(R.string.detail_resume_remaining, r.remainingMin)
             btnRestart.visibility = View.VISIBLE
         } else {
-            btnPlay.text = "Lecture"
+            btnPlay.text = getString(R.string.detail_play)
             btnRestart.visibility = View.GONE
         }
-        btnList.text = if (watch.inMyList(Kind.MOVIE, item.id)) "✓ Dans ma liste" else "+ Ma liste"
+        btnList.text = if (watch.inMyList(Kind.MOVIE, item.id)) getString(R.string.detail_in_list) else "+ Ma liste"
     }
 
     private fun play(fromStart: Boolean) {

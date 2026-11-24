@@ -97,7 +97,7 @@ class GuestPlayerActivity : AppCompatActivity() {
             val size = (16 * resources.displayMetrics.density).toInt()
             compoundDrawablesRelative[0]?.setBounds(0, 0, size, size)
             setCompoundDrawablesRelative(compoundDrawablesRelative[0], null, null, null)
-            text = "Multi-TV · avec $hostName"
+            text = getString(R.string.guest_multitv_with, hostName)
             visibility = View.VISIBLE
         }
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -105,7 +105,7 @@ class GuestPlayerActivity : AppCompatActivity() {
             it.hide(WindowInsetsCompat.Type.systemBars())
             it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-        message("Multi-TV", "Connexion à $hostName…", 0)
+        message(getString(R.string.header_multitv), getString(R.string.guest_connecting, hostName), 0)
     }
 
     override fun onStart() {
@@ -156,7 +156,7 @@ class GuestPlayerActivity : AppCompatActivity() {
         p.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
                 // On redemande le flux là où en est la TV principale.
-                message("Multi-TV", "Petite coupure, on se recale…", 3000)
+                message(getString(R.string.header_multitv), getString(R.string.guest_small_cut), 3000)
                 main.postDelayed({ reloadAtHost() }, 800)
             }
         })
@@ -187,7 +187,7 @@ class GuestPlayerActivity : AppCompatActivity() {
         p.setPlaybackParameters(PlaybackParameters.DEFAULT)
         p.playWhenReady = o.optBoolean("pwr", true)
         p.prepare()
-        message(o.optString("title"), "En direct avec $hostName", 4500)
+        message(o.optString("title"), getString(R.string.guest_live_with, hostName), 4500)
     }
 
     private fun reloadAtHost() {
@@ -268,9 +268,9 @@ class GuestPlayerActivity : AppCompatActivity() {
                     val msg = runCatching { JSONObject(line) }.getOrNull() ?: continue
                     main.post { onMessage(msg) }
                 }
-                main.post { lost("La TV principale ne répond plus.") }
+                main.post { lost(getString(R.string.guest_host_not_responding)) }
             } catch (e: Exception) {
-                main.post { lost("Impossible de joindre $hostName ($host). Vérifie qu'elle partage toujours et que les deux TV sont sur le même Wi-Fi.") }
+                main.post { lost(getString(R.string.guest_cant_reach, hostName, host)) }
             }
         }.start()
     }
@@ -279,7 +279,7 @@ class GuestPlayerActivity : AppCompatActivity() {
         when (o.optString("t")) {
             "hello" -> o.optString("name").takeIf { it.isNotBlank() }?.let {
                 hostName = it
-                findViewById<TextView>(R.id.multiTvBadge).text = "Multi-TV · avec $hostName"
+                findViewById<TextView>(R.id.multiTvBadge).text = getString(R.string.guest_multitv_with, hostName)
             }
             "pong" -> {
                 val now = SystemClock.elapsedRealtime()
@@ -299,7 +299,7 @@ class GuestPlayerActivity : AppCompatActivity() {
                 hostAt = o.optLong("h")
                 hasState = true
             }
-            "end" -> lost("$hostName a arrêté le partage.")
+            "end" -> lost(getString(R.string.guest_host_stopped, hostName))
         }
     }
 
@@ -332,7 +332,7 @@ class GuestPlayerActivity : AppCompatActivity() {
     private fun lost(why: String) {
         if (closing || isFinishing) return
         exo?.pause()
-        message("Multi-TV terminé", why, 0)
+        message(getString(R.string.guest_multitv_ended), why, 0)
         main.postDelayed({ if (!isFinishing) finish() }, 4000)
     }
 

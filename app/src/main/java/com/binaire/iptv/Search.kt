@@ -82,9 +82,9 @@ class SuggestController(
     private val adapter = SuggestAdapter()
 
     private val noun = when (kind) {
-        Kind.LIVE -> "chaîne"
+        Kind.LIVE -> edit.context.getString(R.string.search_channel_word)
         Kind.MOVIE -> "film"
-        Kind.SERIES -> "série"
+        Kind.SERIES -> edit.context.getString(R.string.search_series_word)
     }
 
     private val update = Runnable { compute() }
@@ -143,8 +143,8 @@ class SuggestController(
             .take(8)
             .map { it.first }
             .toList()
-        val none = if (kind == Kind.MOVIE) "Aucun film" else "Aucune $noun"
-        title.text = if (results.isEmpty()) "$none « $raw » dans ton abonnement" else "Suggestions"
+        val none = if (kind == Kind.MOVIE) title.context.getString(R.string.search_no_movie) else title.context.getString(R.string.search_no_noun, noun)
+        title.text = if (results.isEmpty()) title.context.getString(R.string.search_none_in, none, raw) else title.context.getString(R.string.search_suggestions)
         adapter.submit(results)
         box.visibility = View.VISIBLE
     }
@@ -175,9 +175,9 @@ class SuggestController(
             val item = rows[position]
             h.name.text = item.name
             val type = when (kind) {
-                Kind.LIVE -> "Chaîne"
-                Kind.MOVIE -> "Film"
-                Kind.SERIES -> "Série"
+                Kind.LIVE -> h.name.context.getString(R.string.search_channel)
+                Kind.MOVIE -> h.name.context.getString(R.string.search_movie)
+                Kind.SERIES -> h.name.context.getString(R.string.search_series)
             }
             h.sub.text = listOfNotNull(type, item.year, item.quality, item.rating?.let { "★ " + formatRating(it) }).joinToString(" · ")
             h.image.load(item.icon) {
