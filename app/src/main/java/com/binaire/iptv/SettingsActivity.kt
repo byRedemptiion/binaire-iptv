@@ -270,8 +270,8 @@ class SettingsActivity : BaseActivity() {
     private var cachedSubs: List<Cloud.Sub>? = null
 
     // Langues proposées : code BCP-47 ("" = langue de l'appareil) et nom affiché (non traduit).
-    private val langTags = listOf("", "fr", "de", "es", "it")
-    private fun langNames() = listOf(getString(R.string.lang_system), "Français", "Deutsch", "Español", "Italiano")
+    private val langTags = listOf("", "fr", "en", "de", "es", "it")
+    private fun langNames() = listOf(getString(R.string.lang_system), "Français", "English", "Deutsch", "Español", "Italiano")
 
     private fun currentLanguageName(): String {
         val tag = AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore('-').lowercase()
