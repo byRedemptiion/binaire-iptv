@@ -42,15 +42,15 @@ class SettingsActivity : BaseActivity() {
     )
 
     private val sections = listOf(
-        Section("Apparence", R.drawable.ic_sec_look, "Apparence", "Les couleurs et le style de l'appli."),
-        Section("Profils", R.drawable.ic_sec_account, "Profils", "Chaque membre de la famille a ses favoris et sa liste rangée."),
-        Section("Compte Binaire", R.drawable.ic_sec_account, "Compte Binaire", "Tes abonnements et profils sur tous tes appareils."),
-        Section("Chaînes & catégories", R.drawable.ic_sec_list, "Chaînes & catégories", "Remettre en ordre la liste de ton fournisseur."),
-        Section("Lecture", R.drawable.ic_sec_play, "Lecture", "Comment les chaînes, films et séries se lancent."),
-        Section("Multi-TV", R.drawable.ic_tile_tv, "Multi-TV", "La même image sur deux TV, avec une seule connexion à ton abonnement."),
-        Section("Abonnement", R.drawable.ic_sec_info, "Abonnement", "Ton abonnement IPTV sur cet appareil."),
-        Section("Mises à jour", R.drawable.ic_sec_update, "Mises à jour", "Garder Binaire IPTV à jour."),
-        Section("À propos", R.drawable.ic_sec_info, "À propos", "Binaire IPTV · Simple. Numérique. Intuitif.")
+        Section("Apparence", R.drawable.ic_sec_look, getString(R.string.set_sec_look), getString(R.string.set_sec_look_sub)),
+        Section("Profils", R.drawable.ic_sec_account, getString(R.string.set_sec_profiles), getString(R.string.set_sec_profiles_sub)),
+        Section("Compte Binaire", R.drawable.ic_sec_account, getString(R.string.set_sec_account), getString(R.string.set_sec_account_sub)),
+        Section("Chaînes & catégories", R.drawable.ic_sec_list, getString(R.string.set_sec_channels), getString(R.string.set_sec_channels_sub)),
+        Section("Lecture", R.drawable.ic_sec_play, getString(R.string.set_sec_play), getString(R.string.set_sec_play_sub)),
+        Section("Multi-TV", R.drawable.ic_tile_tv, getString(R.string.set_sec_multitv), getString(R.string.set_sec_multitv_sub)),
+        Section("Abonnement", R.drawable.ic_sec_info, getString(R.string.set_sec_sub), getString(R.string.set_sec_sub_sub)),
+        Section("Mises à jour", R.drawable.ic_sec_update, getString(R.string.set_sec_updates), getString(R.string.set_sec_updates_sub)),
+        Section("À propos", R.drawable.ic_sec_info, getString(R.string.set_sec_about), getString(R.string.set_sec_about_sub))
     )
 
     private var current = 0
@@ -65,7 +65,7 @@ class SettingsActivity : BaseActivity() {
         current = savedInstanceState?.getInt("section") ?: 0
         setContentView(R.layout.activity_settings)
         applyBackground(findViewById(R.id.root))
-        setupHeader("RÉGLAGES")
+        setupHeader(getString(R.string.home_settings))
         secTitle = findViewById(R.id.secTitle)
         secSub = findViewById(R.id.secSub)
 
@@ -123,26 +123,26 @@ class SettingsActivity : BaseActivity() {
             if (Cloud.isLinked(this)) {
                 val subs = cachedSubs
                 listOf(
-                    SettingRow("Compte", "Cet appareil est connecté à ton compte Binaire", Cloud.ownerEmail(this) ?: "Connecté"),
+                    SettingRow(getString(R.string.set_account_row), getString(R.string.set_account_row_sub), Cloud.ownerEmail(this) ?: getString(R.string.set_account_connected)),
                     SettingRow(
-                        "Abonnement utilisé", "Choisis parmi les abonnements de ton compte",
+                        getString(R.string.set_sub_used), getString(R.string.set_sub_used_sub),
                         subs?.firstOrNull { it.id == Cloud.subId(this) }?.name ?: if (subs == null) "…" else "—"
                     ) { pickSub() },
-                    SettingRow("Synchroniser maintenant", "Profils, favoris, reprises de lecture", "") { syncNow() },
-                    SettingRow("Gérer mon compte", "Abonnements et appareils, depuis ton téléphone", Cloud.WEB_URL.removePrefix("https://")),
-                    SettingRow("Déconnecter cet appareil", "Il garde son abonnement actuel mais ne se synchronise plus", "") { unlinkDevice() }
+                    SettingRow(getString(R.string.set_sync_now), getString(R.string.set_sync_now_sub), "") { syncNow() },
+                    SettingRow(getString(R.string.set_manage_account), getString(R.string.set_manage_account_sub), Cloud.WEB_URL.removePrefix("https://")),
+                    SettingRow(getString(R.string.set_disconnect), getString(R.string.set_disconnect_sub), "") { unlinkDevice() }
                 )
             } else listOf(
                 SettingRow(
-                    "Connecter cet appareil", "Avec un QR code : plus rien à taper, tes profils et abonnements te suivent partout", ""
+                    getString(R.string.set_connect_device), getString(R.string.set_connect_device_sub), ""
                 ) { startActivity(Intent(this, ActivateActivity::class.java)) }
             )
         }
         "Apparence" -> listOf(
             SettingRow(getString(R.string.lang_setting_title), getString(R.string.lang_setting_sub), currentLanguageName()) { pickLanguage() },
-            SettingRow("Couleur principale", "Sélection, boutons et logo texte", BTheme.accentName(this), swatch = accent) { pickAccent() },
-            SettingRow("Fond d'écran", "Thème Binaire, Aurore, Noir ou image floutée", BTheme.backgroundName(this)) { pickBackground() },
-            SettingRow("Afficher l'heure", "En haut de chaque écran", switchOn = prefs.showClock) {
+            SettingRow(getString(R.string.set_accent), getString(R.string.set_accent_sub), BTheme.accentName(this), swatch = accent) { pickAccent() },
+            SettingRow(getString(R.string.set_background), getString(R.string.set_background_sub), BTheme.backgroundName(this)) { pickBackground() },
+            SettingRow(getString(R.string.set_clock), getString(R.string.set_clock_sub), switchOn = prefs.showClock) {
                 prefs.showClock = !prefs.showClock
                 recreate()
             }
@@ -151,20 +151,20 @@ class SettingsActivity : BaseActivity() {
             val p = Profiles.current(this)
             val n = Profiles.all(this).size
             listOf(
-                SettingRow("Profil actuel", "Changer de profil", p.name) {
+                SettingRow(getString(R.string.profiles_current), getString(R.string.set_current_profile_sub), p.name) {
                     startActivity(Intent(this, ProfilesActivity::class.java))
                 },
-                SettingRow("Gérer les profils", "Ajouter, renommer, changer la couleur, profil Enfant, codes",
-                    "$n profil" + if (n > 1) "s" else "") {
+                SettingRow(getString(R.string.profiles_manage_title), getString(R.string.set_manage_profiles_sub),
+                    if (n > 1) getString(R.string.set_profile_count_plural, n) else getString(R.string.set_profile_count, n)) {
                     startActivity(Intent(this, ProfilesActivity::class.java).putExtra(ProfilesActivity.EXTRA_MANAGE, true))
                 },
-                SettingRow("Demander « Qui regarde ? » au démarrage", "Quand il y a plusieurs profils",
+                SettingRow(getString(R.string.set_ask_who), getString(R.string.set_ask_who_sub),
                     switchOn = Profiles.askOnStart(this)) {
                     Profiles.setAskOnStart(this, !Profiles.askOnStart(this)); refreshRows()
                 },
-                SettingRow("Code parental", "Protège les Réglages des profils Enfant",
-                    if (Profiles.parentalPin(this) != null) "Défini" else "Aucun") { parentalCode() },
-                SettingRow("Notifier les nouveaux épisodes", "Une alerte quand une série suivie (Ma liste) sort un épisode",
+                SettingRow("Code parental", getString(R.string.set_parental_sub),
+                    if (Profiles.parentalPin(this) != null) getString(R.string.set_defined) else getString(R.string.set_none)) { parentalCode() },
+                SettingRow(getString(R.string.set_notify_episodes), getString(R.string.set_notify_episodes_sub),
                     switchOn = SeriesNotifier.enabled(this)) {
                     SeriesNotifier.setEnabled(this, !SeriesNotifier.enabled(this)); refreshRows()
                 }
@@ -173,61 +173,61 @@ class SettingsActivity : BaseActivity() {
         "Chaînes & catégories" -> {
             val countries = prefs.allowedCountries
             val countriesLabel = when {
-                countries.isEmpty() -> "Tous"
+                countries.isEmpty() -> getString(R.string.set_all)
                 countries.size <= 2 -> countries.joinToString(", ") { Library.countryName(it) }
-                else -> "${countries.size} pays"
+                else -> getString(R.string.set_countries_count, countries.size)
             }
             listOf(
-                SettingRow("Pays affichés", "Les catégories des autres pays sont masquées", countriesLabel) {
+                SettingRow(getString(R.string.set_countries), getString(R.string.set_countries_sub), countriesLabel) {
                     startActivity(Intent(this, CountriesActivity::class.java))
                 },
-                SettingRow("Organiser les catégories TV", "Masquer, renommer, réordonner", "") { organize(Kind.LIVE) },
-                SettingRow("Organiser les catégories Films", "Masquer, renommer, réordonner", "") { organize(Kind.MOVIE) },
-                SettingRow("Organiser les catégories Séries", "Masquer, renommer, réordonner", "") { organize(Kind.SERIES) },
-                SettingRow("Nettoyer les noms", "« FR | CHAÎNE UNE FHD ✦ VIP » devient « CHAÎNE UNE »", switchOn = prefs.cleanNames) {
+                SettingRow(getString(R.string.set_organize_tv), getString(R.string.set_organize_sub), "") { organize(Kind.LIVE) },
+                SettingRow(getString(R.string.set_organize_movies), getString(R.string.set_organize_sub), "") { organize(Kind.MOVIE) },
+                SettingRow(getString(R.string.set_organize_series), getString(R.string.set_organize_sub), "") { organize(Kind.SERIES) },
+                SettingRow(getString(R.string.set_clean_names), getString(R.string.set_clean_names_sub), switchOn = prefs.cleanNames) {
                     prefs.cleanNames = !prefs.cleanNames; rebuildLists()
                 },
-                SettingRow("Regrouper les doublons", "Une seule ligne par chaîne, les autres versions servent de secours", switchOn = prefs.mergeDuplicates) {
+                SettingRow(getString(R.string.set_merge), getString(R.string.set_merge_sub), switchOn = prefs.mergeDuplicates) {
                     prefs.mergeDuplicates = !prefs.mergeDuplicates; rebuildLists()
                 },
-                SettingRow("Masquer les catégories adultes", "Détectées automatiquement", switchOn = prefs.hideAdult) {
+                SettingRow(getString(R.string.set_hide_adult), getString(R.string.set_hide_adult_sub), switchOn = prefs.hideAdult) {
                     prefs.hideAdult = !prefs.hideAdult; rebuildLists()
                 }
             )
         }
         "Multi-TV" -> listOf(
-            SettingRow("Rejoindre une TV", "Afficher ici ce que regarde une autre TV de la maison", "") { joinMultiTv() },
+            SettingRow(getString(R.string.set_join_tv), getString(R.string.set_join_tv_sub), "") { joinMultiTv() },
             SettingRow(
-                "Partager depuis cette TV",
-                "Lance une chaîne ou un film, puis Options (ou touche Menu) → Multi-TV", ""
+                getString(R.string.set_share_tv),
+                getString(R.string.set_share_tv_sub), ""
             ),
-            SettingRow("Adresse de cette TV", "Sur le réseau de la maison", MultiTv.localIp() ?: "Pas de Wi-Fi")
+            SettingRow(getString(R.string.set_tv_address), getString(R.string.set_tv_address_sub), MultiTv.localIp() ?: getString(R.string.set_no_wifi))
         )
         "Lecture" -> listOf(
             SettingRow(
-                "Qualité préférée", "Pour les chaînes disponibles en plusieurs qualités",
-                Library.qualityChoices.firstOrNull { it.first == prefs.preferredQuality }?.second ?: "Automatique"
+                getString(R.string.set_quality), getString(R.string.set_quality_sub),
+                Library.qualityChoices.firstOrNull { it.first == prefs.preferredQuality }?.second ?: getString(R.string.set_auto)
             ) { pickQuality() },
             SettingRow(
-                "Format d'image", "Aussi modifiable pendant la lecture (bouton Options ou touche Menu)",
+                getString(R.string.set_image_format), getString(R.string.set_image_format_sub),
                 BTheme.imageFormatName(prefs.resizeMode)
             ) {
                 val keys = BTheme.imageFormats.map { it.first }
                 prefs.resizeMode = keys[(keys.indexOf(prefs.resizeMode) + 1) % keys.size]
                 refreshRows()
             },
-            SettingRow("Aperçu des chaînes", "Lance la chaîne en petit dans l'écran TV", switchOn = prefs.livePreview) {
+            SettingRow(getString(R.string.set_preview), getString(R.string.set_preview_sub), switchOn = prefs.livePreview) {
                 prefs.livePreview = !prefs.livePreview; refreshRows()
             },
-            SettingRow("Basculer si ça coupe", "Essaie automatiquement l'autre format de flux", switchOn = prefs.autoFallback) {
+            SettingRow(getString(R.string.set_fallback), getString(R.string.set_fallback_sub), switchOn = prefs.autoFallback) {
                 prefs.autoFallback = !prefs.autoFallback; refreshRows()
             },
-            SettingRow("Épisode suivant automatique", "À la fin d'un épisode de série", switchOn = prefs.autoNext) {
+            SettingRow(getString(R.string.set_autonext), getString(R.string.set_autonext_sub), switchOn = prefs.autoNext) {
                 prefs.autoNext = !prefs.autoNext; refreshRows()
             },
             SettingRow(
-                "Mémoire tampon", "Plus grande = moins de coupures, démarrage un peu plus lent",
-                if (prefs.largeBuffer) "Grande" else "Normale"
+                getString(R.string.set_buffer), getString(R.string.set_buffer_sub),
+                if (prefs.largeBuffer) getString(R.string.set_buffer_large) else getString(R.string.set_buffer_normal)
             ) { prefs.largeBuffer = !prefs.largeBuffer; refreshRows() }
         )
         "Abonnement" -> {
@@ -235,34 +235,34 @@ class SettingsActivity : BaseActivity() {
             val exp = acc?.expDate?.takeIf { it > 0 }?.let { SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(it * 1000)) }
             listOf(
                 when {
-                    XtreamClient.isM3u(prefs.server) -> SettingRow("Type", "Liste de liens", "Lien M3U · " + (Uri.parse(prefs.server.orEmpty().removePrefix(XtreamClient.M3U_PREFIX)).host ?: ""))
-                    StalkerClient.isStalker(prefs.server) -> SettingRow("Type", "Portail MAG/Stalker", "Portail · " + (Uri.parse(prefs.server.orEmpty().removePrefix(StalkerClient.STALKER_PREFIX)).host ?: ""))
-                    else -> SettingRow("Serveur", "Adresse de ton fournisseur", Uri.parse(prefs.server.orEmpty()).host ?: prefs.server.orEmpty())
+                    XtreamClient.isM3u(prefs.server) -> SettingRow(getString(R.string.set_type), getString(R.string.set_type_m3u), "Lien M3U · " + (Uri.parse(prefs.server.orEmpty().removePrefix(XtreamClient.M3U_PREFIX)).host ?: ""))
+                    StalkerClient.isStalker(prefs.server) -> SettingRow(getString(R.string.set_type), getString(R.string.set_type_stalker), "Portail · " + (Uri.parse(prefs.server.orEmpty().removePrefix(StalkerClient.STALKER_PREFIX)).host ?: ""))
+                    else -> SettingRow(getString(R.string.set_server), getString(R.string.set_server_sub), Uri.parse(prefs.server.orEmpty()).host ?: prefs.server.orEmpty())
                 },
-                SettingRow("Statut", "Selon ton fournisseur", acc?.status?.let { statusFr(it).replaceFirstChar(Char::uppercase) } ?: "—"),
-                SettingRow("Expiration", "Date de fin de ton abonnement", exp ?: "Sans date"),
-                SettingRow("Connexions simultanées", "Nombre d'écrans en même temps", acc?.maxConnections ?: "—"),
-                SettingRow("Actualiser les listes", "Recharge les chaînes, films et séries", "Maintenant") {
+                SettingRow(getString(R.string.set_status), getString(R.string.set_status_sub), acc?.status?.let { statusFr(it).replaceFirstChar(Char::uppercase) } ?: "—"),
+                SettingRow(getString(R.string.set_expiry), getString(R.string.set_expiry_sub), exp ?: getString(R.string.set_no_date)),
+                SettingRow(getString(R.string.set_max_conn), getString(R.string.set_max_conn_sub), acc?.maxConnections ?: "—"),
+                SettingRow(getString(R.string.set_refresh), getString(R.string.set_refresh_sub), getString(R.string.set_now)) {
                     Session.ready = false
                     EpgCache.clear()
                     startActivity(Intent(this, SplashActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
                     finish()
                 },
-                SettingRow("Changer d'abonnement", "Se déconnecter de cet appareil (favoris et reprises conservés)", "") { confirmLogout() }
+                SettingRow(getString(R.string.splash_change_sub), getString(R.string.set_change_sub_desc), "") { confirmLogout() }
             )
         }
         "Mises à jour" -> listOf(
-            SettingRow("Version installée", if (Updater.enabled) "Vérifiée à chaque ouverture de l'appli" else "Mises à jour automatiques non configurées pour cette version", BuildConfig.VERSION_NAME),
-            SettingRow("Vérifier maintenant", "Cherche une nouvelle version", "") { checkUpdate() }
+            SettingRow(getString(R.string.set_version), if (Updater.enabled) getString(R.string.set_version_checked) else getString(R.string.set_version_manual), BuildConfig.VERSION_NAME),
+            SettingRow(getString(R.string.set_check_now), getString(R.string.set_check_now_sub), "") { checkUpdate() }
         )
         else -> listOf(
-            SettingRow("Binaire IPTV", "Lecteur pour abonnements Xtream Codes. L'appli ne fournit aucune chaîne.", BuildConfig.VERSION_NAME),
-            SettingRow("Vider le cache des images", "Logos, affiches et images de fond enregistrés", "") {
+            SettingRow("Binaire IPTV", getString(R.string.set_about_app_sub), BuildConfig.VERSION_NAME),
+            SettingRow(getString(R.string.set_clear_cache), getString(R.string.set_clear_cache_sub), "") {
                 imageLoader.memoryCache?.clear()
                 EpgCache.clear()
-                toast("Cache vidé")
+                toast(getString(R.string.set_cache_cleared))
             },
-            SettingRow("Police Outfit", "SIL Open Font License 1.1", "Voir") { showLicense() }
+            SettingRow(getString(R.string.set_font), getString(R.string.set_font_sub), getString(R.string.set_see)) { showLicense() }
         )
     }
 
@@ -309,11 +309,11 @@ class SettingsActivity : BaseActivity() {
     private fun pickSub() {
         val subs = cachedSubs ?: return
         if (subs.isEmpty()) {
-            toast("Ajoute un abonnement depuis ton téléphone : ${Cloud.WEB_URL.removePrefix("https://")}")
+            toast(getString(R.string.set_add_sub_phone, Cloud.WEB_URL.removePrefix("https://")))
             return
         }
         AlertDialog.Builder(this)
-            .setTitle("Abonnement utilisé")
+            .setTitle(getString(R.string.set_sub_used))
             .setSingleChoiceItems(subs.map { it.name }.toTypedArray(), subs.indexOfFirst { it.id == Cloud.subId(this) }) { d, w ->
                 d.dismiss()
                 val s = subs[w]
@@ -324,33 +324,33 @@ class SettingsActivity : BaseActivity() {
                 startActivity(Intent(this, SplashActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
                 finish()
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
     private fun syncNow() {
-        toast("Synchronisation…")
+        toast(getString(R.string.set_syncing))
         lifecycleScope.launch {
             val r = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { runCatching { Sync.pull(this@SettingsActivity) } }
             if (r.isSuccess) {
-                toast("Compte synchronisé")
+                toast(getString(R.string.set_synced))
                 rebuildWithProgress { recreate() }
-            } else toast("Synchronisation impossible : ${r.exceptionOrNull()?.message}")
+            } else toast(getString(R.string.set_sync_failed, r.exceptionOrNull()?.message ?: ""))
         }
     }
 
     private fun unlinkDevice() {
         AlertDialog.Builder(this)
-            .setTitle("Déconnecter cet appareil ?")
-            .setMessage("Il garde son abonnement et ses profils actuels, mais ne se synchronise plus avec ton compte Binaire.")
-            .setPositiveButton("Déconnecter") { _, _ ->
+            .setTitle(getString(R.string.set_disconnect_q))
+            .setMessage(getString(R.string.set_disconnect_msg))
+            .setPositiveButton(getString(R.string.set_disconnect_btn)) { _, _ ->
                 lifecycleScope.launch {
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { Cloud.unlink(this@SettingsActivity) }
-                    toast("Appareil déconnecté")
+                    toast(getString(R.string.set_device_disconnected))
                     refreshRows()
                 }
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
@@ -358,17 +358,17 @@ class SettingsActivity : BaseActivity() {
     private fun parentalCode() {
         val current = Profiles.parentalPin(this)
         if (current == null) {
-            newPin("Code parental") { Profiles.setParentalPin(this, it); refreshRows(); toast("Code parental enregistré") }
+            newPin(getString(R.string.profiles_parental_code)) { Profiles.setParentalPin(this, it); refreshRows(); toast(getString(R.string.set_parental_saved)) }
             return
         }
-        askPin("Code parental actuel", current) {
+        askPin(getString(R.string.set_parental_current), current) {
             AlertDialog.Builder(this)
-                .setTitle("Code parental")
-                .setItems(arrayOf("Changer le code", "Retirer le code")) { _, w ->
-                    if (w == 0) newPin("Nouveau code parental") { Profiles.setParentalPin(this, it); refreshRows(); toast("Code changé") }
-                    else { Profiles.setParentalPin(this, null); refreshRows(); toast("Code parental retiré") }
+                .setTitle(getString(R.string.profiles_parental_code))
+                .setItems(arrayOf(getString(R.string.set_change_code), getString(R.string.set_remove_code))) { _, w ->
+                    if (w == 0) newPin(getString(R.string.set_new_parental)) { Profiles.setParentalPin(this, it); refreshRows(); toast(getString(R.string.set_code_changed)) }
+                    else { Profiles.setParentalPin(this, null); refreshRows(); toast(getString(R.string.set_parental_removed)) }
                 }
-                .setNegativeButton("Annuler", null)
+                .setNegativeButton(getString(R.string.common_cancel), null)
                 .show()
         }
     }
@@ -380,20 +380,20 @@ class SettingsActivity : BaseActivity() {
     /** Applique un réglage de rangement : reconstruit les listes puis rafraîchit l'écran. */
     private fun rebuildLists() {
         refreshRows()
-        rebuildWithProgress { toast("Liste mise à jour") }
+        rebuildWithProgress { toast(getString(R.string.set_list_updated)) }
     }
 
     private fun pickQuality() {
         val ids = Library.qualityChoices.map { it.first }
         val labels = Library.qualityChoices.map { it.second }.toTypedArray<CharSequence>()
         AlertDialog.Builder(this)
-            .setTitle("Qualité préférée")
+            .setTitle(getString(R.string.set_quality))
             .setSingleChoiceItems(labels, ids.indexOf(prefs.preferredQuality).coerceAtLeast(0)) { d, which ->
                 prefs.preferredQuality = ids[which]
                 d.dismiss()
                 rebuildLists()
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
@@ -402,13 +402,13 @@ class SettingsActivity : BaseActivity() {
             SpannableString("●   $name").apply { setSpan(ForegroundColorSpan(color), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
         }.toTypedArray<CharSequence>()
         AlertDialog.Builder(this)
-            .setTitle("Couleur principale")
+            .setTitle(getString(R.string.set_accent))
             .setSingleChoiceItems(labels, prefs.accentIndex) { d, which ->
                 prefs.accentIndex = which
                 d.dismiss()
                 recreate()
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
@@ -416,28 +416,28 @@ class SettingsActivity : BaseActivity() {
         val ids = BTheme.backgrounds.map { it.first }
         val labels = BTheme.backgrounds.map { it.second }.toTypedArray<CharSequence>()
         AlertDialog.Builder(this)
-            .setTitle("Fond d'écran")
+            .setTitle(getString(R.string.set_background))
             .setSingleChoiceItems(labels, ids.indexOf(prefs.background).coerceAtLeast(0)) { d, which ->
                 prefs.background = ids[which]
                 d.dismiss()
                 recreate()
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
     private fun checkUpdate() {
         if (!Updater.enabled) {
-            toast("Les mises à jour ne sont pas configurées pour cette version")
+            toast(getString(R.string.set_updates_not_configured))
             return
         }
-        toast("Recherche d'une mise à jour…")
+        toast(getString(R.string.set_searching_update))
         lifecycleScope.launch {
             val r = runCatching { Updater.check() }
             val release = r.getOrNull()
             when {
-                r.isFailure -> toast("Impossible de vérifier pour le moment")
-                release == null -> toast("Tu as déjà la dernière version (${BuildConfig.VERSION_NAME})")
+                r.isFailure -> toast(getString(R.string.set_check_failed))
+                release == null -> toast(getString(R.string.set_already_latest, BuildConfig.VERSION_NAME))
                 else -> Updater.offer(this@SettingsActivity, lifecycleScope, release)
             }
         }
@@ -445,23 +445,23 @@ class SettingsActivity : BaseActivity() {
 
     private fun confirmLogout() {
         AlertDialog.Builder(this)
-            .setTitle("Changer d'abonnement")
-            .setMessage("Se déconnecter de cet abonnement sur cet appareil ?")
-            .setPositiveButton("Oui") { _, _ ->
+            .setTitle(getString(R.string.splash_change_sub))
+            .setMessage(getString(R.string.set_change_sub_q))
+            .setPositiveButton(getString(R.string.set_yes)) { _, _ ->
                 prefs.clearLogin()
                 Session.clear()
                 EpgCache.clear()
                 startActivity(Intent(this, LoginActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
                 finish()
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.common_cancel), null)
             .show()
     }
 
     private fun showLicense() {
         val text = runCatching { assets.open("OFL-Outfit.txt").bufferedReader().use { it.readText() } }.getOrDefault("")
         AlertDialog.Builder(this)
-            .setTitle("Police Outfit")
+            .setTitle(getString(R.string.set_font))
             .setMessage(text)
             .setPositiveButton("OK", null)
             .show()
@@ -489,7 +489,7 @@ class SettingsActivity : BaseActivity() {
             val s = sections[position]
             h.icon.setImageResource(s.icon)
             h.icon.imageTintList = ColorStateList.valueOf(BTheme.WHITE)
-            h.label.text = s.label
+            h.label.text = s.title
             h.itemView.isSelected = position == current
             h.itemView.setOnFocusChangeListener { _, has -> if (has && current != position) showSection(position) }
             h.itemView.setOnClickListener { showSection(position) }

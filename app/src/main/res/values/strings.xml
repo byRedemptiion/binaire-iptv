@@ -131,4 +131,158 @@
     <string name="avatar_pick_title">Choisir un avatar</string>
     <string name="avatar_pick_hint">OK pour choisir · la première vignette garde l\'initiale</string>
     <string name="avatar_for">Avatar de « %1$s »</string>
+
+    <!-- Réglages : sections -->
+    <string name="set_sec_look">Apparence</string>
+    <string name="set_sec_look_sub">Les couleurs et le style de l\'appli.</string>
+    <string name="set_sec_profiles">Profils</string>
+    <string name="set_sec_profiles_sub">Chaque membre de la famille a ses favoris et sa liste rangée.</string>
+    <string name="set_sec_account">Compte Binaire</string>
+    <string name="set_sec_account_sub">Tes abonnements et profils sur tous tes appareils.</string>
+    <string name="set_sec_channels">Chaînes &amp; catégories</string>
+    <string name="set_sec_channels_sub">Remettre en ordre la liste de ton fournisseur.</string>
+    <string name="set_sec_play">Lecture</string>
+    <string name="set_sec_play_sub">Comment les chaînes, films et séries se lancent.</string>
+    <string name="set_sec_multitv">Multi-TV</string>
+    <string name="set_sec_multitv_sub">La même image sur deux TV, avec une seule connexion à ton abonnement.</string>
+    <string name="set_sec_sub">Abonnement</string>
+    <string name="set_sec_sub_sub">Ton abonnement IPTV sur cet appareil.</string>
+    <string name="set_sec_updates">Mises à jour</string>
+    <string name="set_sec_updates_sub">Garder Binaire IPTV à jour.</string>
+    <string name="set_sec_about">À propos</string>
+    <string name="set_sec_about_sub">Binaire IPTV · Simple. Numérique. Intuitif.</string>
+
+    <!-- Réglages : Compte Binaire -->
+    <string name="set_account_row">Compte</string>
+    <string name="set_account_row_sub">Cet appareil est connecté à ton compte Binaire</string>
+    <string name="set_account_connected">Connecté</string>
+    <string name="set_sub_used">Abonnement utilisé</string>
+    <string name="set_sub_used_sub">Choisis parmi les abonnements de ton compte</string>
+    <string name="set_sync_now">Synchroniser maintenant</string>
+    <string name="set_sync_now_sub">Profils, favoris, reprises de lecture</string>
+    <string name="set_manage_account">Gérer mon compte</string>
+    <string name="set_manage_account_sub">Abonnements et appareils, depuis ton téléphone</string>
+    <string name="set_disconnect">Déconnecter cet appareil</string>
+    <string name="set_disconnect_sub">Il garde son abonnement actuel mais ne se synchronise plus</string>
+    <string name="set_connect_device">Connecter cet appareil</string>
+    <string name="set_connect_device_sub">Avec un QR code : plus rien à taper, tes profils et abonnements te suivent partout</string>
+
+    <!-- Réglages : Apparence -->
+    <string name="set_accent">Couleur principale</string>
+    <string name="set_accent_sub">Sélection, boutons et logo texte</string>
+    <string name="set_background">Fond d\'écran</string>
+    <string name="set_background_sub">Thème Binaire, Aurore, Noir ou image floutée</string>
+    <string name="set_clock">Afficher l\'heure</string>
+    <string name="set_clock_sub">En haut de chaque écran</string>
+
+    <!-- Réglages : Profils -->
+    <string name="set_current_profile_sub">Changer de profil</string>
+    <string name="set_manage_profiles_sub">Ajouter, renommer, changer la couleur, profil Enfant, codes</string>
+    <string name="set_profile_count">%1$d profil</string>
+    <string name="set_profile_count_plural">%1$d profils</string>
+    <string name="set_ask_who">Demander « Qui regarde ? » au démarrage</string>
+    <string name="set_ask_who_sub">Quand il y a plusieurs profils</string>
+    <string name="set_parental_sub">Protège les Réglages des profils Enfant</string>
+    <string name="set_defined">Défini</string>
+    <string name="set_none">Aucun</string>
+    <string name="set_notify_episodes">Notifier les nouveaux épisodes</string>
+    <string name="set_notify_episodes_sub">Une alerte quand une série suivie (Ma liste) sort un épisode</string>
+
+    <!-- Réglages : Chaînes &amp; catégories -->
+    <string name="set_all">Tous</string>
+    <string name="set_countries_count">%1$d pays</string>
+    <string name="set_countries">Pays affichés</string>
+    <string name="set_countries_sub">Les catégories des autres pays sont masquées</string>
+    <string name="set_organize_tv">Organiser les catégories TV</string>
+    <string name="set_organize_movies">Organiser les catégories Films</string>
+    <string name="set_organize_series">Organiser les catégories Séries</string>
+    <string name="set_organize_sub">Masquer, renommer, réordonner</string>
+    <string name="set_clean_names">Nettoyer les noms</string>
+    <string name="set_clean_names_sub">« FR | CHAÎNE UNE FHD ✦ VIP » devient « CHAÎNE UNE »</string>
+    <string name="set_merge">Regrouper les doublons</string>
+    <string name="set_merge_sub">Une seule ligne par chaîne, les autres versions servent de secours</string>
+    <string name="set_hide_adult">Masquer les catégories adultes</string>
+    <string name="set_hide_adult_sub">Détectées automatiquement</string>
+
+    <!-- Réglages : Multi-TV -->
+    <string name="set_join_tv">Rejoindre une TV</string>
+    <string name="set_join_tv_sub">Afficher ici ce que regarde une autre TV de la maison</string>
+    <string name="set_share_tv">Partager depuis cette TV</string>
+    <string name="set_share_tv_sub">Lance une chaîne ou un film, puis Options (ou touche Menu) → Multi-TV</string>
+    <string name="set_tv_address">Adresse de cette TV</string>
+    <string name="set_tv_address_sub">Sur le réseau de la maison</string>
+    <string name="set_no_wifi">Pas de Wi-Fi</string>
+
+    <!-- Réglages : Lecture -->
+    <string name="set_quality">Qualité préférée</string>
+    <string name="set_quality_sub">Pour les chaînes disponibles en plusieurs qualités</string>
+    <string name="set_auto">Automatique</string>
+    <string name="set_image_format">Format d\'image</string>
+    <string name="set_image_format_sub">Aussi modifiable pendant la lecture (bouton Options ou touche Menu)</string>
+    <string name="set_preview">Aperçu des chaînes</string>
+    <string name="set_preview_sub">Lance la chaîne en petit dans l\'écran TV</string>
+    <string name="set_fallback">Basculer si ça coupe</string>
+    <string name="set_fallback_sub">Essaie automatiquement l\'autre format de flux</string>
+    <string name="set_autonext">Épisode suivant automatique</string>
+    <string name="set_autonext_sub">À la fin d\'un épisode de série</string>
+    <string name="set_buffer">Mémoire tampon</string>
+    <string name="set_buffer_sub">Plus grande = moins de coupures, démarrage un peu plus lent</string>
+    <string name="set_buffer_large">Grande</string>
+    <string name="set_buffer_normal">Normale</string>
+
+    <!-- Réglages : Abonnement -->
+    <string name="set_type">Type</string>
+    <string name="set_type_m3u">Liste de liens</string>
+    <string name="set_type_stalker">Portail MAG/Stalker</string>
+    <string name="set_server">Serveur</string>
+    <string name="set_server_sub">Adresse de ton fournisseur</string>
+    <string name="set_status">Statut</string>
+    <string name="set_status_sub">Selon ton fournisseur</string>
+    <string name="set_expiry">Expiration</string>
+    <string name="set_expiry_sub">Date de fin de ton abonnement</string>
+    <string name="set_no_date">Sans date</string>
+    <string name="set_max_conn">Connexions simultanées</string>
+    <string name="set_max_conn_sub">Nombre d\'écrans en même temps</string>
+    <string name="set_refresh">Actualiser les listes</string>
+    <string name="set_refresh_sub">Recharge les chaînes, films et séries</string>
+    <string name="set_now">Maintenant</string>
+    <string name="set_change_sub_desc">Se déconnecter de cet appareil (favoris et reprises conservés)</string>
+
+    <!-- Réglages : Mises à jour / À propos -->
+    <string name="set_version">Version installée</string>
+    <string name="set_version_checked">Vérifiée à chaque ouverture de l\'appli</string>
+    <string name="set_version_manual">Mises à jour automatiques non configurées pour cette version</string>
+    <string name="set_check_now">Vérifier maintenant</string>
+    <string name="set_check_now_sub">Cherche une nouvelle version</string>
+    <string name="set_about_app_sub">Lecteur pour abonnements Xtream Codes. L\'appli ne fournit aucune chaîne.</string>
+    <string name="set_clear_cache">Vider le cache des images</string>
+    <string name="set_clear_cache_sub">Logos, affiches et images de fond enregistrés</string>
+    <string name="set_cache_cleared">Cache vidé</string>
+    <string name="set_font">Police Outfit</string>
+    <string name="set_font_sub">SIL Open Font License 1.1</string>
+    <string name="set_see">Voir</string>
+
+    <!-- Réglages : dialogues -->
+    <string name="set_add_sub_phone">Ajoute un abonnement depuis ton téléphone : %1$s</string>
+    <string name="set_syncing">Synchronisation…</string>
+    <string name="set_synced">Compte synchronisé</string>
+    <string name="set_sync_failed">Synchronisation impossible : %1$s</string>
+    <string name="set_disconnect_q">Déconnecter cet appareil ?</string>
+    <string name="set_disconnect_msg">Il garde son abonnement et ses profils actuels, mais ne se synchronise plus avec ton compte Binaire.</string>
+    <string name="set_device_disconnected">Appareil déconnecté</string>
+    <string name="set_parental_saved">Code parental enregistré</string>
+    <string name="set_parental_current">Code parental actuel</string>
+    <string name="set_change_code">Changer le code</string>
+    <string name="set_remove_code">Retirer le code</string>
+    <string name="set_new_parental">Nouveau code parental</string>
+    <string name="set_code_changed">Code changé</string>
+    <string name="set_parental_removed">Code parental retiré</string>
+    <string name="set_list_updated">Liste mise à jour</string>
+    <string name="set_updates_not_configured">Les mises à jour ne sont pas configurées pour cette version</string>
+    <string name="set_searching_update">Recherche d\'une mise à jour…</string>
+    <string name="set_check_failed">Impossible de vérifier pour le moment</string>
+    <string name="set_already_latest">Tu as déjà la dernière version (%1$s)</string>
+    <string name="set_change_sub_q">Se déconnecter de cet abonnement sur cet appareil ?</string>
+    <string name="set_yes">Oui</string>
+    <string name="set_disconnect_btn">Déconnecter</string>
 </resources>
