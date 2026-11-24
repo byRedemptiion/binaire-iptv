@@ -195,6 +195,7 @@
   <footer>Binaire IPTV · Simple. Numérique. Intuitif.<br>L'appli lit ton abonnement, elle ne fournit aucune chaîne.</footer>
 </main>
 
+<script src="i18n.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -221,7 +222,7 @@
     e.preventDefault();
     const name = $("name").value.trim();
     const email = $("email").value.trim().toLowerCase();
-    if (!name) return msg("Écris ton prénom.");
+    if (!name) return msg(t("Écris ton prénom."));
     if (!/^[a-z0-9._%+-]+@(gmail|googlemail)\.com$/.test(email)) return msg("Il faut une adresse Gmail (…@gmail.com) : c'est celle du Play Store.");
     $("go").disabled = true;
     msg("");
@@ -237,11 +238,11 @@
       const c = (err && err.code) || "";
       if (c.includes("permission-denied")) {
         // La fiche existe déjà (une inscription par adresse).
-        $("done-title").textContent = "Déjà inscrit(e) !";
+        $("done-title").textContent = t("Déjà inscrit(e) !");
         $("done-text").textContent = `L'adresse ${email} est déjà sur la liste. Tu recevras l'invitation dessus.`;
         document.getElementById("v-form").classList.add("hidden");
         document.getElementById("v-done").classList.remove("hidden");
-      } else msg("Oups, ça n'a pas marché. Vérifie ta connexion et réessaie.");
+      } else msg(t("Oups, ça n'a pas marché. Vérifie ta connexion et réessaie."));
     } finally {
       $("go").disabled = false;
     }

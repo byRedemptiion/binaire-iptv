@@ -284,6 +284,7 @@
   <footer>Binaire IPTV · Simple. Numérique. Intuitif.<br>L'appli lit ton abonnement, elle ne fournit aucune chaîne.</footer>
 </main>
 
+<script src="i18n.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
@@ -316,7 +317,7 @@
   }
   function msg(id, text, ok = false) {
     const el = $(id);
-    el.textContent = text || "";
+    el.textContent = (window.t ? t(text || "") : (text || ""));
     el.className = "msg" + (text ? (ok ? " ok" : " err") : "");
   }
   function cleanCode(v) {
@@ -349,7 +350,7 @@
     mode = m;
     $("tab-signup").setAttribute("aria-selected", m === "signup");
     $("tab-login").setAttribute("aria-selected", m === "login");
-    $("a-submit").textContent = m === "signup" ? "Créer mon compte" : "Se connecter";
+    $("a-submit").textContent = m === "signup" ? t("Créer mon compte") : t("Se connecter");
     $("a-pass").autocomplete = m === "signup" ? "new-password" : "current-password";
     $("a-forgot").classList.toggle("hidden", m !== "login");
     msg("a-msg", "");
@@ -395,10 +396,10 @@
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       $("who").textContent = "";
-      $("auth-title").textContent = pendingCode ? "Connecte ta TV" : "Ton compte Binaire";
+      $("auth-title").textContent = pendingCode ? t("Connecte ta TV") : t("Ton compte Binaire");
       $("auth-lead").textContent = pendingCode
-        ? "Crée ton compte Binaire (ou connecte-toi) pour autoriser ta TV. Ensuite, plus rien à taper."
-        : "Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.";
+        ? t("Crée ton compte Binaire (ou connecte-toi) pour autoriser ta TV. Ensuite, plus rien à taper.")
+        : t("Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.");
       setMode(blockedNotice ? "login" : "signup");
       if (blockedNotice) msg("a-msg", "Ce compte est suspendu. Contacte le support Binaire.");
       blockedNotice = false;
@@ -505,7 +506,7 @@
   function openSubForm(sub, then) {
     editingSub = sub ? sub.id : null;
     afterSub = then;
-    $("sub-title").textContent = sub ? "Modifier l'abonnement" : "Ajoute ton abonnement";
+    $("sub-title").textContent = sub ? t("Modifier l'abonnement") : t("Ajoute ton abonnement");
     $("s-name").value = sub ? sub.name || "" : "";
     const isM3u = !!(sub && (sub.server || "").startsWith(M3U));
     const isStalker = !!(sub && (sub.server || "").startsWith(STALKER));
@@ -622,7 +623,7 @@
     if (subs.length === 0) return openSubForm(null, "approve-required");
     approving = { code, tvUid: a.tvUid, model: a.model || "" };
     $("ap-code").textContent = prettyCode(code);
-    $("ap-model").textContent = a.model ? "Appareil : " + a.model : "";
+    $("ap-model").textContent = a.model ? t("Appareil : ") + a.model : "";
     $("ap-name").value = "";
     show("v-approve");
     $("ap-name").focus();
@@ -693,14 +694,14 @@
         const detail = isM3u ? "Lien M3U" : isStalker ? "Portail · " + esc(s.user) : esc(s.user);
         const row = document.createElement("div");
         row.className = "item";
-        row.innerHTML = `<div class="grow"><div class="t">${esc(s.name || "Abonnement")}</div><div class="s">${esc(host)} · ${detail}</div></div>`;
+        row.innerHTML = `<div class="grow"><div class="t">${esc(s.name || t("Abonnement"))}</div><div class="s">${esc(host)} · ${detail}</div></div>`;
         const edit = document.createElement("button");
         edit.className = "secondary small"; edit.textContent = "Modifier";
         edit.onclick = () => openSubForm(s, "account");
         const del = document.createElement("button");
         del.className = "ghost small"; del.textContent = "Supprimer";
         del.onclick = async () => {
-          if (!confirm(`Supprimer « ${s.name || "Abonnement"} » de ton compte ?`)) return;
+          if (!confirm(t("Supprimer « %s » de ton compte ?").replace("%s", s.name || t("Abonnement")))) return;
           await deleteDoc(doc(db, "users", uid, "subs", s.id));
           openAccount();
         };
@@ -720,7 +721,7 @@
         const del = document.createElement("button");
         del.className = "secondary small"; del.textContent = "Retirer";
         del.onclick = async () => {
-          if (!confirm(`Retirer « ${d.name || "cet appareil"} » ? Il ne pourra plus lire tes abonnements ni tes profils.`)) return;
+          if (!confirm(t("Retirer « %s » ? Il ne pourra plus lire tes abonnements ni tes profils.").replace("%s", d.name || t("cet appareil")))) return;
           await deleteDoc(doc(db, "users", uid, "devices", d.id));
           openAccount();
         };
@@ -737,7 +738,7 @@
         row.className = "item";
         const color = COLORS[Number(p.color) || 0] || COLORS[0];
         const initial = (p.name || "?").trim().charAt(0).toUpperCase();
-        row.innerHTML = `<div class="avatar" style="background:${color}">${esc(initial)}</div><div class="grow"><div class="t">${esc(p.name || "Profil")}</div><div class="s">${p.kid ? "Profil Enfant" : ""}${p.pin ? (p.kid ? " · " : "") + "protégé par un code" : ""}</div></div>`;
+        row.innerHTML = `<div class="avatar" style="background:${color}">${esc(initial)}</div><div class="grow"><div class="t">${esc(p.name || t("Profil"))}</div><div class="s">${p.kid ? t("Profil Enfant") : ""}${p.pin ? (p.kid ? " · " : "") + t("protégé par un code") : ""}</div></div>`;
         profBox.append(row);
       }
     } catch (err) { profBox.innerHTML = `<p class="empty">${esc(authError(err))}</p>`; }

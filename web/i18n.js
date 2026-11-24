@@ -1,0 +1,422 @@
+/* Binaire IPTV — traduction du site (compte / inscription).
+   Langue automatique selon le navigateur, avec sélecteur manuel.
+   Les clés sont les textes français ; t(fr) renvoie la traduction (ou fr). */
+(function () {
+  "use strict";
+
+  var TR = {
+    de: {
+      "Binaire IPTV — Mon compte": "Binaire IPTV — Mein Konto",
+      "Chargement…": "Wird geladen…",
+      "Ton compte Binaire": "Dein Binaire-Konto",
+      "Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.": "Nur einmal: danach sind dein Abo und deine Profile auf allen Fernsehern, Boxen und Handys dabei.",
+      "Créer un compte": "Konto erstellen",
+      "Se connecter": "Anmelden",
+      "Afficher le mot de passe": "Passwort anzeigen",
+      "Créer mon compte": "Mein Konto erstellen",
+      "Mot de passe oublié ?": "Passwort vergessen?",
+      "Ton e-mail sert uniquement à ton compte Binaire : connexion et récupération du mot de passe.": "Deine E-Mail dient nur deinem Binaire-Konto: Anmeldung und Passwort­wiederherstellung.",
+      "Confirme ton e-mail": "Bestätige deine E-Mail",
+      "On t'a envoyé un lien à ": "Wir haben dir einen Link an ",
+      ". Ouvre-le, puis reviens ici : la suite se fait toute seule.": " gesendet. Öffne ihn und komm hierher zurück: der Rest geht von allein.",
+      "Rien reçu ? Regarde dans les spams, ou renvoie l'e-mail.": "Nichts erhalten? Sieh im Spam nach oder sende die E-Mail erneut.",
+      "J'ai cliqué sur le lien": "Ich habe auf den Link geklickt",
+      "Renvoyer l'e-mail": "E-Mail erneut senden",
+      "Changer d'adresse": "Adresse ändern",
+      "Ajoute ton abonnement": "Füge dein Abo hinzu",
+      "Les identifiants Xtream Codes donnés par ton fournisseur. Tu ne les taperas plus jamais sur la TV.": "Die Xtream-Codes-Zugangsdaten von deinem Anbieter. Du tippst sie nie wieder am Fernseher ein.",
+      "Lien M3U": "M3U-Link",
+      "Portail MAC": "MAC-Portal",
+      "Astuce : colle ton lien M3U complet dans « Serveur », les champs se remplissent tout seuls.": "Tipp: füge deinen vollständigen M3U-Link in „Server“ ein, die Felder füllen sich von selbst.",
+      "Le lien que t'a donné ton fournisseur. Chaînes, films et séries sont rangés automatiquement.": "Der Link von deinem Anbieter. Sender, Filme und Serien werden automatisch geordnet.",
+      "Générer une MAC": "MAC erzeugen",
+      "Pour un abonnement « portail Stalker/MAG ». Donne cette MAC à ton fournisseur pour qu'il y rattache ta ligne, puis entre l'adresse du portail qu'il t'indique.": "Für ein „Stalker/MAG-Portal“-Abo. Gib diese MAC deinem Anbieter, damit er deine Linie damit verknüpft, und gib dann die von ihm genannte Portaladresse ein.",
+      "Enregistrer l'abonnement": "Abo speichern",
+      "Annuler": "Abbrechen",
+      "Autoriser cet appareil ?": "Dieses Gerät zulassen?",
+      "Un appareil demande l'accès à ton compte avec le code": "Ein Gerät fordert Zugriff auf dein Konto mit dem Code",
+      "Autoriser": "Zulassen",
+      "Ce n'est pas moi": "Das bin nicht ich",
+      "C'est fait !": "Fertig!",
+      "Regarde ta TV : elle se connecte toute seule à ton abonnement.": "Sieh auf deinen Fernseher: er verbindet sich von selbst mit deinem Abo.",
+      "L'appli lit ton abonnement, elle ne fournit aucune chaîne.": "Die App liest dein Abo, sie liefert keine Sender.",
+      "Voir mon compte": "Mein Konto ansehen",
+      "Mon compte": "Mein Konto",
+      "Tes abonnements et tes appareils Binaire IPTV.": "Deine Binaire-IPTV-Abos und -Geräte.",
+      "Mes abonnements": "Meine Abos",
+      "Aucun abonnement pour l'instant.": "Noch kein Abo.",
+      "+ Ajouter un abonnement": "+ Abo hinzufügen",
+      "Mes appareils": "Meine Geräte",
+      "Aucun appareil. Ouvre Binaire IPTV sur ta TV et scanne le QR code.": "Kein Gerät. Öffne Binaire IPTV auf deinem Fernseher und scanne den QR-Code.",
+      "Profils": "Profile",
+      "Les profils se créent et se modifient sur la TV (« Qui regarde ? ») et se synchronisent automatiquement.": "Profile werden am Fernseher erstellt und bearbeitet („Wer schaut?“) und synchronisieren sich automatisch.",
+      "Les profils apparaîtront ici après la première synchronisation de ta TV.": "Die Profile erscheinen hier nach der ersten Synchronisierung deines Fernsehers.",
+      "Se déconnecter": "Abmelden",
+      "Binaire IPTV · Simple. Numérique. Intuitif.": "Binaire IPTV · Einfach. Digital. Intuitiv.",
+      "Continuer": "Weiter",
+      "Connecte ta TV": "Verbinde deinen Fernseher",
+      "Crée ton compte Binaire (ou connecte-toi) pour autoriser ta TV. Ensuite, plus rien à taper.": "Erstelle dein Binaire-Konto (oder melde dich an), um deinen Fernseher zuzulassen. Danach nichts mehr einzutippen.",
+      "Modifier l'abonnement": "Abo bearbeiten",
+      "Appareil : ": "Gerät: ",
+      "Modifier": "Bearbeiten",
+      "Supprimer": "Löschen",
+      "Retirer": "Entfernen",
+      "Profil": "Profil",
+      "Profil Enfant": "Kinderprofil",
+      "protégé par un code": "durch einen Code geschützt",
+      "E-mail ou mot de passe incorrect.": "E-Mail oder Passwort falsch.",
+      "Action refusée par le serveur.": "Aktion vom Server abgelehnt.",
+      "Ce code a déjà été utilisé.": "Dieser Code wurde bereits verwendet.",
+      "Ce compte est suspendu. Contacte le support Binaire.": "Dieses Konto ist gesperrt. Kontaktiere den Binaire-Support.",
+      "Ce lien n'est pas valide.": "Dieser Link ist ungültig.",
+      "Cette adresse e-mail n'est pas valide.": "Diese E-Mail-Adresse ist ungültig.",
+      "Code inconnu ou expiré. Vérifie le code affiché sur la TV.": "Code unbekannt oder abgelaufen. Prüfe den am Fernseher angezeigten Code.",
+      "Colle le lien de ta liste M3U.": "Füge den Link deiner M3U-Liste ein.",
+      "E-mail envoyé : suis le lien pour choisir un nouveau mot de passe.": "E-Mail gesendet: folge dem Link, um ein neues Passwort zu wählen.",
+      "E-mail renvoyé.": "E-Mail erneut gesendet.",
+      "Entre l'adresse du portail.": "Gib die Portaladresse ein.",
+      "L'adresse du portail n'est pas valide.": "Die Portaladresse ist ungültig.",
+      "Lien M3U détecté : identifiants remplis.": "M3U-Link erkannt: Zugangsdaten ausgefüllt.",
+      "Pas de connexion Internet.": "Keine Internetverbindung.",
+      "Pas encore confirmé. Ouvre le lien reçu par mail, puis réessaie.": "Noch nicht bestätigt. Öffne den per E-Mail erhaltenen Link und versuche es erneut.",
+      "Remplis l'e-mail et le mot de passe.": "Fülle E-Mail und Passwort aus.",
+      "Remplis le serveur, le nom d'utilisateur et le mot de passe.": "Fülle Server, Benutzername und Passwort aus.",
+      "Trop d'essais. Réessaie dans quelques minutes.": "Zu viele Versuche. Versuche es in ein paar Minuten erneut.",
+      "Un compte existe déjà avec cet e-mail : utilise « Se connecter ».": "Mit dieser E-Mail existiert bereits ein Konto: nutze „Anmelden“.",
+      "Une erreur est survenue (": "Ein Fehler ist aufgetreten (",
+      "Écris d'abord ton e-mail ci-dessus.": "Gib zuerst oben deine E-Mail ein.",
+      "6 caractères minimum": "mindestens 6 Zeichen",
+      "Mon abonnement": "Mein Abo",
+      "TV du salon": "Wohnzimmer-TV",
+      "Abonnement": "Abo",
+      "cet appareil": "dieses Gerät",
+      "Binaire IPTV — Deviens testeur": "Binaire IPTV — Werde Tester",
+      "Deviens testeur Binaire": "Werde Binaire-Tester",
+      "Aide-moi à publier Binaire IPTV sur le Play Store. Google demande que l'appli soit testée 2 semaines avant sa sortie.": "Hilf mir, Binaire IPTV im Play Store zu veröffentlichen. Google verlangt, dass die App 2 Wochen vor der Veröffentlichung getestet wird.",
+      "Tu laisses ton adresse Gmail": "Du hinterlässt deine Gmail-Adresse",
+      "ci-dessous (celle de ton Play Store).": "unten (die deines Play Store).",
+      "Tu reçois une invitation": "Du erhältst eine Einladung",
+      "à installer l'appli depuis le Play Store.": "die App aus dem Play Store zu installieren.",
+      "Tu la gardes 14 jours": "Du behältst sie 14 Tage",
+      "et tu l'ouvres de temps en temps. Si quelque chose cloche, tu me le dis.": "und öffnest sie ab und zu. Wenn etwas nicht stimmt, sagst du es mir.",
+      "Le premium à vie offert": "Lebenslanges Premium geschenkt",
+      "en remerciement, sur tous tes appareils": "als Dankeschön, auf allen deinen Geräten",
+      "Téléphone ou tablette Android": "Android-Handy oder -Tablet",
+      "TV ou box Android": "Android-TV oder -Box",
+      "Les deux": "Beides",
+      "Ton adresse sert uniquement à t'inviter au test sur le Play Store. Il faut un appareil Android (pas d'iPhone).": "Deine Adresse dient nur dazu, dich zum Test im Play Store einzuladen. Ein Android-Gerät ist nötig (kein iPhone).",
+      "Je m'inscris": "Ich melde mich an",
+      "Merci !": "Danke!",
+      "Tu es inscrit(e). Tu recevras l'invitation au test sur ton adresse Gmail.": "Du bist angemeldet. Du erhältst die Test-Einladung an deine Gmail-Adresse.",
+      "Déjà inscrit(e) !": "Bereits angemeldet!",
+      "Oups, ça n'a pas marché. Vérifie ta connexion et réessaie.": "Ups, das hat nicht geklappt. Prüfe deine Verbindung und versuche es erneut.",
+      "Écris ton prénom.": "Gib deinen Vornamen ein.",
+      "Téléphone Android": "Android-Handy",
+      "Ton prénom": "Dein Vorname",
+      "Supprimer « %s » de ton compte ?": "„%s“ aus deinem Konto löschen?",
+      "Retirer « %s » ? Il ne pourra plus lire tes abonnements ni tes profils.": "„%s“ entfernen? Es kann dann deine Abos und Profile nicht mehr lesen."
+    },
+    es: {
+      "Binaire IPTV — Mon compte": "Binaire IPTV — Mi cuenta",
+      "Chargement…": "Cargando…",
+      "Ton compte Binaire": "Tu cuenta Binaire",
+      "Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.": "Solo una vez: después tu suscripción y tus perfiles te acompañan en todos tus televisores, cajas y teléfonos.",
+      "Créer un compte": "Crear una cuenta",
+      "Se connecter": "Iniciar sesión",
+      "Afficher le mot de passe": "Mostrar la contraseña",
+      "Créer mon compte": "Crear mi cuenta",
+      "Mot de passe oublié ?": "¿Olvidaste la contraseña?",
+      "Ton e-mail sert uniquement à ton compte Binaire : connexion et récupération du mot de passe.": "Tu correo solo sirve para tu cuenta Binaire: inicio de sesión y recuperación de la contraseña.",
+      "Confirme ton e-mail": "Confirma tu correo",
+      "On t'a envoyé un lien à ": "Te hemos enviado un enlace a ",
+      ". Ouvre-le, puis reviens ici : la suite se fait toute seule.": ". Ábrelo y vuelve aquí: el resto se hace solo.",
+      "Rien reçu ? Regarde dans les spams, ou renvoie l'e-mail.": "¿No recibiste nada? Mira en el spam o reenvía el correo.",
+      "J'ai cliqué sur le lien": "He hecho clic en el enlace",
+      "Renvoyer l'e-mail": "Reenviar el correo",
+      "Changer d'adresse": "Cambiar de dirección",
+      "Ajoute ton abonnement": "Añade tu suscripción",
+      "Les identifiants Xtream Codes donnés par ton fournisseur. Tu ne les taperas plus jamais sur la TV.": "Las credenciales Xtream Codes que te da tu proveedor. No las volverás a teclear en la TV.",
+      "Lien M3U": "Enlace M3U",
+      "Portail MAC": "Portal MAC",
+      "Astuce : colle ton lien M3U complet dans « Serveur », les champs se remplissent tout seuls.": "Consejo: pega tu enlace M3U completo en «Servidor», los campos se rellenan solos.",
+      "Le lien que t'a donné ton fournisseur. Chaînes, films et séries sont rangés automatiquement.": "El enlace que te dio tu proveedor. Canales, películas y series se ordenan automáticamente.",
+      "Générer une MAC": "Generar una MAC",
+      "Pour un abonnement « portail Stalker/MAG ». Donne cette MAC à ton fournisseur pour qu'il y rattache ta ligne, puis entre l'adresse du portail qu'il t'indique.": "Para una suscripción «portal Stalker/MAG». Dale esta MAC a tu proveedor para que vincule tu línea, y luego introduce la dirección del portal que te indique.",
+      "Enregistrer l'abonnement": "Guardar la suscripción",
+      "Annuler": "Cancelar",
+      "Autoriser cet appareil ?": "¿Autorizar este dispositivo?",
+      "Un appareil demande l'accès à ton compte avec le code": "Un dispositivo solicita acceso a tu cuenta con el código",
+      "Autoriser": "Autorizar",
+      "Ce n'est pas moi": "No soy yo",
+      "C'est fait !": "¡Listo!",
+      "Regarde ta TV : elle se connecte toute seule à ton abonnement.": "Mira tu TV: se conecta sola a tu suscripción.",
+      "L'appli lit ton abonnement, elle ne fournit aucune chaîne.": "La app lee tu suscripción, no proporciona ningún canal.",
+      "Voir mon compte": "Ver mi cuenta",
+      "Mon compte": "Mi cuenta",
+      "Tes abonnements et tes appareils Binaire IPTV.": "Tus suscripciones y dispositivos Binaire IPTV.",
+      "Mes abonnements": "Mis suscripciones",
+      "Aucun abonnement pour l'instant.": "Aún no hay suscripciones.",
+      "+ Ajouter un abonnement": "+ Añadir una suscripción",
+      "Mes appareils": "Mis dispositivos",
+      "Aucun appareil. Ouvre Binaire IPTV sur ta TV et scanne le QR code.": "Ningún dispositivo. Abre Binaire IPTV en tu TV y escanea el código QR.",
+      "Profils": "Perfiles",
+      "Les profils se créent et se modifient sur la TV (« Qui regarde ? ») et se synchronisent automatiquement.": "Los perfiles se crean y modifican en la TV («¿Quién está viendo?») y se sincronizan automáticamente.",
+      "Les profils apparaîtront ici après la première synchronisation de ta TV.": "Los perfiles aparecerán aquí tras la primera sincronización de tu TV.",
+      "Se déconnecter": "Cerrar sesión",
+      "Binaire IPTV · Simple. Numérique. Intuitif.": "Binaire IPTV · Simple. Digital. Intuitivo.",
+      "Continuer": "Continuar",
+      "Connecte ta TV": "Conecta tu TV",
+      "Crée ton compte Binaire (ou connecte-toi) pour autoriser ta TV. Ensuite, plus rien à taper.": "Crea tu cuenta Binaire (o inicia sesión) para autorizar tu TV. Después, nada que teclear.",
+      "Modifier l'abonnement": "Modificar la suscripción",
+      "Appareil : ": "Dispositivo: ",
+      "Modifier": "Modificar",
+      "Supprimer": "Eliminar",
+      "Retirer": "Quitar",
+      "Profil": "Perfil",
+      "Profil Enfant": "Perfil Infantil",
+      "protégé par un code": "protegido con un código",
+      "E-mail ou mot de passe incorrect.": "Correo o contraseña incorrectos.",
+      "Action refusée par le serveur.": "Acción rechazada por el servidor.",
+      "Ce code a déjà été utilisé.": "Este código ya se ha utilizado.",
+      "Ce compte est suspendu. Contacte le support Binaire.": "Esta cuenta está suspendida. Contacta con el soporte de Binaire.",
+      "Ce lien n'est pas valide.": "Este enlace no es válido.",
+      "Cette adresse e-mail n'est pas valide.": "Esta dirección de correo no es válida.",
+      "Code inconnu ou expiré. Vérifie le code affiché sur la TV.": "Código desconocido o caducado. Comprueba el código mostrado en la TV.",
+      "Colle le lien de ta liste M3U.": "Pega el enlace de tu lista M3U.",
+      "E-mail envoyé : suis le lien pour choisir un nouveau mot de passe.": "Correo enviado: sigue el enlace para elegir una nueva contraseña.",
+      "E-mail renvoyé.": "Correo reenviado.",
+      "Entre l'adresse du portail.": "Introduce la dirección del portal.",
+      "L'adresse du portail n'est pas valide.": "La dirección del portal no es válida.",
+      "Lien M3U détecté : identifiants remplis.": "Enlace M3U detectado: credenciales rellenadas.",
+      "Pas de connexion Internet.": "Sin conexión a Internet.",
+      "Pas encore confirmé. Ouvre le lien reçu par mail, puis réessaie.": "Aún no confirmado. Abre el enlace recibido por correo y vuelve a intentarlo.",
+      "Remplis l'e-mail et le mot de passe.": "Rellena el correo y la contraseña.",
+      "Remplis le serveur, le nom d'utilisateur et le mot de passe.": "Rellena el servidor, el nombre de usuario y la contraseña.",
+      "Trop d'essais. Réessaie dans quelques minutes.": "Demasiados intentos. Inténtalo de nuevo en unos minutos.",
+      "Un compte existe déjà avec cet e-mail : utilise « Se connecter ».": "Ya existe una cuenta con este correo: usa «Iniciar sesión».",
+      "Une erreur est survenue (": "Se ha producido un error (",
+      "Écris d'abord ton e-mail ci-dessus.": "Escribe primero tu correo arriba.",
+      "6 caractères minimum": "6 caracteres mínimo",
+      "Mon abonnement": "Mi suscripción",
+      "TV du salon": "TV del salón",
+      "Abonnement": "Suscripción",
+      "cet appareil": "este dispositivo",
+      "Binaire IPTV — Deviens testeur": "Binaire IPTV — Conviértete en tester",
+      "Deviens testeur Binaire": "Conviértete en tester de Binaire",
+      "Aide-moi à publier Binaire IPTV sur le Play Store. Google demande que l'appli soit testée 2 semaines avant sa sortie.": "Ayúdame a publicar Binaire IPTV en Play Store. Google exige que la app se pruebe 2 semanas antes de su lanzamiento.",
+      "Tu laisses ton adresse Gmail": "Dejas tu dirección de Gmail",
+      "ci-dessous (celle de ton Play Store).": "abajo (la de tu Play Store).",
+      "Tu reçois une invitation": "Recibes una invitación",
+      "à installer l'appli depuis le Play Store.": "para instalar la app desde Play Store.",
+      "Tu la gardes 14 jours": "La conservas 14 días",
+      "et tu l'ouvres de temps en temps. Si quelque chose cloche, tu me le dis.": "y la abres de vez en cuando. Si algo falla, me lo dices.",
+      "Le premium à vie offert": "Premium de por vida gratis",
+      "en remerciement, sur tous tes appareils": "como agradecimiento, en todos tus dispositivos",
+      "Téléphone ou tablette Android": "Teléfono o tableta Android",
+      "TV ou box Android": "TV o box Android",
+      "Les deux": "Ambos",
+      "Ton adresse sert uniquement à t'inviter au test sur le Play Store. Il faut un appareil Android (pas d'iPhone).": "Tu dirección solo sirve para invitarte a la prueba en Play Store. Hace falta un dispositivo Android (no iPhone).",
+      "Je m'inscris": "Me inscribo",
+      "Merci !": "¡Gracias!",
+      "Tu es inscrit(e). Tu recevras l'invitation au test sur ton adresse Gmail.": "Estás inscrito/a. Recibirás la invitación a la prueba en tu dirección de Gmail.",
+      "Déjà inscrit(e) !": "¡Ya inscrito/a!",
+      "Oups, ça n'a pas marché. Vérifie ta connexion et réessaie.": "Vaya, no ha funcionado. Comprueba tu conexión e inténtalo de nuevo.",
+      "Écris ton prénom.": "Escribe tu nombre.",
+      "Téléphone Android": "Teléfono Android",
+      "Ton prénom": "Tu nombre",
+      "Supprimer « %s » de ton compte ?": "¿Eliminar «%s» de tu cuenta?",
+      "Retirer « %s » ? Il ne pourra plus lire tes abonnements ni tes profils.": "¿Quitar «%s»? Ya no podrá leer tus suscripciones ni tus perfiles."
+    },
+    it: {
+      "Binaire IPTV — Mon compte": "Binaire IPTV — Il mio account",
+      "Chargement…": "Caricamento…",
+      "Ton compte Binaire": "Il tuo account Binaire",
+      "Une seule fois : ensuite ton abonnement et tes profils te suivent sur toutes tes TV, box et téléphones.": "Una sola volta: poi il tuo abbonamento e i tuoi profili ti seguono su tutte le TV, i box e i telefoni.",
+      "Créer un compte": "Crea un account",
+      "Se connecter": "Accedi",
+      "Afficher le mot de passe": "Mostra la password",
+      "Créer mon compte": "Crea il mio account",
+      "Mot de passe oublié ?": "Password dimenticata?",
+      "Ton e-mail sert uniquement à ton compte Binaire : connexion et récupération du mot de passe.": "La tua e-mail serve solo al tuo account Binaire: accesso e recupero della password.",
+      "Confirme ton e-mail": "Conferma la tua e-mail",
+      "On t'a envoyé un lien à ": "Ti abbiamo inviato un link a ",
+      ". Ouvre-le, puis reviens ici : la suite se fait toute seule.": ". Aprilo, poi torna qui: il resto si fa da solo.",
+      "Rien reçu ? Regarde dans les spams, ou renvoie l'e-mail.": "Non hai ricevuto nulla? Controlla nello spam o rinvia l'e-mail.",
+      "J'ai cliqué sur le lien": "Ho cliccato sul link",
+      "Renvoyer l'e-mail": "Rinvia l'e-mail",
+      "Changer d'adresse": "Cambia indirizzo",
+      "Ajoute ton abonnement": "Aggiungi il tuo abbonamento",
+      "Les identifiants Xtream Codes donnés par ton fournisseur. Tu ne les taperas plus jamais sur la TV.": "Le credenziali Xtream Codes fornite dal tuo fornitore. Non le digiterai mai più sulla TV.",
+      "Lien M3U": "Link M3U",
+      "Portail MAC": "Portale MAC",
+      "Astuce : colle ton lien M3U complet dans « Serveur », les champs se remplissent tout seuls.": "Suggerimento: incolla il tuo link M3U completo in «Server», i campi si riempiono da soli.",
+      "Le lien que t'a donné ton fournisseur. Chaînes, films et séries sont rangés automatiquement.": "Il link che ti ha dato il fornitore. Canali, film e serie vengono ordinati automaticamente.",
+      "Générer une MAC": "Genera un MAC",
+      "Pour un abonnement « portail Stalker/MAG ». Donne cette MAC à ton fournisseur pour qu'il y rattache ta ligne, puis entre l'adresse du portail qu'il t'indique.": "Per un abbonamento «portale Stalker/MAG». Dai questo MAC al tuo fornitore affinché vi colleghi la tua linea, poi inserisci l'indirizzo del portale che ti indica.",
+      "Enregistrer l'abonnement": "Salva l'abbonamento",
+      "Annuler": "Annulla",
+      "Autoriser cet appareil ?": "Autorizzare questo dispositivo?",
+      "Un appareil demande l'accès à ton compte avec le code": "Un dispositivo richiede l'accesso al tuo account con il codice",
+      "Autoriser": "Autorizza",
+      "Ce n'est pas moi": "Non sono io",
+      "C'est fait !": "Fatto!",
+      "Regarde ta TV : elle se connecte toute seule à ton abonnement.": "Guarda la tua TV: si collega da sola al tuo abbonamento.",
+      "L'appli lit ton abonnement, elle ne fournit aucune chaîne.": "L'app legge il tuo abbonamento, non fornisce alcun canale.",
+      "Voir mon compte": "Vedi il mio account",
+      "Mon compte": "Il mio account",
+      "Tes abonnements et tes appareils Binaire IPTV.": "I tuoi abbonamenti e dispositivi Binaire IPTV.",
+      "Mes abonnements": "I miei abbonamenti",
+      "Aucun abonnement pour l'instant.": "Ancora nessun abbonamento.",
+      "+ Ajouter un abonnement": "+ Aggiungi un abbonamento",
+      "Mes appareils": "I miei dispositivi",
+      "Aucun appareil. Ouvre Binaire IPTV sur ta TV et scanne le QR code.": "Nessun dispositivo. Apri Binaire IPTV sulla tua TV e scansiona il codice QR.",
+      "Profils": "Profili",
+      "Les profils se créent et se modifient sur la TV (« Qui regarde ? ») et se synchronisent automatiquement.": "I profili si creano e si modificano sulla TV («Chi sta guardando?») e si sincronizzano automaticamente.",
+      "Les profils apparaîtront ici après la première synchronisation de ta TV.": "I profili appariranno qui dopo la prima sincronizzazione della tua TV.",
+      "Se déconnecter": "Esci",
+      "Binaire IPTV · Simple. Numérique. Intuitif.": "Binaire IPTV · Semplice. Digitale. Intuitivo.",
+      "Continuer": "Continua",
+      "Connecte ta TV": "Collega la tua TV",
+      "Crée ton compte Binaire (ou connecte-toi) pour autoriser ta TV. Ensuite, plus rien à taper.": "Crea il tuo account Binaire (o accedi) per autorizzare la tua TV. Dopo, niente più da digitare.",
+      "Modifier l'abonnement": "Modifica l'abbonamento",
+      "Appareil : ": "Dispositivo: ",
+      "Modifier": "Modifica",
+      "Supprimer": "Elimina",
+      "Retirer": "Rimuovi",
+      "Profil": "Profilo",
+      "Profil Enfant": "Profilo Bambino",
+      "protégé par un code": "protetto da un codice",
+      "E-mail ou mot de passe incorrect.": "E-mail o password errati.",
+      "Action refusée par le serveur.": "Azione rifiutata dal server.",
+      "Ce code a déjà été utilisé.": "Questo codice è già stato utilizzato.",
+      "Ce compte est suspendu. Contacte le support Binaire.": "Questo account è sospeso. Contatta l'assistenza Binaire.",
+      "Ce lien n'est pas valide.": "Questo link non è valido.",
+      "Cette adresse e-mail n'est pas valide.": "Questo indirizzo e-mail non è valido.",
+      "Code inconnu ou expiré. Vérifie le code affiché sur la TV.": "Codice sconosciuto o scaduto. Controlla il codice mostrato sulla TV.",
+      "Colle le lien de ta liste M3U.": "Incolla il link della tua lista M3U.",
+      "E-mail envoyé : suis le lien pour choisir un nouveau mot de passe.": "E-mail inviata: segui il link per scegliere una nuova password.",
+      "E-mail renvoyé.": "E-mail rinviata.",
+      "Entre l'adresse du portail.": "Inserisci l'indirizzo del portale.",
+      "L'adresse du portail n'est pas valide.": "L'indirizzo del portale non è valido.",
+      "Lien M3U détecté : identifiants remplis.": "Link M3U rilevato: credenziali compilate.",
+      "Pas de connexion Internet.": "Nessuna connessione a Internet.",
+      "Pas encore confirmé. Ouvre le lien reçu par mail, puis réessaie.": "Non ancora confermato. Apri il link ricevuto per e-mail e riprova.",
+      "Remplis l'e-mail et le mot de passe.": "Compila e-mail e password.",
+      "Remplis le serveur, le nom d'utilisateur et le mot de passe.": "Compila server, nome utente e password.",
+      "Trop d'essais. Réessaie dans quelques minutes.": "Troppi tentativi. Riprova tra qualche minuto.",
+      "Un compte existe déjà avec cet e-mail : utilise « Se connecter ».": "Esiste già un account con questa e-mail: usa «Accedi».",
+      "Une erreur est survenue (": "Si è verificato un errore (",
+      "Écris d'abord ton e-mail ci-dessus.": "Scrivi prima la tua e-mail qui sopra.",
+      "6 caractères minimum": "minimo 6 caratteri",
+      "Mon abonnement": "Il mio abbonamento",
+      "TV du salon": "TV del soggiorno",
+      "Abonnement": "Abbonamento",
+      "cet appareil": "questo dispositivo",
+      "Binaire IPTV — Deviens testeur": "Binaire IPTV — Diventa tester",
+      "Deviens testeur Binaire": "Diventa tester Binaire",
+      "Aide-moi à publier Binaire IPTV sur le Play Store. Google demande que l'appli soit testée 2 semaines avant sa sortie.": "Aiutami a pubblicare Binaire IPTV sul Play Store. Google richiede che l'app sia testata 2 settimane prima dell'uscita.",
+      "Tu laisses ton adresse Gmail": "Lasci il tuo indirizzo Gmail",
+      "ci-dessous (celle de ton Play Store).": "qui sotto (quello del tuo Play Store).",
+      "Tu reçois une invitation": "Ricevi un invito",
+      "à installer l'appli depuis le Play Store.": "a installare l'app dal Play Store.",
+      "Tu la gardes 14 jours": "La tieni 14 giorni",
+      "et tu l'ouvres de temps en temps. Si quelque chose cloche, tu me le dis.": "e la apri di tanto in tanto. Se qualcosa non va, me lo dici.",
+      "Le premium à vie offert": "Premium a vita in omaggio",
+      "en remerciement, sur tous tes appareils": "come ringraziamento, su tutti i tuoi dispositivi",
+      "Téléphone ou tablette Android": "Telefono o tablet Android",
+      "TV ou box Android": "TV o box Android",
+      "Les deux": "Entrambi",
+      "Ton adresse sert uniquement à t'inviter au test sur le Play Store. Il faut un appareil Android (pas d'iPhone).": "Il tuo indirizzo serve solo a invitarti al test sul Play Store. Serve un dispositivo Android (non iPhone).",
+      "Je m'inscris": "Mi iscrivo",
+      "Merci !": "Grazie!",
+      "Tu es inscrit(e). Tu recevras l'invitation au test sur ton adresse Gmail.": "Sei iscritto/a. Riceverai l'invito al test sul tuo indirizzo Gmail.",
+      "Déjà inscrit(e) !": "Già iscritto/a!",
+      "Oups, ça n'a pas marché. Vérifie ta connexion et réessaie.": "Ops, non ha funzionato. Controlla la connessione e riprova.",
+      "Écris ton prénom.": "Scrivi il tuo nome.",
+      "Téléphone Android": "Telefono Android",
+      "Ton prénom": "Il tuo nome",
+      "Supprimer « %s » de ton compte ?": "Eliminare «%s» dal tuo account?",
+      "Retirer « %s » ? Il ne pourra plus lire tes abonnements ni tes profils.": "Rimuovere «%s»? Non potrà più leggere i tuoi abbonamenti né i tuoi profili."
+    }
+  };
+
+  var LANGS = [["fr", "Français"], ["de", "Deutsch"], ["es", "Español"], ["it", "Italiano"]];
+
+  function pick() {
+    try {
+      var saved = localStorage.getItem("binaire_lang");
+      if (saved && (saved === "fr" || TR[saved])) return saved;
+    } catch (e) {}
+    var n = (navigator.languages && navigator.languages[0]) || navigator.language || "fr";
+    n = n.slice(0, 2).toLowerCase();
+    return TR[n] ? n : "fr";
+  }
+
+  var LANG = pick();
+
+  function t(s) {
+    if (s == null) return s;
+    if (LANG === "fr" || !TR[LANG]) return s;
+    var key = String(s).trim();
+    var hit = TR[LANG][key];
+    if (hit == null) return s;
+    // Préserve les espaces autour (libellés de cases à cocher, etc.).
+    var lead = String(s).match(/^\s*/)[0];
+    var tail = String(s).match(/\s*$/)[0];
+    return lead + hit + tail;
+  }
+  window.t = t;
+  window.BINAIRE_LANG = function () { return LANG; };
+
+  function translateNode(root) {
+    if (LANG === "fr" || !TR[LANG]) return;
+    // Textes
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var nodes = [], nd;
+    while ((nd = walker.nextNode())) nodes.push(nd);
+    nodes.forEach(function (node) {
+      var raw = node.nodeValue;
+      if (!raw || !raw.trim()) return;
+      var key = raw.trim();
+      if (TR[LANG][key] != null) {
+        var lead = raw.match(/^\s*/)[0], tail = raw.match(/\s*$/)[0];
+        node.nodeValue = lead + TR[LANG][key] + tail;
+      }
+    });
+    // Placeholders
+    root.querySelectorAll("[placeholder]").forEach(function (el) {
+      var k = (el.getAttribute("placeholder") || "").trim();
+      if (TR[LANG][k] != null) el.setAttribute("placeholder", TR[LANG][k]);
+    });
+  }
+  window.translateI18n = function (root) { translateNode(root || document.body); };
+
+  function selector() {
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed;top:10px;right:12px;z-index:9999";
+    var sel = document.createElement("select");
+    sel.setAttribute("aria-label", "Language");
+    sel.style.cssText = "background:rgba(0,0,0,.45);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 8px;font-size:13px";
+    LANGS.forEach(function (l) {
+      var o = document.createElement("option");
+      o.value = l[0]; o.textContent = l[1];
+      if (l[0] === LANG) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener("change", function () {
+      LANG = sel.value;
+      try { localStorage.setItem("binaire_lang", LANG); } catch (e) {}
+      location.reload();
+    });
+    wrap.appendChild(sel);
+    document.body.appendChild(wrap);
+  }
+
+  function boot() {
+    document.documentElement.setAttribute("lang", LANG);
+    translateNode(document.body);
+    selector();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
