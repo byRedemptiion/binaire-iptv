@@ -60,6 +60,10 @@ ipcMain.handle("mpv-play", (_e, opts) => {
     "--force-window=immediate",
     "--keep-open=no",
     "--hwdec=auto-safe",
+    // Moteur d'affichage CLASSIQUE et stable : "gpu-next" (libplacebo) plante au bout
+    // de quelques minutes sur les flux IPTV live aux horodatages irréguliers (.ts).
+    "--vo=gpu",
+    "--gpu-api=d3d11",
     "--cache=yes",
     "--title=Binaire IPTV — ${media-title}",
     "--geometry=92%x92%+50%+50%",
