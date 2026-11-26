@@ -1,13 +1,13 @@
 {
   "name": "binaire-desktop",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Binaire IPTV — maquette bureau (Windows)",
   "main": "main.js",
   "author": "byRedemptiion",
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "dist:win": "electron-builder --win portable --publish never"
+    "dist:win": "electron-builder --win --publish never"
   },
   "devDependencies": {
     "electron": "33.2.1",
@@ -25,8 +25,22 @@
       "renderer/**/*"
     ],
     "win": {
-      "target": "portable",
-      "artifactName": "Binaire-IPTV-Windows.exe"
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "artifactName": "Binaire-IPTV-Installeur.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Binaire IPTV",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
     },
     "extraResources": [
       {
