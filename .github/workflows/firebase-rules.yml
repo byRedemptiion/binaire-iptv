@@ -1,0 +1,29 @@
+name: Règles Firestore
+
+# Déploie les règles de sécurité Firestore à chaque modification, pour qu'elles
+# ne puissent plus "dériver" entre le code et la console Firebase.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "firestore.rules"
+      - "firestore.indexes.json"
+      - "firebase.json"
+      - ".github/workflows/firebase-rules.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Déployer les règles
+        if: ${{ env.FIREBASE_TOKEN != '' }}
+        run: npx -y firebase-tools@13 deploy --only firestore:rules --project binaire-iptv --token "$FIREBASE_TOKEN" --non-interactive
+      - name: Rappel si secret manquant
+        if: ${{ env.FIREBASE_TOKEN == '' }}
+        run: |
+          echo "::warning::Secret FIREBASE_TOKEN absent : règles NON déployées."
+          echo "Génère un jeton avec 'firebase login:ci' puis ajoute-le dans Settings -> Secrets -> Actions (FIREBASE_TOKEN)."

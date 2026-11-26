@@ -97,7 +97,12 @@ service cloud.firestore {
         && code.size() == 6
         && request.resource.data.tvUid == request.auth.uid
         && request.resource.data.keys().hasOnly(['tvUid', 'model', 'createdAt']);
-      allow get: if signedIn();
+      // Lecture restreinte : un compte vérifié peut lire une demande EN ATTENTE (pour l'approuver),
+      // la TV lit la sienne (pour savoir si elle est acceptée), le propriétaire lit la sienne.
+      // Empêche d'énumérer les codes à 6 caractères pour récupérer l'e-mail d'un compte approuvé.
+      allow get: if (isVerified() && resource.data.get('owner', null) == null)
+        || (signedIn() && resource.data.tvUid == request.auth.uid)
+        || (signedIn() && resource.data.get('owner', null) == request.auth.uid);
       // Le téléphone (vrai compte) accepte la demande une seule fois, à son nom.
       allow update: if isVerified()
         && resource.data.get('owner', null) == null

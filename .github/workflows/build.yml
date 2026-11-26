@@ -8,6 +8,11 @@ on:
       - "tools/**"
       - "web/**"
       - "**.md"
+      - "firestore.rules"
+      - "firestore.indexes.json"
+      - "firebase.json"
+      - ".firebaserc"
+      - ".github/workflows/firebase-rules.yml"
   release:
     types: [published]
   workflow_dispatch:
