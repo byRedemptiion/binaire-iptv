@@ -432,6 +432,7 @@
     <string name="notif_channel_desc">Quand un nouvel épisode sort dans une série suivie</string>
     <string name="notif_new_episode">Nouvel épisode</string>
     <string name="notif_new_episode_avail">Nouvel épisode disponible : %1$s</string>
+    <string name="notif_followed_by">Suivie par %1$s</string>
 
     <!-- Divers (BaseActivity) -->
     <string name="base_organize_too_long">Rangement trop long : liste d\'origine affichée</string>

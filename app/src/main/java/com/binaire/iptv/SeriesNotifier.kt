@@ -70,10 +70,12 @@ object SeriesNotifier {
         return Sig(total, label, info.name)
     }
 
-    /** Séries suivies, tous profils confondus. */
-    private fun followedSeries(ctx: Context): Set<String> {
-        val out = HashSet<String>()
-        for (p in Profiles.all(ctx)) out += WatchStore.forProfile(ctx, p.id).myListIds(Kind.SERIES)
+    /** Séries suivies → liste des profils qui les suivent (pour l'afficher dans la notif). */
+    private fun followedByProfile(ctx: Context): Map<String, MutableList<Profiles.Profile>> {
+        val out = HashMap<String, MutableList<Profiles.Profile>>()
+        for (p in Profiles.all(ctx))
+            for (id in WatchStore.forProfile(ctx, p.id).myListIds(Kind.SERIES))
+                out.getOrPut(id) { mutableListOf() }.add(p)
         return out
     }
 
@@ -81,23 +83,42 @@ object SeriesNotifier {
         if (!enabled(ctx)) return@withContext
         val prefs = Prefs(ctx)
         if (!prefs.hasLogin()) return@withContext
-        val ids = followedSeries(ctx)
-        if (ids.isEmpty()) return@withContext
+        val byProfile = followedByProfile(ctx)
+        if (byProfile.isEmpty()) return@withContext
         val client = runCatching { XtreamClient.create(prefs.server!!, prefs.user!!, prefs.pass!!) }.getOrNull() ?: return@withContext
         runCatching { client.login() }
         val track = ctx.getSharedPreferences(TRACK_FILE, Context.MODE_PRIVATE)
-        for (id in ids) {
+        for ((id, profs) in byProfile) {
             val info = runCatching { client.seriesInfo(id) }.getOrNull() ?: continue
             val sig = latest(info)
             if (sig.count <= 0) continue
             val prev = track.getInt("count_$id", -1)
             // Premier passage : on mémorise sans notifier (évite de spammer au départ).
-            if (prev >= 0 && sig.count > prev) notify(ctx, id, sig)
+            if (prev >= 0 && sig.count > prev) notify(ctx, id, sig, profs)
             track.edit().putInt("count_$id", sig.count).putString("name_$id", sig.name).apply()
         }
     }
 
-    private fun notify(ctx: Context, seriesId: String, sig: Sig) {
+    /** Avatar rond du profil pour l'icône de la notif (ou null si pas d'avatar). */
+    private fun avatarBitmap(ctx: Context, path: String?): android.graphics.Bitmap? {
+        if (path.isNullOrBlank()) return null
+        return runCatching {
+            ctx.assets.open("avatars/$path").use { ins ->
+                val src = android.graphics.BitmapFactory.decodeStream(ins) ?: return null
+                val size = minOf(src.width, src.height)
+                val sq = android.graphics.Bitmap.createBitmap(src, (src.width - size) / 2, (src.height - size) / 2, size, size)
+                val out = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(out)
+                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+                paint.shader = android.graphics.BitmapShader(sq, android.graphics.Shader.TileMode.CLAMP, android.graphics.Shader.TileMode.CLAMP)
+                val r = size / 2f
+                canvas.drawCircle(r, r, r, paint)
+                out
+            }
+        }.getOrNull()
+    }
+
+    private fun notify(ctx: Context, seriesId: String, sig: Sig, profiles: List<Profiles.Profile>) {
         channel(ctx)
         if (!NotificationManagerCompat.from(ctx).areNotificationsEnabled()) return
         val open = Intent(ctx, SeriesDetailActivity::class.java)
@@ -107,15 +128,24 @@ object SeriesNotifier {
             ctx, seriesId.hashCode(), open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val notif = NotificationCompat.Builder(ctx, CHANNEL)
+        val who = profiles.joinToString(", ") { it.name }
+        val avail = ctx.getString(R.string.notif_new_episode_avail, sig.label)
+        val builder = NotificationCompat.Builder(ctx, CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle(sig.name.ifBlank { ctx.getString(R.string.notif_new_episode) })
-            .setContentText(ctx.getString(R.string.notif_new_episode_avail, sig.label))
+            .setContentText(avail)
             .setAutoCancel(true)
             .setContentIntent(pi)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-        runCatching { NotificationManagerCompat.from(ctx).notify(seriesId.hashCode(), notif) }
+        // Profil(s) qui suit la série : nom dans l'entête + ligne dédiée + avatar en icône.
+        if (who.isNotBlank()) {
+            builder.setSubText(who)
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(avail + "\n" + ctx.getString(R.string.notif_followed_by, who)))
+        }
+        profiles.firstOrNull { Avatars.exists(ctx, it.avatar) }?.let { p ->
+            avatarBitmap(ctx, p.avatar)?.let { builder.setLargeIcon(it) }
+        }
+        runCatching { NotificationManagerCompat.from(ctx).notify(seriesId.hashCode(), builder.build()) }
     }
 
     class Worker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {

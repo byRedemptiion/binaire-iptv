@@ -398,6 +398,7 @@
     <string name="notif_channel_desc">When a new episode of a followed series comes out</string>
     <string name="notif_new_episode">New episode</string>
     <string name="notif_new_episode_avail">New episode available: %1$s</string>
+    <string name="notif_followed_by">Followed by %1$s</string>
 
     <string name="base_organize_too_long">Organizing too long: original list shown</string>
     <string name="base_validate">Confirm</string>

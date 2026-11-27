@@ -41,7 +41,10 @@ class SettingsActivity : BaseActivity() {
         val onClick: (() -> Unit)? = null
     )
 
-    private val sections = listOf(
+    // Construite à la 1re utilisation (dans onCreate) : getString() exige un contexte prêt,
+    // ce qui n'est pas le cas à l'initialisation du champ → sinon plantage à l'ouverture des Réglages.
+    private val sections by lazy {
+      listOf(
         Section("Apparence", R.drawable.ic_sec_look, getString(R.string.set_sec_look), getString(R.string.set_sec_look_sub)),
         Section("Profils", R.drawable.ic_sec_account, getString(R.string.set_sec_profiles), getString(R.string.set_sec_profiles_sub)),
         Section("Compte Binaire", R.drawable.ic_sec_account, getString(R.string.set_sec_account), getString(R.string.set_sec_account_sub)),
@@ -51,7 +54,8 @@ class SettingsActivity : BaseActivity() {
         Section("Abonnement", R.drawable.ic_sec_info, getString(R.string.set_sec_sub), getString(R.string.set_sec_sub_sub)),
         Section("Mises à jour", R.drawable.ic_sec_update, getString(R.string.set_sec_updates), getString(R.string.set_sec_updates_sub)),
         Section("À propos", R.drawable.ic_sec_info, getString(R.string.set_sec_about), getString(R.string.set_sec_about_sub))
-    )
+      )
+    }
 
     private var current = 0
     private lateinit var secTitle: TextView

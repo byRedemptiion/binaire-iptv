@@ -398,6 +398,7 @@
     <string name="notif_channel_desc">Wenn eine neue Folge einer verfolgten Serie erscheint</string>
     <string name="notif_new_episode">Neue Folge</string>
     <string name="notif_new_episode_avail">Neue Folge verfügbar: %1$s</string>
+    <string name="notif_followed_by">Gefolgt von %1$s</string>
 
     <string name="base_organize_too_long">Sortieren zu lang: Originalliste angezeigt</string>
     <string name="base_validate">Bestätigen</string>
