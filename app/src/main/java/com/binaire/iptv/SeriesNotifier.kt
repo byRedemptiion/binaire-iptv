@@ -99,25 +99,6 @@ object SeriesNotifier {
         }
     }
 
-    /** Avatar rond du profil pour l'icône de la notif (ou null si pas d'avatar). */
-    private fun avatarBitmap(ctx: Context, path: String?): android.graphics.Bitmap? {
-        if (path.isNullOrBlank()) return null
-        return runCatching {
-            ctx.assets.open("avatars/$path").use { ins ->
-                val src = android.graphics.BitmapFactory.decodeStream(ins) ?: return null
-                val size = minOf(src.width, src.height)
-                val sq = android.graphics.Bitmap.createBitmap(src, (src.width - size) / 2, (src.height - size) / 2, size, size)
-                val out = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
-                val canvas = android.graphics.Canvas(out)
-                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-                paint.shader = android.graphics.BitmapShader(sq, android.graphics.Shader.TileMode.CLAMP, android.graphics.Shader.TileMode.CLAMP)
-                val r = size / 2f
-                canvas.drawCircle(r, r, r, paint)
-                out
-            }
-        }.getOrNull()
-    }
-
     private fun notify(ctx: Context, seriesId: String, sig: Sig, profiles: List<Profiles.Profile>) {
         channel(ctx)
         if (!NotificationManagerCompat.from(ctx).areNotificationsEnabled()) return
@@ -142,8 +123,9 @@ object SeriesNotifier {
             builder.setSubText(who)
             builder.setStyle(NotificationCompat.BigTextStyle().bigText(avail + "\n" + ctx.getString(R.string.notif_followed_by, who)))
         }
-        profiles.firstOrNull { Avatars.exists(ctx, it.avatar) }?.let { p ->
-            avatarBitmap(ctx, p.avatar)?.let { builder.setLargeIcon(it) }
+        // Même pastille que dans l'appli : avatar du profil, sinon rond de couleur + initiale.
+        (profiles.firstOrNull { Avatars.exists(ctx, it.avatar) } ?: profiles.firstOrNull())?.let { p ->
+            runCatching { builder.setLargeIcon(ProfileBadge.bitmap(ctx, p, (64 * ctx.resources.displayMetrics.density).toInt())) }
         }
         runCatching { NotificationManagerCompat.from(ctx).notify(seriesId.hashCode(), builder.build()) }
     }

@@ -84,12 +84,14 @@ class HomeActivity : BaseActivity() {
     private fun setupProfileChip() {
         val chip: TextView = findViewById(R.id.headerProfile)
         val p = Profiles.current(this)
-        val color = BTheme.accents.getOrElse(p.color) { BTheme.accents[0] }.second
-        val initial = p.name.trim().take(1).uppercase(Locale.FRANCE)
-        val badge = android.text.SpannableString(" $initial ").apply {
-            setSpan(RoundedBadgeSpan(color, dp(26f)), 0, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        // Pastille = avatar du profil s'il en a un, sinon rond de couleur + initiale (via ProfileBadge).
+        val size = dp(26f)
+        val badge = android.graphics.drawable.BitmapDrawable(resources, ProfileBadge.bitmap(this, p, size)).apply {
+            setBounds(0, 0, size, size)
         }
-        chip.text = android.text.TextUtils.concat(badge, "  ", p.name)
+        chip.setCompoundDrawablesRelative(badge, null, null, null)
+        chip.compoundDrawablePadding = dp(8f)
+        chip.text = p.name
         chip.background = BTheme.selector(this, 18f, BTheme.PANEL, accent, BTheme.WHITE, null, 2f)
         chip.visibility = View.VISIBLE
         chip.setOnClickListener { startActivity(Intent(this, ProfilesActivity::class.java)) }
@@ -127,6 +129,7 @@ class HomeActivity : BaseActivity() {
         super.onResume()
         if (isFinishing) return
         refreshCounts()
+        setupProfileChip() // avatar/profil peut avoir changé (retour de « Qui regarde ? »)
         if (!Session.updateChecked && Updater.enabled) {
             Session.updateChecked = true
             lifecycleScope.launch {
