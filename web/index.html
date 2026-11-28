@@ -145,6 +145,9 @@
       <button type="button" role="tab" id="tab-login" aria-selected="false">Se connecter</button>
     </div>
     <form id="f-auth" class="card stack" novalidate>
+      <label id="a-name-row">Pseudo
+        <input type="text" id="a-name" autocomplete="nickname" maxlength="30" placeholder="Ton pseudo">
+      </label>
       <label>E-mail
         <input type="email" id="a-email" autocomplete="email" required placeholder="toi@exemple.fr">
       </label>
@@ -344,6 +347,19 @@
   let mode = "signup";
   let editingSub = null;      // id de l'abonnement modifié, ou null
   let afterSub = null;        // que faire après l'enregistrement d'un abonnement
+  let pendingSignup = null;   // { name, country } capturés à l'inscription
+
+  // Pays depuis la langue du navigateur (ex. "fr-FR" -> "FR"). Respectueux : pas d'IP/GPS.
+  function detectCountry() {
+    try {
+      const langs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language];
+      for (const l of langs) {
+        const region = (l && l.includes("-")) ? l.split("-").pop().toUpperCase() : "";
+        if (/^[A-Z]{2}$/.test(region)) return region;
+      }
+    } catch (e) {}
+    return "";
+  }
 
   // ---------- Connexion ----------
   function setMode(m) {
@@ -353,6 +369,7 @@
     $("a-submit").textContent = m === "signup" ? t("Créer mon compte") : t("Se connecter");
     $("a-pass").autocomplete = m === "signup" ? "new-password" : "current-password";
     $("a-forgot").classList.toggle("hidden", m !== "login");
+    $("a-name-row").classList.toggle("hidden", m !== "signup");
     msg("a-msg", "");
   }
   $("tab-signup").onclick = () => setMode("signup");
@@ -369,6 +386,7 @@
     msg("a-msg", "");
     try {
       if (mode === "signup") {
+        pendingSignup = { name: $("a-name").value.trim(), country: detectCountry() };
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         try { await sendEmailVerification(cred.user); } catch (err) { /* renvoyable depuis l'écran suivant */ }
       } else await signInWithEmailAndPassword(auth, email, pass);
@@ -419,7 +437,13 @@
   // ---------- Fiche du compte (visible par l'administrateur, sans les codes IPTV) ----------
   async function saveProfile(user) {
     const created = Date.parse(user.metadata && user.metadata.creationTime) || Date.now();
-    await setDoc(doc(db, "users", user.uid), { email: user.email || "", createdAt: created, lastLogin: Date.now() }, { merge: true });
+    const extra = {};
+    if (pendingSignup) {
+      if (pendingSignup.name) extra.name = pendingSignup.name;
+      if (pendingSignup.country) extra.country = pendingSignup.country;
+      pendingSignup = null;
+    }
+    await setDoc(doc(db, "users", user.uid), { email: user.email || "", createdAt: created, lastLogin: Date.now(), ...extra }, { merge: true });
   }
   let blockedNotice = false;
   async function isBlocked() {
@@ -684,7 +708,7 @@
       // Résumé pour l'administrateur : nombre et types d'abonnements, jamais les codes.
       const typeOf = (x) => (x.server || "").startsWith(M3U) ? "M3U" : (x.server || "").startsWith(STALKER) ? "Portail MAC" : "Xtream";
       const types = [...new Set(subs.map(typeOf))];
-      setDoc(doc(db, "users", uid), { subCount: subs.length, subTypes: types }, { merge: true }).catch(() => {});
+      setDoc(doc(db, "users", uid), { subCount: subs.length, subTypes: types, subIds: subs.map((s) => s.id) }, { merge: true }).catch(() => {});
       subsBox.innerHTML = subs.length ? "" : '<p class="empty">Aucun abonnement pour l\'instant.</p>';
       for (const s of subs) {
         const isM3u = (s.server || "").startsWith(M3U);

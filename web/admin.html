@@ -109,6 +109,8 @@
   .b-yes { background: rgba(60, 207, 122, 0.15); color: var(--ok); }
   .actions { display: flex; gap: 6px; align-items: center; }
   .actions select { height: 32px; font-size: 13px; padding: 0 8px; border-radius: 8px; }
+  .actions .danger { color: var(--warn); border-color: rgba(229, 32, 58, 0.5); }
+  .flag { margin-right: 6px; }
   .empty { padding: 28px; text-align: center; color: var(--faint); }
   .toast {
     position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: #070912;
@@ -187,7 +189,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, getDocs, doc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const app = initializeApp({
     apiKey: "AIzaSyD4AGPutgrGhmttoeeVuHhJQs8rzqJuQac",
@@ -220,6 +222,10 @@
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const date = (t) => t ? new Date(t).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "—";
+  // Drapeau emoji depuis un code pays ISO 2 lettres (ex. "FR" -> 🇫🇷).
+  const flag = (c) => (typeof c === "string" && /^[A-Za-z]{2}$/.test(c))
+    ? `<span class="flag" title="${esc(c.toUpperCase())}">${String.fromCodePoint(...[...c.toUpperCase()].map((ch) => 0x1F1E6 + ch.charCodeAt(0) - 65))}</span>`
+    : "";
   function ago(t) {
     if (!t) return "—";
     const d = Date.now() - t;
@@ -357,7 +363,7 @@
       const until = (p === "monthly" || p === "yearly") && u.planUntil ? `<div class="sub">jusqu'au ${date(u.planUntil)}</div>` : "";
       const types = u.subTypes && u.subTypes.length ? u.subTypes.join(", ") : (u.subCount === 0 ? "aucun" : "—");
       return `<tr data-uid="${esc(u.uid)}">
-        <td><div class="email">${esc(u.email || "(sans e-mail)")}</div><div class="sub">${esc(u.uid.slice(0, 8))}…</div></td>
+        <td><div class="email">${flag(u.country)}${esc(u.name || u.email || "(sans e-mail)")}</div><div class="sub">${u.name ? esc(u.email || "") + " · " : ""}${esc(u.uid.slice(0, 8))}…</div></td>
         <td class="num">${date(u.createdAt)}</td>
         <td class="num">${ago(u.lastSeen)}</td>
         <td><span class="badge b-${p}">${PLANS[p]}</span>${u.blocked ? ' <span class="badge b-blocked">Bloqué</span>' : ""}${until}</td>
@@ -369,6 +375,7 @@
             ${["monthly", "yearly", "lifetime"].includes(u.plan) ? `<option value="${esc(u.plan)}" selected disabled>${PLANS[u.plan]} (payé)</option>` : ""}
           </select>
           <button type="button" class="${u.blocked ? "secondary" : "ghost"} small" data-act="block">${u.blocked ? "Débloquer" : "Bloquer"}</button>
+          <button type="button" class="ghost small danger" data-act="delete">Supprimer</button>
         </div></td>
       </tr>`;
     }).join("");
@@ -442,6 +449,21 @@
         await updateDoc(doc(db, "users", uid), { blocked: next ? true : deleteField() });
         if (next) u.blocked = true; else delete u.blocked;
         toast(next ? `${u.email} bloqué` : `${u.email} débloqué`);
+      } else if (act === "delete") {
+        const uid = b.closest("tr").dataset.uid;
+        const u = users.find((x) => x.uid === uid);
+        if (!confirm(`Supprimer définitivement le compte ${u.email || uid} ?\n\nCeci efface sa fiche, ses abonnements, ses appareils et ses profils. Action irréversible.\n(La connexion e-mail elle-même n'est pas supprimable depuis ici.)`)) { b.disabled = false; return; }
+        // Abonnements : supprimés par ID (jamais lus, donc codes IPTV jamais exposés).
+        const subIds = [...new Set([...(u.subIds || []), "main"])];
+        await Promise.all(subIds.map((id) => deleteDoc(doc(db, "users", uid, "subs", id)).catch(() => {})));
+        // Appareils + profils : on liste puis on supprime.
+        for (const col of ["devices", "profiles"]) {
+          const s = await getDocs(collection(db, "users", uid, col)).catch(() => null);
+          if (s) await Promise.all(s.docs.map((d) => deleteDoc(d.ref).catch(() => {})));
+        }
+        await deleteDoc(doc(db, "users", uid));
+        users = users.filter((x) => x.uid !== uid);
+        toast(`${u.email || "Compte"} supprimé`);
       } else if (act === "gift-tester") {
         const u = users.find((x) => x.uid === b.dataset.uid);
         await updateDoc(doc(db, "users", u.uid), { plan: "tester", grantedAt: Date.now() });

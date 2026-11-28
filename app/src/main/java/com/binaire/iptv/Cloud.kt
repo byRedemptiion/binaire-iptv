@@ -168,6 +168,8 @@ object Cloud {
         is Boolean -> JSONObject().put("booleanValue", v)
         is Int, is Long -> JSONObject().put("integerValue", v.toString())
         is Number -> JSONObject().put("doubleValue", v.toDouble())
+        is List<*> -> JSONObject().put("arrayValue",
+            JSONObject().put("values", JSONArray(v.map { enc(it) })))
         else -> JSONObject().put("stringValue", v.toString())
     }
 
@@ -177,6 +179,10 @@ object Cloud {
         o.has("integerValue") -> o.getString("integerValue").toLongOrNull()
         o.has("doubleValue") -> o.getDouble("doubleValue")
         o.has("timestampValue") -> o.getString("timestampValue")
+        o.has("arrayValue") -> {
+            val vals = o.getJSONObject("arrayValue").optJSONArray("values") ?: JSONArray()
+            (0 until vals.length()).map { dec(vals.getJSONObject(it)) }
+        }
         else -> null
     }
 
@@ -286,7 +292,9 @@ object Cloud {
         val (owner, ownerToken) = signInEmail(email, password)
         token(ctx) // crée l'identité de l'appareil si besoin
         val dev = deviceUid(ctx)!!
-        setDoc(ownerToken, "users/$owner", mapOf("email" to email.trim()))
+        val userDoc = hashMapOf<String, Any?>("email" to email.trim())
+        deviceCountry().takeIf { it.isNotBlank() }?.let { userDoc["country"] = it }
+        setDoc(ownerToken, "users/$owner", userDoc)
         setDoc(
             ownerToken, "users/$owner/devices/$dev",
             mapOf("name" to deviceName(), "model" to deviceName(), "addedAt" to System.currentTimeMillis(), "lastSeen" to System.currentTimeMillis())
@@ -298,6 +306,7 @@ object Cloud {
                 mapOf("name" to "Mon abonnement", "server" to currentLogin.first, "user" to currentLogin.second,
                     "pass" to currentLogin.third, "createdAt" to System.currentTimeMillis())
             )
+            runCatching { refreshSubSummary(ownerToken, owner) }
         }
         setOwner(ctx, owner, email.trim())
     }
@@ -320,6 +329,50 @@ object Cloud {
             val server = m["server"] as? String ?: return@mapNotNull null
             Sub(id, (m["name"] as? String) ?: "Abonnement", server, (m["user"] as? String).orEmpty(), (m["pass"] as? String).orEmpty())
         }.sortedBy { it.name.lowercase() }
+    }
+
+    /** Pays de l'appareil (code ISO 2 lettres, ex. "FR"), depuis la langue système. Vide si inconnu. */
+    private fun deviceCountry(): String =
+        runCatching { java.util.Locale.getDefault().country.uppercase() }.getOrNull()?.takeIf { it.length == 2 } ?: ""
+
+    /** Type d'abonnement affiché à l'admin (jamais les codes), aligné sur le site. */
+    private fun subType(server: String): String = when {
+        server.startsWith(XtreamClient.M3U_PREFIX) -> "M3U"
+        server.startsWith(StalkerClient.STALKER_PREFIX) -> "Portail MAC"
+        else -> "Xtream"
+    }
+
+    /**
+     * Met à jour le résumé d'abonnement lisible par l'admin : nombre, types et IDs des abonnements.
+     * On n'écrit jamais les codes ici — seulement de quoi afficher et supprimer côté admin.
+     */
+    private fun refreshSubSummary(token: String, owner: String) {
+        val subs = listDocs(token, "users/$owner/subs")
+        val types = subs.mapNotNull { (_, m) -> (m["server"] as? String)?.let { subType(it) } }.distinct()
+        setDoc(token, "users/$owner", mapOf("subCount" to subs.size, "subTypes" to types, "subIds" to subs.map { it.first }))
+    }
+
+    /**
+     * Enregistre sur le compte l'abonnement saisi dans l'appli (dédoublonné par identifiants),
+     * puis rafraîchit le résumé admin. Sans effet si l'appareil n'est pas lié à un compte.
+     */
+    fun registerSub(ctx: Context, server: String, user: String, pass: String) {
+        if (!isLinked(ctx)) return
+        val owner = ownerUid(ctx) ?: return
+        val app = ctx.applicationContext
+        runCatching {
+            val token = token(app)
+            val existing = listDocs(token, "users/$owner/subs")
+            val match = existing.firstOrNull { (_, m) ->
+                (m["server"] as? String) == server && ((m["user"] as? String) ?: "") == user
+            }
+            val id = match?.first ?: if (existing.none { it.first == "main" }) "main" else "s" + System.currentTimeMillis().toString(36)
+            val name = (match?.second?.get("name") as? String) ?: "Mon abonnement"
+            val created = match?.second?.get("createdAt") ?: System.currentTimeMillis()
+            setDoc(token, "users/$owner/subs/$id",
+                mapOf("name" to name, "server" to server, "user" to user, "pass" to pass, "createdAt" to created))
+            refreshSubSummary(token, owner)
+        }
     }
 
     /** Vérifie que l'appareil est toujours autorisé (false = retiré depuis le compte). */

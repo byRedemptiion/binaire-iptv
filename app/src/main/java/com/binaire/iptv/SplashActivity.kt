@@ -196,7 +196,11 @@ class SplashActivity : BaseActivity() {
         runCatching { Sync.pull(this) }
         runCatching {
             val subs = Cloud.subs(this)
-            if (subs.isEmpty()) return true
+            if (subs.isEmpty()) {
+                // Abonnement saisi dans l'appli avant d'être lié au compte : on le range sur le compte.
+                if (prefs.hasLogin()) runCatching { Cloud.registerSub(this, prefs.server!!, prefs.user!!, prefs.pass!!) }
+                return true
+            }
             val chosen = subs.firstOrNull { it.id == Cloud.subId(this) } ?: if (!prefs.hasLogin()) subs.first() else null
             if (chosen != null) {
                 val server = XtreamClient.normalize(chosen.server)

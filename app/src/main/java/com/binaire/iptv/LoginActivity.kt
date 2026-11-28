@@ -126,6 +126,8 @@ class LoginActivity : BaseActivity() {
                 val c = XtreamClient.create(server, user, pass)
                 val account = withContext(Dispatchers.IO) { c.login() }
                 prefs.saveLogin(c.server, user, pass)
+                // Si l'appareil est lié à un compte Binaire, on y enregistre l'abonnement (partage + admin).
+                withContext(Dispatchers.IO) { Cloud.registerSub(this@LoginActivity, c.server, user, pass) }
                 Session.clear()
                 Session.client = c
                 Session.account = account
