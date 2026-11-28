@@ -67,12 +67,13 @@ object Sync {
     private fun watchFile(ctx: Context, pid: String) =
         ctx.applicationContext.getSharedPreferences(Profiles.watchFile(pid), Context.MODE_PRIVATE)
 
-    private fun snapshot(ctx: Context, p: Profiles.Profile): Map<String, Any?> = mapOf(
+    private fun snapshot(ctx: Context, p: Profiles.Profile, pos: Int): Map<String, Any?> = mapOf(
         "name" to p.name,
         "color" to p.color,
         "kid" to p.kid,
         "pin" to (p.pin ?: ""),
         "avatar" to (p.avatar ?: ""),
+        "pos" to pos,   // position dans « Qui regarde ? » : fait suivre l'ordre entre appareils
         "prefs" to dump(prefsFile(ctx, p.id), deviceKeys).toString(),
         "watch" to dump(watchFile(ctx, p.id)).toString()
     )
@@ -89,8 +90,8 @@ object Sync {
         val owner = Cloud.ownerUid(ctx) ?: return
         val token = Cloud.token(ctx)
         val synced = Cloud.syncedIds(ctx).toMutableSet()
-        for (p in Profiles.all(ctx)) {
-            val snap = snapshot(ctx, p)
+        for ((index, p) in Profiles.all(ctx).withIndex()) {
+            val snap = snapshot(ctx, p, index)
             val h = hash(snap)
             if (h == Cloud.pushedHash(ctx, p.id) && p.id in synced) continue
             val now = System.currentTimeMillis()
@@ -156,9 +157,22 @@ object Sync {
             (m["prefs"] as? String)?.let { runCatching { restore(prefsFile(ctx, pid), JSONObject(it), deviceKeys) } }
             (m["watch"] as? String)?.let { runCatching { restore(watchFile(ctx, pid), JSONObject(it)) } }
             Cloud.setPulledAt(ctx, pid, updated)
-            Cloud.setPushedHash(ctx, pid, hash(snapshot(ctx, prof)))
             list = Profiles.all(ctx).toMutableList()
         }
+
+        // Applique l'ordre du compte (champ pos) dès qu'au moins un profil le porte.
+        if (remote.values.any { it["pos"] != null }) {
+            val ordered = remote.entries
+                .filter { Profiles.get(ctx, it.key) != null }
+                .sortedBy { (it.value["pos"] as? Long) ?: Long.MAX_VALUE }
+                .map { it.key }
+            Profiles.reorder(ctx, ordered)
+        }
+        // Recale les empreintes selon la position finale (évite un renvoi inutile juste après).
+        for ((index, p) in Profiles.all(ctx).withIndex()) {
+            if (p.id in remote) Cloud.setPushedHash(ctx, p.id, hash(snapshot(ctx, p, index)))
+        }
+
         Cloud.setSyncedIds(ctx, synced + remote.keys)
         pushChanged(ctx)
     }

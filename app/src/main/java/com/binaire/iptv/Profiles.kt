@@ -122,6 +122,14 @@ object Profiles {
         save(ctx, if (list.any { it.id == p.id }) list.map { if (it.id == p.id) p else it } else list + p)
     }
 
+    /** Réordonne les profils selon l'ordre du compte ; les profils locaux non listés restent à la fin. */
+    fun reorder(ctx: Context, orderedIds: List<String>) {
+        val list = all(ctx)
+        val byId = list.associateBy { it.id }
+        val result = orderedIds.mapNotNull { byId[it] } + list.filter { it.id !in orderedIds }
+        if (result.map { it.id } != list.map { it.id }) save(ctx, result)
+    }
+
     fun remove(ctx: Context, id: String, fromSync: Boolean = false) {
         val list = all(ctx)
         if (list.size <= 1) return
